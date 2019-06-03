@@ -1,0 +1,39 @@
+{
+    "backgrounds": {
+        "staticImage": {
+            "w": 1280,
+            "x": 0,
+            "y": 0,
+            "h": 720,
+            "type": "image",
+            "scale": 1,
+            "id": "baseGameStaticBG",
+            "image": "Basegame_BG"
+        },
+        "baseGame": {
+            "x": 650,
+            "y": 350,
+            "w": 1280,
+            "h": 720,
+            "type": "spine",
+            "scale": 1,
+            "id": "basegame_idle",
+            "images": "basegame_idle",
+            "anchorX": 0.50,
+            "anchorY": 0.50
+        }
+    },
+    "fgbackgrounds": {
+        "freeGame": {
+            "x": 0,
+            "y": 0,
+            "w": 1282,
+            "h": 722,
+            "type": "image",
+            "scale": 1,
+            "id": "freeGameBG",
+            "image": "Freegame_BG",
+            "visible": false
+        }
+    }
+}

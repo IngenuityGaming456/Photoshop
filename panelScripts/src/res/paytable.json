@@ -1,0 +1,643 @@
+{
+  "paytable": {
+    "payTableFullContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "visible": true,
+      "type": "container",
+      "id": "payTableFullContainer",
+      "animateWinValues": true,
+      "symbolsAlias": {
+        "0": "0",
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "3",
+        "5": "4",
+        "6": "4",
+        "7": "5",
+        "8": "5",
+        "10": "5"
+      }
+    },
+    "backgroundShape": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "shape",
+      "id": "bg_shape",
+      "fillAlpha": 1,
+      "shape": "rectangle",
+      "color": "rgba(255,255,255,0.15)",
+      "parent": "payTableFullContainer"
+    },
+    "InfoPageMeter": {
+      "x": 602,
+      "y": 635,
+      "w": 135,
+      "h": 46,
+      "type": "meter",
+      "visible": false,
+      "text": "1/6",
+      "id": "Info_Page_Meter",
+      "style": {
+        "font": "54px 'Narkisim'",
+        "align": "center",
+        "fill": "#84d001"
+      },
+      "parent": "payTableFullContainer"
+    },
+    "pagesContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "container",
+      "visible": true,
+      "id": "pagesContainer",
+      "parent": "payTableFullContainer"
+    },
+    "pageOneContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "container",
+      "visible": true,
+      "id": "pageOneContainer",
+      "parent": "pagesContainer"
+    },
+    "pageOneContent": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "image",
+      "visible": true,
+      "id": "pageOneContent",
+      "image": "Jungle_paytable_1",
+      "parent": "pageOneContainer"
+    },
+    "label_1_5": {
+      "x": 487,
+      "y": 192,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_1_5",
+      "text": "5   800",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_1_4": {
+      "x": 487,
+      "y": 224,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_1_4",
+      "text": "4      80",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_1_3": {
+      "x": 487,
+      "y": 256,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_1_3",
+      "text": "3      30",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_1_2": {
+      "x": 487,
+      "y": 290,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_1_2",
+      "text": "2        5",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_2_5": {
+      "x": 910,
+      "y": 194,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_2_5",
+      "text": "5   250",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_2_4": {
+      "x": 910,
+      "y": 225,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_2_4",
+      "text": "4      60",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_2_3": {
+      "x": 910,
+      "y": 257,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_2_3",
+      "text": "3      25",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_2_2": {
+      "x": 910,
+      "y": 291,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_2_2",
+      "text": "2        2",
+      "parent": "pageOneContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "pageTwoContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "container",
+      "visible": false,
+      "id": "pageTwoContainer",
+      "parent": "pagesContainer"
+    },
+    "pageTwoTitle": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "image",
+      "visible": true,
+      "image": "Jungle_paytable_2",
+      "id": "pageTwoTitle",
+      "parent": "pageTwoContainer"
+    },
+    "pageThreeContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "container",
+      "visible": false,
+      "id": "pageThreeContainer",
+      "parent": "pagesContainer"
+    },
+    "pageThreeTitle": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "image",
+      "visible": true,
+      "image": "Jungle_paytable_3",
+      "id": "pageTwoTitle",
+      "parent": "pageThreeContainer"
+    },
+    "label_3_5": {
+      "x": 680,
+      "y": 205,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_3_5",
+      "text": "5    100",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_3_4": {
+      "x": 680,
+      "y": 240,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_3_4",
+      "text": "4      35",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_3_3": {
+      "x": 680,
+      "y": 274,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_3_3",
+      "text": "3      15",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_4_5": {
+      "x": 479,
+      "y": 432,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_4_5",
+      "text": "5    80",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_4_4": {
+      "x": 479,
+      "y": 464,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_4_4",
+      "text": "4    30",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_4_3": {
+      "x": 479,
+      "y": 497,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_4_3",
+      "text": "3    10",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_5_5": {
+      "x": 917,
+      "y": 432,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_5_5",
+      "text": "5    50",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_5_4": {
+      "x": 917,
+      "y": 465,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_5_4",
+      "text": "4    25",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "label_5_3": {
+      "x": 917,
+      "y": 497,
+      "w": 100,
+      "h": 50,
+      "type": "label",
+      "visible": true,
+      "id": "label_5_3",
+      "text": "3      5",
+      "parent": "pageThreeContainer",
+      "style": {
+        "font": "35px MyriadPro-Bold",
+        "fill": "red",
+        "align": "center",
+        "stroke": "white",
+        "strokeThickness": 0
+      }
+    },
+    "pageFourContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "container",
+      "visible": false,
+      "id": "pageFourContainer",
+      "parent": "pagesContainer"
+    },
+    "pageFourTitle": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "image",
+      "visible": true,
+      "image": "Jungle_paytable_4",
+      "id": "pageTwoTitle",
+      "parent": "pageFourContainer"
+    },
+    "exitSettingContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "visible": true,
+      "type": "container",
+      "id": "exitSettingContainer",
+      "parent": "payTableFullContainer"
+    },
+    "info_change_btn": {
+      "x": 0,
+      "y": 612,
+      "w": 120,
+      "h": 50,
+      "type": "button",
+      "id": "info_change_btn",
+      "visible": false,
+      "images": "button_panel_base",
+      "enable": true,
+      "showBounds": false,
+      "frames": {
+        "_up": "Ok_btn_Normal.png",
+        "over": "Ok_btn_Over.png",
+        "down": "Ok_btn_Normal.png",
+        "out": "Ok_btn_Normal.png",
+        "disable": "Ok_btn_Disable.png"
+      },
+      "label": {
+        "out": {
+          "w": 120,
+          "h": 50,
+          "text": "out",
+          "style": {
+            "font": "18px MyriadPro-Bold",
+            "boundsAlignH": "center",
+            "boundsAlignV": "middle",
+            "fill": "#84d001"
+          }
+        },
+        "over": {
+          "text": "over",
+          "style": {
+            "font": "19px MyriadPro-Bold",
+            "boundsAlignH": "center",
+            "boundsAlignV": "middle",
+            "fill": "#84d0a1"
+          }
+        },
+        "down": {
+          "text": "down",
+          "style": {
+            "font": "17px MyriadPro-Bold",
+            "boundsAlignH": "center",
+            "boundsAlignV": "middle",
+            "fill": "#c40d11"
+          }
+        }
+      },
+      "parent": "exitSettingContainer"
+    },
+    "info_next_button": {
+      "x": 1200,
+      "y": 306,
+      "w": 63,
+      "h": 88,
+      "type": "button",
+      "id": "info_next_button",
+      "visible": true,
+      "hitarea": {
+        "type": "shape",
+        "shape": "custom",
+        "x": 0,
+        "y": 0,
+        "visible": false,
+        "commandArray": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            60,
+            40
+          ],
+          [
+            60,
+            50
+          ],
+          [
+            10,
+            88
+          ],
+          [
+            0,
+            88
+          ]
+        ]
+      },
+      "images": "InfoButton",
+      "frames": {
+        "_up": "InfoButtonNext_Normal.png",
+        "over": "InfoButtonNext_Over.png",
+        "down": "InfoButtonNext_Down.png",
+        "out": "InfoButtonNext_Normal.png",
+        "disable": "InfoButtonNext_Disable.png"
+      },
+      "parent": "exitSettingContainer"
+    },
+    "info_prev_button": {
+      "x": 10,
+      "y": 306,
+      "w": 63,
+      "h": 88,
+      "type": "button",
+      "id": "info_prev_button",
+      "visible": true,
+      "hitarea": {
+        "type": "shape",
+        "shape": "custom",
+        "x": 0,
+        "y": 0,
+        "visible": false,
+        "commandArray": [
+          [
+            0,
+            40
+          ],
+          [
+            50,
+            0
+          ],
+          [
+            60,
+            0
+          ],
+          [
+            60,
+            88
+          ],
+          [
+            50,
+            88
+          ],
+          [
+            0,
+            50
+          ]
+        ]
+      },
+      "images": "InfoButton",
+      "frames": {
+        "_up": "InfoButtonBack_Normal.png",
+        "over": "InfoButtonBack_Over.png",
+        "down": "InfoButtonBack_Down.png",
+        "out": "InfoButtonBack_Normal.png",
+        "disable": "InfoButtonBack_Disable.png"
+      },
+      "parent": "exitSettingContainer"
+    },
+    "info_back_button": {
+      "x": 1225,
+      "y": 0,
+      "w": 60,
+      "h": 59,
+      "type": "button",
+      "id": "info_back_button",
+      "visible": true,
+      "images": "InfoButton",
+      "hitarea": {
+        "type": "shape",
+        "shape": "circle",
+        "x": 30,
+        "y": 30,
+        "visible": false,
+        "diameter": 60
+      },
+      "frames": {
+        "_up": "InfoButtonClose_Normal.png",
+        "over": "InfoButtonClose_Over.png",
+        "down": "InfoButtonClose_Down.png",
+        "out": "InfoButtonClose_Normal.png",
+        "disable": "InfoButtonClose_Disable.png"
+      },
+      "parent": "exitSettingContainer"
+    }
+  }
+}

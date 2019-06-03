@@ -1,0 +1,239 @@
+{
+  "IntroOutro": {
+    "IntroOutroContainer": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "container",
+      "visible": false,
+      "bounds": false,
+      "id": "IntroOutroContainer"
+    },
+    "bg_shape": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720,
+      "type": "shape",
+      "id": "bg_shape",
+      "fillAlpha": 0.5,
+      "shape": "rectangle",
+      "color": "rgb(0,0,0)",
+      "parent": "IntroOutroContainer"
+    },
+    "IntroContainer": {
+      "x": 640,
+      "y": 360,
+      "w": 1280,
+      "h": 720,
+      "regX": 640,
+      "regY": 360,
+      "type": "container",
+      "visible": false,
+      "bounds": false,
+      "id": "IntroContainer",
+      "parent": "IntroOutroContainer"
+    },
+    "OutroContainer": {
+      "x": 640,
+      "y": 360,
+      "w": 1280,
+      "h": 720,
+      "regX": 640,
+      "regY": 360,
+      "type": "container",
+      "visible": false,
+      "bounds": false,
+      "id": "OutroContainer",
+      "parent": "IntroOutroContainer"
+    },
+    "freeGameIntro": {
+      "x": 640,
+      "y": 360,
+      "w": 800,
+      "h": 400,
+      "regX": 400,
+      "regY": 200,
+      "type": "container",
+      "visible": false,
+      "bounds": false,
+      "alpha": 1,
+      "id": "freeGameIntro",
+      "parent": "IntroContainer"
+    },
+    "freeGameOutro": {
+      "x": 640,
+      "y": 360,
+      "w": 800,
+      "h": 400,
+      "regX": 400,
+      "regY": 200,
+      "type": "container",
+      "visible": true,
+      "bounds": false,
+      "alpha": 1,
+      "id": "freeGameOutro",
+      "parent": "OutroContainer"
+    },
+    "bg_shape_intro": {
+      "x": 0,
+      "y": 0,
+      "w": 800,
+      "h": 400,
+      "type": "shape",
+      "id": "bg_shape_intro",
+      "fillAlpha": 0.95,
+      "shape": "rectangle",
+      "color": "rgb(0,255,0)",
+      "parent": "freeGameIntro"
+    },
+    "congrats": {
+      "x": 0,
+      "y": 10,
+      "w": 800,
+      "h": 86,
+      "type": "label",
+      "text": "CONGRATULATIONS",
+      "showBounds": false,
+      "id": "congrats",
+      "style": {
+        "font": "bold 57px Arial",
+        "fill": "#ffea04",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#b80000",
+        "strokeThickness": 5
+      },
+      "bounds": false,
+      "parent": "freeGameIntro"
+    },
+    "youWon": {
+      "x": 0,
+      "y": 116,
+      "w": 800,
+      "h": 80,
+      "type": "label",
+      "text": "YOU WON",
+      "showBounds": false,
+      "id": "youWon",
+      "style": {
+        "font": "bold 54px Arial",
+        "fill": "#54ff00",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#000000",
+        "strokeThickness": 5
+      },
+      "parent": "freeGameIntro"
+    },
+    "freeSpinNumber": {
+      "x": 0,
+      "y": 216,
+      "w": 800,
+      "h": 80,
+      "type": "label",
+      "text": "",
+      "showBounds": false,
+      "id": "freeSpinNumber",
+      "style": {
+        "font": "bold 54px Arial",
+        "fill": "#ffea04",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#b80000",
+        "strokeThickness": 5
+      },
+      "parent": "freeGameIntro"
+    },
+    "additionalFreeSpin": {
+      "x": 0,
+      "y": 316,
+      "w": 800,
+      "h": 80,
+      "type": "label",
+      "text": "FREE SPINS",
+      "showBounds": false,
+      "id": "additionalFreeSpin",
+      "style": {
+        "font": "bold 54px Arial",
+        "fill": "#54ff00",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#000000",
+        "strokeThickness": 5
+      },
+      "parent": "freeGameIntro"
+    },
+    "bg_shape_outro": {
+      "x": 0,
+      "y": 0,
+      "w": 800,
+      "h": 400,
+      "type": "shape",
+      "id": "bg_shape_outro",
+      "fillAlpha": 0.95,
+      "shape": "rectangle",
+      "color": "rgb(0,255,0)",
+      "parent": "freeGameOutro"
+    },
+    "congratsOut": {
+      "x": 0,
+      "y": 10,
+      "w": 800,
+      "h": 86,
+      "type": "label",
+      "text": "CONGRATULATIONS",
+      "showBounds": false,
+      "id": "congratsOut",
+      "style": {
+        "font": "bold 57px Arial",
+        "fill": "#ffea04",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#b80000",
+        "strokeThickness": 5
+      },
+      "bounds": false,
+      "parent": "freeGameOutro"
+    },
+    "youWonOut": {
+      "x": 0,
+      "y": 116,
+      "w": 800,
+      "h": 80,
+      "type": "label",
+      "text": "TOTAL WIN",
+      "showBounds": false,
+      "id": "youWonOut",
+      "style": {
+        "font": "bold 54px Arial",
+        "fill": "#54ff00",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#000000",
+        "strokeThickness": 5
+      },
+      "parent": "freeGameOutro"
+    },
+    "freeSpinWinAmount": {
+      "x": 0,
+      "y": 216,
+      "w": 800,
+      "h": 80,
+      "type": "meter",
+      "text": "$0",
+      "showBounds": false,
+      "id": "freeSpinWinAmount",
+      "style": {
+        "font": "bold 54px Arial",
+        "fill": "#ffea04",
+        "boundsAlignH": "center",
+        "boundsAlignV": "middle",
+        "stroke": "#b80000",
+        "strokeThickness": 5
+      },
+      "parent": "freeGameOutro"
+    }
+  }
+}

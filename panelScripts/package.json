@@ -1,0 +1,22 @@
+{
+  "name": "PanelScripts",
+  "version": "1.0.0",
+  "generator-core-version": "^3.10.0",
+  "dependencies": {
+    "fs-extra": "^5.0.0",
+    "q": "~1.0",
+    "svgobjectmodelgenerator": "github:adobe-photoshop/svgObjectModelGenerator#v0.6.5",
+    "tmp": "0.0.33"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.2",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-contrib-nodeunit": "^1.0.0",
+    "grunt-jscs": "^3.0.1",
+    "grunt-peg": "^2.0.1",
+    "jscs-trailing-whitespace-in-source": "0.0.1",
+    "nodeunit": "^0.11.2",
+    "pegjs": "~0.8"
+  },
+  "main": "./src/main.js"
+}
