@@ -1,0 +1,63 @@
+{
+  "Export" : {
+    "label": "ExportsPlugin",
+    "displayName": "Exports"
+  },
+  "FreeGameView": {
+    "label": "AddFreeGameView",
+    "displayName": "FreeGameView",
+    "type": "view"
+  },
+  "IntroOutro": {
+    "label": "AddIntroOutro",
+    "displayName": "IntroOutro",
+    "type": "view"
+  },
+  "Paytable": {
+    "label": "AddPaytable",
+    "displayName": "Paytable",
+    "type": "view"
+  },
+  "MainView": {
+    "label": "AddMainView",
+    "displayName": "MainView",
+    "type": "view"
+  },
+  "EmptyContainer": {
+    "label": "AddEmptyCont",
+    "displayName": "EmptyContainer",
+    "type": "comp"
+  },
+  "Meter": {
+    "label": "AddMeter",
+    "displayName": "Meter",
+    "type": "comp"
+  },
+  "Button": {
+    "label": "AddButton",
+    "displayName": "Button",
+    "type": "comp"
+  },
+  "Animation": {
+    "label": "AddAnimation",
+    "displayName": "Animation",
+    "type": "comp"
+  },
+  "Spine": {
+    "label": "AddSpine",
+    "displayName": "Spine",
+    "type": "comp"
+  },
+  "Symbol": {
+    "label": "AddSymbol",
+    "displayName": "Symbol"
+  },
+  "Payline": {
+    "label": "AddPayline",
+    "displayName": "Payline"
+  },
+  "WinFrame": {
+    "label": "AddWinFrame",
+    "displayName": "WinFrame"
+  }
+}

@@ -35,18 +35,21 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var DrawView = /** @class */ (function () {
-    function DrawView(params, generator, menuName) {
+var path = require("path");
+var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
+var JsonComponents_1 = require("./JsonComponents");
+var CreateView = /** @class */ (function () {
+    function CreateView(generator, element, viewsMap) {
         var _this = this;
         this._generator = generator;
-        this.drawStruct(params)
+        this.drawStruct(viewsMap.get(element.label))
             .then(function () {
-            if (menuName === "AddMainView" || menuName === "AddFreeGameView") {
+            if (element.label === "AddMainView" || element.label === "AddFreeGameView") {
                 _this.insertDefaultJsx();
             }
         });
     }
-    DrawView.prototype.drawStruct = function (params) {
+    CreateView.prototype.drawStruct = function (params) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, _b, _i, keys;
             return __generator(this, function (_c) {
@@ -73,7 +76,7 @@ var DrawView = /** @class */ (function () {
             });
         });
     };
-    DrawView.prototype.makeStruct = function (parserObject, baseKeyName) {
+    CreateView.prototype.makeStruct = function (parserObject, baseKeyName) {
         return __awaiter(this, void 0, void 0, function () {
             var layerType, _a, _b, _i, keys, jsxParams;
             return __generator(this, function (_c) {
@@ -85,17 +88,17 @@ var DrawView = /** @class */ (function () {
                         _i = 0;
                         _c.label = 1;
                     case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 13];
+                        if (!(_i < _a.length)) return [3 /*break*/, 7];
                         keys = _a[_i];
                         jsxParams = { parentName: "", childName: "", type: "" };
-                        if (!parserObject.hasOwnProperty(keys)) return [3 /*break*/, 12];
+                        if (!parserObject.hasOwnProperty(keys)) return [3 /*break*/, 6];
                         layerType = parserObject[keys].type;
                         jsxParams.childName = parserObject[keys].id;
                         if (!!baseKeyName) return [3 /*break*/, 4];
                         baseKeyName = keys;
                         jsxParams.childName = baseKeyName;
                         jsxParams.type = "layerSection";
-                        return [4 /*yield*/, this._generator.evaluateJSXFile("C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\refactoredJsx\\InsertLayer.jsx", jsxParams)];
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname + "../../../jsx/InsertLayer.jsx"), jsxParams)];
                     case 2:
                         _c.sent();
                         return [4 /*yield*/, this.makeStruct(parserObject[keys], baseKeyName)];
@@ -104,50 +107,63 @@ var DrawView = /** @class */ (function () {
                         return [2 /*return*/];
                     case 4:
                         jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : baseKeyName;
-                        if (!(layerType === "image" || layerType === "shape" || layerType === "label")) return [3 /*break*/, 6];
-                        jsxParams.type = "artLayer";
-                        if (layerType === "label") {
-                            jsxParams.subType = "text";
-                        }
-                        return [4 /*yield*/, this._generator.evaluateJSXFile("C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\refactoredJsx\\InsertLayer.jsx", jsxParams)];
+                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType)];
                     case 5:
                         _c.sent();
                         _c.label = 6;
                     case 6:
-                        if (!(layerType === "container")) return [3 /*break*/, 8];
-                        jsxParams.type = "layerSection";
-                        return [4 /*yield*/, this._generator.evaluateJSXFile("C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\refactoredJsx\\InsertLayer.jsx", jsxParams)];
-                    case 7:
-                        _c.sent();
-                        _c.label = 8;
-                    case 8:
-                        if (!(layerType === "button")) return [3 /*break*/, 10];
-                        return [4 /*yield*/, this._generator.evaluateJSXFile("C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\AddButton.jsx", jsxParams)];
-                    case 9:
-                        _c.sent();
-                        _c.label = 10;
-                    case 10:
-                        if (!(layerType === "animation")) return [3 /*break*/, 12];
-                        return [4 /*yield*/, this._generator.evaluateJSXFile("C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\AddAnimation.jsx", jsxParams)];
-                    case 11:
-                        _c.sent();
-                        _c.label = 12;
-                    case 12:
                         _i++;
                         return [3 /*break*/, 1];
-                    case 13: return [2 /*return*/];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
     };
-    DrawView.prototype.insertDefaultJsx = function () {
+    CreateView.prototype.createElementTree = function (jsxParams, layerType) {
         return __awaiter(this, void 0, void 0, function () {
+            var jsonMap, element;
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0:
+                        jsonMap = JsonComponentsFactory_1.JsonComponentsFactory.makeJsonComponentsMap();
+                        element = jsonMap.get(layerType);
+                        if (!(element instanceof JsonComponents_1.PhotoshopJsonComponent)) return [3 /*break*/, 2];
+                        jsxParams.type = element.getType();
+                        jsxParams.subType = element.getSubType();
+                        return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        if (!(element instanceof JsonComponents_1.QuestJsonComponent)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
+                }
             });
         });
     };
-    return DrawView;
+    CreateView.prototype.insertDefaultJsx = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddSymbol.jsx"))];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddPayline.jsx"))];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddWinFrame.jsx"))];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    return CreateView;
 }());
-exports.DrawView = DrawView;
-//# sourceMappingURL=DrawView.js.map
+exports.CreateView = CreateView;
+//# sourceMappingURL=CreateView.js.map

@@ -1,4 +1,4 @@
-#include "C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\CreateStruct.jsx"
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var winFrameName = params && params.clicks ? "WinFrame" + params.clicks : "WinFrame1";
 var winFrameStruct = ["Animation", "Static"];
 var winFrameStructLength = winFrameStruct.length;

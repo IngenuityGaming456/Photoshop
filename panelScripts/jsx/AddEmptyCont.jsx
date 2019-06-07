@@ -1,4 +1,4 @@
-#include "C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var emptyContName = "EmptyContainer" + params.clicks;
 var layerConfig = {
     kind: LayerKind.TEXT
@@ -8,3 +8,4 @@ var layerKindConfig = {
 }
 var emptyContRef = insertLayer(app.activeDocument, emptyContName, "layerSection");
 insertLayer(emptyContRef, "", "artLayer", layerConfig, layerKindConfig);
+emptyContRef.id;

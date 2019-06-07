@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "generator-core-version": "^3.10.0",
   "dependencies": {
+    "@types/node": "^12.0.4",
     "fs-extra": "^5.0.0",
     "q": "~1.0",
     "svgobjectmodelgenerator": "github:adobe-photoshop/svgObjectModelGenerator#v0.6.5",

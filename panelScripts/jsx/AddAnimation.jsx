@@ -1,4 +1,4 @@
-#include "C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var animationStruct = ["end", "loop", "start"];
 var animationTypeCount = animationStruct.length;
 var animationName = params.childName ? params.childName : "Animation" + params.clicks;
@@ -14,3 +14,4 @@ for(var i=0;i<animationTypeCount;i++) {
     var pathName = getPathName(layerRef, "Image.png");
     insertLayer(layerRef, pathName, "artLayer", layerConfig);
 }
+animationRef.id;

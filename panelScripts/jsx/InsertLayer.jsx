@@ -1,4 +1,4 @@
-#include "C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\CreateStruct.jsx"
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var parentRef = params.parentName ? getInsertionReference(app.activeDocument, params.parentName) :
     app.activeDocument;
 var layerConfig;

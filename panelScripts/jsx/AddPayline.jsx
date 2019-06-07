@@ -1,4 +1,4 @@
-#include "C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\CreateStruct.jsx"
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var paylineName = params && params.clicks ? "Payline" + params.clicks : "Payline1";
 var paylineStruct = ["Animation", "Static"];
 var paylineStructLength = paylineStruct.length;

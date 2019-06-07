@@ -1,112 +1,113 @@
 (function () {
     "use strict";
-    let _generator, clickCount = 0;
-    let DrawView = require("./modules/DrawView").DrawView;
-    let baseGameStruct = require("./res/baseGame");
-    let bigWinStruct = require("./res/bigWin");
-    let paytableStruct = require("./res/paytable");
-    let introOutroStruct = require("./res/IntroOutro");
-    let freeGameStruct = require("./res/freeGame");
-    let backgroundStruct = require("./res/background");
+    let _generator, documentPromise = [],
+        CreateView = require("./modules/CreateView").CreateView,
+        Restructure = require("./modules/Restructure").Restructure,
+        ViewParamFactory = require("./modules/ViewParamFactory").ViewParamFactory,
+        CreateComponent = require("./modules/CreateComponent").CreateComponent,
+        menuLables = require("./res/menuLables"),
+        path = require('path'),
+        compArray = [], viewArray = [],
+        componentsMap, viewsMap, createComponent, createView = {};
+
     function init(generator) {
         _generator = generator;
-        const menuLables = getMenuItems();
+        createObjects();
         addMenuItems(menuLables);
         _generator.onPhotoshopEvent("generatorMenuChanged", onButtonMenuClicked);
+        _generator.onPhotoshopEvent("imageChanged", onImageChanged);
+        _generator.onPhotoshopEvent("currentDocumentChanged", onDocumentChanged);
+    }
+
+    function onDocumentChanged() {
+        componentsMap.forEach(handleChange);
+        Promise.all(documentPromise)
+               .then(
+                _generator.evaluateJSXFile(path.join(__dirname, "../jsx/alert.jsx"), {
+                    message: "Search is done, Happy Photoshopping"
+                }));
+    }
+
+    function handleChange(itemMap) {
+        let jsxPromise = _generator.evaluateJSXFile(path.join(__dirname, "../jsx/searchDocument.jsx"),
+            {type: itemMap.label});
+        documentPromise.push(jsxPromise);
+        jsxPromise.then(controlledString => {
+            if(!controlledString.length) {
+                return;
+            }
+            let controlledArrays = controlledString.split(",");
+            controlledArrays.forEach(item => {
+                let colonPos = item.search(":");
+                let typeObj = {
+                    id: Number(item.slice(0, colonPos)),
+                    sequence: Number(item.slice(colonPos + 1))
+                };
+                itemMap.elementArray.push(typeObj);
+            });
+        });
+    }
+
+    function onImageChanged(event) {
+        if(event.layers && !event.layers[0].added && (event.layers[0].removed || event.layers[0].name)) {
+            componentsMap.forEach(item => {
+                Restructure.searchAndModifyControlledArray(event.layers, item);
+            });
+        }
     }
 
     function onButtonMenuClicked(event) {
-        clickCount++;
         let menu = event.generatorMenuChanged;
-        let params = {clicks: clickCount};
-        if(menu.name === "AddMainView") {
-            let baseGameSec = backgroundStruct.backgrounds;
-            let baseGameObj = {backgrounds: baseGameSec};
-            params = {
-                baseGame: baseGameStruct,
-            };
-            new DrawView(params, _generator, menu.name);
+        let element = findElementType(menu);
+        if(element.type === "view") {
+            createView = new CreateView(_generator, element, viewsMap);
         }
-        if(menu.name === "AddPaytable") {
-            params = {
-                paytable: paytableStruct
-            };
-            new DrawView(params, _generator, menu.name);
+        if(element.type === "comp") {
+            createComponent = new CreateComponent(_generator, element, componentsMap);
         }
-        if(menu.name === "AddIntroOutro") {
-            params = {
-                introOutro: introOutroStruct
-            };
-            new DrawView(params, _generator, menu.name);
+    }
+
+    function findElementType(menu) {
+        let element = searchForElement(menu.name, viewArray);
+        if(element) {
+            return element;
         }
-        if(menu.name === "AddFreeGameView") {
-            let freeGameSec = backgroundStruct.fgbackgrounds;
-            let freeGameObj = {fgbackgrounds: freeGameSec};
-            menu.name = "AddMainView";
-            params = {
-                freeGame: freeGameStruct,
-                background: freeGameObj
-            };
-            new DrawView(params, _generator, menu.name);
-        } /*else {
-            _generator.evaluateJSXFile("C:\\Users\\hswaroop\\photoshop-scripting\\panelScripts\\jsx\\"
-                + menu.name + ".jsx", params)
-                .then((data) => console.log(data));
-        }*/
+        element = searchForElement(menu.name, compArray);
+        if(element) {
+            return element;
+        }
+        return element;
+    }
+
+    function searchForElement(searchKey, searchArray) {
+        return searchArray.find(item => {
+            return item.label === searchKey;
+        });
     }
 
     function addMenuItems(menuLables) {
         for(let menu in menuLables) {
             if(menuLables.hasOwnProperty(menu)) {
+                if(menuLables[menu].type && menuLables[menu].type === "view") {
+                    viewArray.push(menuLables[menu]);
+                }
+                if(menuLables[menu].type && menuLables[menu].type === "comp") {
+                    compArray.push(menuLables[menu]);
+                    componentsMap.set(menuLables[menu].label,
+                        {
+                            label: menuLables[menu].displayName,
+                            elementArray: [],
+                            filteredId: []
+                        });
+                }
                 _generator.addMenuItem(menuLables[menu].label, menuLables[menu].displayName, true, false);
             }
         }
     }
 
-    function getMenuItems() {
-        let menus = {
-            FreeGameView: {
-                label: "AddFreeGameView",
-                displayName: "FreeGameView"
-            },
-            IntroOutro: {
-                label: "AddIntroOutro",
-                displayName: "IntroOutro"
-            },
-            Paytable: {
-                label: "AddPaytable",
-                displayName: "Paytable"
-            },
-            MainView: {
-                label: "AddMainView",
-                displayName: "MainView"
-            },
-            EmptyContainer: {
-                label: "AddEmptyCont",
-                displayName: "EmptyContainer"
-            },
-            Button: {
-                label: "AddButton",
-                displayName: "Button"
-            },
-            Animation: {
-                label: "AddAnimation",
-                displayName: "Animation"
-            },
-            Symbol: {
-                label: "AddSymbol",
-                displayName: "Symbol"
-            },
-            Payline: {
-                label: "AddPayline",
-                displayName: "Payline"
-            },
-            WinFrame: {
-                label: "AddWinFrame",
-                displayName: "WinFrame"
-            }
-        };
-        return menus;
+    function createObjects() {
+        componentsMap = new Map();
+        viewsMap = ViewParamFactory.makeViewMap();
     }
 
     exports.init = init;
