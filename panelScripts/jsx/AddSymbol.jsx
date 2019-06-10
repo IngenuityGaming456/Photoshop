@@ -3,14 +3,14 @@ var symbolStruct = ["Animations", "Blur", "Static"];
 var animationTypes = ["win", "landing", "trigger"];
 var symbolStructLength = symbolStruct.length;
 var animationLength = animationTypes.length;
-var symbolName = params && params.clicks ? "Symbol" + params.clicks : "Symbol1";
+var symbolName = "Symbol" + params.clicks;
 var layerConfig = {
     opacity: 0.3,
     kind: LayerKind.TEXT
 };
 var symbolsRef;
 try {
-    symbolsRef = app.activeDocument.layerSets.getByName("Symbols");
+    symbolsRef = getInsertionReference(app.activeDocument, "Symbols");
 } catch(err) {
     symbolsRef = insertLayer(app.activeDocument, "Symbols", "layerSection");
 }
@@ -28,3 +28,4 @@ for(var i=0; i< animationLength; i++) {
     var pathName = getPathName(layerRef, "Image.png");
     insertLayer(layerRef, pathName, "artLayer", layerConfig);
 }
+symbolNameRef.id;

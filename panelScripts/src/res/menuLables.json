@@ -50,14 +50,17 @@
   },
   "Symbol": {
     "label": "AddSymbol",
-    "displayName": "Symbol"
+    "displayName": "Symbol",
+    "type": "comp"
   },
   "Payline": {
     "label": "AddPayline",
-    "displayName": "Payline"
+    "displayName": "Payline",
+    "type": "comp"
   },
   "WinFrame": {
     "label": "AddWinFrame",
-    "displayName": "WinFrame"
+    "displayName": "WinFrame",
+    "type": "comp"
   }
 }

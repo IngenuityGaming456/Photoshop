@@ -27,7 +27,7 @@
             "y": 270,
             "w": 647,
             "h": 192,
-            "_type": "image",
+            "type": "image",
             "id": "big_win_popup_image",
             "images": "FQ_BigWin_01",
             "parent": "bigwinContainer"

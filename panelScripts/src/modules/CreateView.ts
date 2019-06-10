@@ -9,11 +9,6 @@ export class CreateView {
     public constructor(generator, element, viewsMap) {
         this._generator = generator;
         this.drawStruct(viewsMap.get(element.label))
-            .then(() => {
-                if(element.label === "AddMainView" || element.label === "AddFreeGameView") {
-                    this.insertDefaultJsx();
-                }
-            })
     }
 
     private async drawStruct(params) {
@@ -38,10 +33,10 @@ export class CreateView {
                     await this._generator.evaluateJSXFile(path.join(__dirname + "../../../jsx/InsertLayer.jsx"),
                                                           jsxParams);
                     await this.makeStruct(parserObject[keys], baseKeyName);
-                    return;
+                } else {
+                    jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : baseKeyName;
+                    await this.createElementTree(jsxParams, layerType);
                 }
-                jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : baseKeyName;
-                await this.createElementTree(jsxParams, layerType);
             }
         }
     }
@@ -57,12 +52,6 @@ export class CreateView {
         if(element instanceof QuestJsonComponent) {
             await element.setJsx(this._generator, jsxParams);
         }
-    }
-
-    private async insertDefaultJsx() {
-        await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddSymbol.jsx"));
-        await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddPayline.jsx"));
-        await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddWinFrame.jsx"));
     }
 
 }

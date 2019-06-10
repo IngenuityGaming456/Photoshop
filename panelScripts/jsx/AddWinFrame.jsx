@@ -1,5 +1,5 @@
 #include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
-var winFrameName = params && params.clicks ? "WinFrame" + params.clicks : "WinFrame1";
+var winFrameName = "WinFrame" + params.clicks;
 var winFrameStruct = ["Animation", "Static"];
 var winFrameStructLength = winFrameStruct.length;
 var layerConfig = {
@@ -9,7 +9,7 @@ var layerConfig = {
 
 var winFramesRef;
 try {
-    winFramesRef = app.activeDocument.layerSets.getByName("WinFrames");
+    winFramesRef = getInsertionReference(app.activeDocument, "WinFrames");
 } catch(err) {
     winFramesRef = insertLayer(app.activeDocument, "WinFrames", "layerSection");
 }
@@ -20,3 +20,4 @@ for(var i=0;i<winFrameStructLength;i++) {
     var pathName = getPathName(layerRef, "Image.png");
     insertLayer(layerRef, pathName, "artLayer", layerConfig);
 }
+winFrameRef.id;

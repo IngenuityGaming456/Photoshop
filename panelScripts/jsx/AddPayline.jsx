@@ -1,5 +1,5 @@
 #include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
-var paylineName = params && params.clicks ? "Payline" + params.clicks : "Payline1";
+var paylineName = "Payline" + params.clicks;
 var paylineStruct = ["Animation", "Static"];
 var paylineStructLength = paylineStruct.length;
 var layerConfig = {
@@ -9,7 +9,7 @@ var layerConfig = {
 
 var paylinesRef;
 try {
-    paylinesRef = app.activeDocument.layerSets.getByName("Paylines");
+    paylinesRef = getInsertionReference(app.activeDocument, "Paylines");
 } catch(err) {
     paylinesRef = insertLayer(app.activeDocument, "Paylines", "layerSection");
 }
@@ -20,3 +20,4 @@ for(var i=0;i<paylineStructLength;i++) {
     var pathName = getPathName(layerRef, "Image.png");
     insertLayer(layerRef, pathName, "artLayer", layerConfig);
 }
+paylineRef.id;

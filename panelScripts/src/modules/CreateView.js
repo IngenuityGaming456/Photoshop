@@ -40,14 +40,8 @@ var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
 var CreateView = /** @class */ (function () {
     function CreateView(generator, element, viewsMap) {
-        var _this = this;
         this._generator = generator;
-        this.drawStruct(viewsMap.get(element.label))
-            .then(function () {
-            if (element.label === "AddMainView" || element.label === "AddFreeGameView") {
-                _this.insertDefaultJsx();
-            }
-        });
+        this.drawStruct(viewsMap.get(element.label));
     }
     CreateView.prototype.drawStruct = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -104,7 +98,7 @@ var CreateView = /** @class */ (function () {
                         return [4 /*yield*/, this.makeStruct(parserObject[keys], baseKeyName)];
                     case 3:
                         _c.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 6];
                     case 4:
                         jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : baseKeyName;
                         return [4 /*yield*/, this.createElementTree(jsxParams, layerType)];
@@ -141,24 +135,6 @@ var CreateView = /** @class */ (function () {
                         _a.sent();
                         _a.label = 4;
                     case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CreateView.prototype.insertDefaultJsx = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddSymbol.jsx"))];
-                    case 1:
-                        _a.sent();
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddPayline.jsx"))];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/AddWinFrame.jsx"))];
-                    case 3:
-                        _a.sent();
-                        return [2 /*return*/];
                 }
             });
         });

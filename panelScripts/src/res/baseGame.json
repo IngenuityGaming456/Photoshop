@@ -10,6 +10,18 @@
       "id": "BaseGame_Logo",
       "image": "Logo",
       "visible": true
+    },
+    "Symbols":   {
+      "type": "container",
+      "id": "Symbols"
+    },
+    "Paylines":  {
+      "type": "container",
+      "id": "Paylines"
+    },
+    "WinFrames": {
+      "type": "container",
+      "id": "WinFrames"
     }
   }
 }

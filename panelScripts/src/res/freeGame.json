@@ -19,6 +19,7 @@
             "h": 43,
             "scale": 1,
             "id": "BaseGame_Logo",
+            "type": "image",
             "images": "freeGame",
             "frames": "FreeSpin_Logo.png",
             "visible": true
