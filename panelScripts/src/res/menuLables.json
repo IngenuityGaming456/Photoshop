@@ -1,27 +1,27 @@
 {
-  "Export" : {
-    "label": "ExportsPlugin",
-    "displayName": "Exports"
+  "Desktop": {
+    "label": "DesktopView",
+    "displayName": "Desktop"
+  },
+  "Mobile": {
+    "label": "MobileView",
+    "displayName": "Mobile"
   },
   "FreeGameView": {
     "label": "AddFreeGameView",
-    "displayName": "FreeGameView",
-    "type": "view"
+    "displayName": "FreeGameView"
   },
   "IntroOutro": {
     "label": "AddIntroOutro",
-    "displayName": "IntroOutro",
-    "type": "view"
+    "displayName": "IntroOutro"
   },
   "Paytable": {
     "label": "AddPaytable",
-    "displayName": "Paytable",
-    "type": "view"
+    "displayName": "Paytable"
   },
   "MainView": {
     "label": "AddMainView",
-    "displayName": "MainView",
-    "type": "view"
+    "displayName": "MainView"
   },
   "EmptyContainer": {
     "label": "AddEmptyCont",

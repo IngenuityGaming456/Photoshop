@@ -2,6 +2,7 @@ function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConf
     var childLayer;
     if(layerType === "layerSection") {
         childLayer = parentRef.layerSets.add();
+        childLayer.name = childName;
     }
     if(layerType === "artLayer") {
         childLayer = parentRef.artLayers.add();
@@ -9,11 +10,13 @@ function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConf
             childLayer.opacity = layerConfig.opacity;
         }
         if(layerConfig && layerConfig.hasOwnProperty("kind")) {
+            childLayer.name = childName;
             childLayer.kind = layerConfig.kind;
             childLayer.textItem.contents = layerKindConfig ? layerKindConfig.contents : "Default";
+        } else {
+            childLayer.name = getPathName(parentRef, childName + ".png");
         }
     }
-    childLayer.name = childName;
     return childLayer;
 }
 

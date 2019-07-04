@@ -36,67 +36,65 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
-var PhotoshopJsonComponent = /** @class */ (function () {
-    function PhotoshopJsonComponent(type, path, subType) {
-        this._type = type;
-        this._path = path;
-        this._subType = subType;
+var CreateView = /** @class */ (function () {
+    function CreateView(generator, viewKey, viewMap) {
+        this._viewKey = viewKey;
+        this._viewMap = viewMap;
+        this._generator = generator;
     }
-    PhotoshopJsonComponent.prototype.getType = function () {
-        return this._type;
+    CreateView.prototype.getElement = function () {
+        return this._viewMap.get(this._viewKey);
     };
-    PhotoshopJsonComponent.prototype.getSubType = function () {
-        return this._subType;
-    };
-    PhotoshopJsonComponent.prototype.setJsxPath = function () {
-        return path.join(__dirname + this._path);
-    };
-    PhotoshopJsonComponent.prototype.setJsx = function (generator, params) {
+    CreateView.prototype.shouldDrawStruct = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var jsxPath, selectedLayers, selectedLayersArray;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, generator.evaluateJSXFile(this.setJsxPath(), params)];
+                    case 0:
+                        jsxPath = path.join(__dirname, "../../jsx/SelectedLayers.jsx");
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(jsxPath)];
                     case 1:
-                        _a.sent();
-                        return [2 /*return*/, Promise.resolve()];
+                        selectedLayers = _a.sent();
+                        selectedLayersArray = selectedLayers.split(",");
+                        if (~selectedLayersArray.indexOf("common") && selectedLayersArray.length === 1) {
+                            return [2 /*return*/, Promise.resolve("common")];
+                        }
+                        return [2 /*return*/, Promise.reject("invalid")];
                 }
             });
         });
     };
-    return PhotoshopJsonComponent;
+    return CreateView;
 }());
-exports.PhotoshopJsonComponent = PhotoshopJsonComponent;
-var QuestJsonComponent = /** @class */ (function () {
-    function QuestJsonComponent(type, path) {
-        this._path = path;
-        this._type = type;
+exports.CreateView = CreateView;
+var CreatePlatform = /** @class */ (function () {
+    function CreatePlatform(generator, platformKey, platformMap) {
+        this._platformKey = platformKey;
+        this._platformMap = platformMap;
+        this._generator = generator;
     }
-    QuestJsonComponent.prototype.setJsxPath = function () {
-        return path.join(__dirname + this._path);
+    CreatePlatform.prototype.getElement = function () {
+        return this._platformMap.get(this._platformKey);
     };
-    QuestJsonComponent.prototype.setJsx = function (generator, params) {
-        var _this = this;
-        return new Promise(function (resolve) {
-            generator.evaluateJSXFile(_this.setJsxPath(), params)
-                .then(function (id) {
-                _this.setLayerMetaData(generator, _this._type, id)
-                    .then(function () { return resolve(); });
-            });
-        });
-    };
-    QuestJsonComponent.prototype.setLayerMetaData = function (generator, type, id) {
+    CreatePlatform.prototype.shouldDrawStruct = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var jsxPath, selectedLayers;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, generator.setLayerSettingsForPlugin(type, id, "LayoutPlugin")];
+                    case 0:
+                        jsxPath = path.join(__dirname, "../../jsx/SelectedLayers.jsx");
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(jsxPath)];
                     case 1:
-                        _a.sent();
-                        return [2 /*return*/, Promise.resolve()];
+                        selectedLayers = _a.sent();
+                        if (!selectedLayers.length) {
+                            return [2 /*return*/, Promise.resolve(null)];
+                        }
+                        return [2 /*return*/, Promise.reject("invalid")];
                 }
             });
         });
     };
-    return QuestJsonComponent;
+    return CreatePlatform;
 }());
-exports.QuestJsonComponent = QuestJsonComponent;
-//# sourceMappingURL=JsonComponents.js.map
+exports.CreatePlatform = CreatePlatform;
+//# sourceMappingURL=CreateViewClasses.js.map

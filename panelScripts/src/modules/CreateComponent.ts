@@ -2,22 +2,17 @@ import {Restructure} from "./Restructure";
 import * as path from "path";
 
 export class CreateComponent {
-    private readonly _componentsMap;
-    private _generator;
+    private readonly _generator;
     public constructor(generator, element, componentsMap) {
         this._generator = generator;
-        this._componentsMap = componentsMap;
-        let sequenceId = this.findSequence(element);
-        this.callComponentJsx(sequenceId, element.label)
+        let elementValue = componentsMap.get(element);
+        let sequenceId = Restructure.sequenceStructure(elementValue);
+        this.callComponentJsx(sequenceId, element)
             .then( (id) => {
-                    this._generator.setLayerSettingsForPlugin(element.displayName, id, "LayoutPlugin");
-                    let controlledArray = componentsMap.get(element.label).elementArray;
+                    this._generator.setLayerSettingsForPlugin(elementValue.displayName, id, "LayoutPlugin");
+                    let controlledArray = elementValue.elementArray;
                     controlledArray.push({id: id, sequence: sequenceId});
             });
-    }
-
-    private findSequence(element) {
-        return Restructure.sequenceStructure(element, this._componentsMap);
     }
 
     private callComponentJsx(sequenceId: number, jsxName: string): Promise<number> {

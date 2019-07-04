@@ -2,19 +2,19 @@ import {ISequence} from "../interfaces/IJsxParam";
 
 export class Restructure {
 
-    public static sequenceStructure(element, componentsMap): number {
-        let elementObj = componentsMap.get(element.label);
-        if(!elementObj.elementArray.length) {
-            elementObj.filteredId = [];
+    public static sequenceStructure(elementValue): number {
+        
+        if(!elementValue.elementArray.length) {
+            elementValue.filteredId = [];
             return 1;
         }
-        if(!elementObj.filteredId.length) {
-            Restructure.sortArray(elementObj.elementArray);
-            return elementObj.elementArray[elementObj.elementArray.length-1].sequence + 1;
+        if(!elementValue.filteredId.length) {
+            Restructure.sortArray(elementValue.elementArray);
+            return elementValue.elementArray[elementValue.elementArray.length-1].sequence + 1;
         }
-        elementObj.filteredId.sort();
-        const sequence: number = elementObj.filteredId[0];
-        elementObj.filteredId = [];
+        elementValue.filteredId.sort();
+        const sequence: number = elementValue.filteredId[0];
+        elementValue.filteredId = [];
         return sequence;
     }
 

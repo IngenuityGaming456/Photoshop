@@ -3,19 +3,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Restructure = /** @class */ (function () {
     function Restructure() {
     }
-    Restructure.sequenceStructure = function (element, componentsMap) {
-        var elementObj = componentsMap.get(element.label);
-        if (!elementObj.elementArray.length) {
-            elementObj.filteredId = [];
+    Restructure.sequenceStructure = function (elementValue) {
+        if (!elementValue.elementArray.length) {
+            elementValue.filteredId = [];
             return 1;
         }
-        if (!elementObj.filteredId.length) {
-            Restructure.sortArray(elementObj.elementArray);
-            return elementObj.elementArray[elementObj.elementArray.length - 1].sequence + 1;
+        if (!elementValue.filteredId.length) {
+            Restructure.sortArray(elementValue.elementArray);
+            return elementValue.elementArray[elementValue.elementArray.length - 1].sequence + 1;
         }
-        elementObj.filteredId.sort();
-        var sequence = elementObj.filteredId[0];
-        elementObj.filteredId = [];
+        elementValue.filteredId.sort();
+        var sequence = elementValue.filteredId[0];
+        elementValue.filteredId = [];
         return sequence;
     };
     Restructure.searchAndModifyControlledArray = function (layersArray, element) {

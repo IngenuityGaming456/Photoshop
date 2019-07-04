@@ -6,18 +6,15 @@ var CreateComponent = /** @class */ (function () {
     function CreateComponent(generator, element, componentsMap) {
         var _this = this;
         this._generator = generator;
-        this._componentsMap = componentsMap;
-        var sequenceId = this.findSequence(element);
-        this.callComponentJsx(sequenceId, element.label)
+        var elementValue = componentsMap.get(element);
+        var sequenceId = Restructure_1.Restructure.sequenceStructure(elementValue);
+        this.callComponentJsx(sequenceId, element)
             .then(function (id) {
-            _this._generator.setLayerSettingsForPlugin(element.displayName, id, "LayoutPlugin");
-            var controlledArray = componentsMap.get(element.label).elementArray;
+            _this._generator.setLayerSettingsForPlugin(elementValue.displayName, id, "LayoutPlugin");
+            var controlledArray = elementValue.elementArray;
             controlledArray.push({ id: id, sequence: sequenceId });
         });
     }
-    CreateComponent.prototype.findSequence = function (element) {
-        return Restructure_1.Restructure.sequenceStructure(element, this._componentsMap);
-    };
     CreateComponent.prototype.callComponentJsx = function (sequenceId, jsxName) {
         var _this = this;
         return new Promise(function (resolve, reject) {

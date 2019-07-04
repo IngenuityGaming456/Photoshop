@@ -1,14 +1,16 @@
 (function () {
     "use strict";
     let _generator, documentPromise = [],
-        CreateView = require("./modules/CreateView").CreateView,
+        CreateView = require("./modules/CreateViewClasses").CreateView,
+        CreatePlatform = require("./modules/CreateViewClasses").CreatePlatform,
+        CreateViewStructure = require("./modules/CreateViewStructure").CreateViewStructure,
         Restructure = require("./modules/Restructure").Restructure,
         ViewParamFactory = require("./modules/ViewParamFactory").ViewParamFactory,
         CreateComponent = require("./modules/CreateComponent").CreateComponent,
         menuLables = require("./res/menuLables"),
-        path = require('path'),
-        compArray = [], viewArray = [],
-        componentsMap, viewsMap, createComponent, createView = {};
+        languagesStruct = require("./res/languages"),
+        path = require('path'), structureMap,
+        componentsMap, viewsMap, platformsMap;
 
     function init(generator) {
         _generator = generator;
@@ -54,45 +56,39 @@
                 Restructure.searchAndModifyControlledArray(event.layers, item);
             });
         }
+        if(event.selection) {
+            _generator.evaluateJSXFile(path.join(__dirname, "../jsx/ShowPanel.jsx"), languagesStruct);
+        }
     }
 
     function onButtonMenuClicked(event) {
         let menu = event.generatorMenuChanged;
-        let element = findElementType(menu);
-        if(element.type === "view") {
-            createView = new CreateView(_generator, element, viewsMap);
+        let elementMap = getElementMap(menu.name);
+        let classRef = structureMap.get(elementMap);
+        if(classRef === CreateComponent) {
+            new CreateComponent(_generator, menu.name, elementMap);
         }
-        if(element.type === "comp") {
-            createComponent = new CreateComponent(_generator, element, componentsMap);
+        if(classRef === CreateView) {
+            new CreateViewStructure(_generator, new CreateView(_generator, menu.name, elementMap));
+        }
+        if(classRef === CreatePlatform) {
+            new CreateViewStructure(_generator, new CreatePlatform(_generator, menu.name, elementMap));
         }
     }
 
-    function findElementType(menu) {
-        let element = searchForElement(menu.name, viewArray);
-        if(element) {
-            return element;
+    function getElementMap(menuName) {
+        let keysIterable = structureMap.keys();
+        for(let keys of keysIterable) {
+            if(keys.has(menuName)) {
+                return keys;
+            }
         }
-        element = searchForElement(menu.name, compArray);
-        if(element) {
-            return element;
-        }
-        return element;
-    }
-
-    function searchForElement(searchKey, searchArray) {
-        return searchArray.find(item => {
-            return item.label === searchKey;
-        });
     }
 
     function addMenuItems(menuLables) {
         for(let menu in menuLables) {
             if(menuLables.hasOwnProperty(menu)) {
-                if(menuLables[menu].type && menuLables[menu].type === "view") {
-                    viewArray.push(menuLables[menu]);
-                }
                 if(menuLables[menu].type && menuLables[menu].type === "comp") {
-                    compArray.push(menuLables[menu]);
                     componentsMap.set(menuLables[menu].label,
                         {
                             label: menuLables[menu].displayName,
@@ -106,8 +102,17 @@
     }
 
     function createObjects() {
+        structureMap = new Map();
         componentsMap = new Map();
         viewsMap = ViewParamFactory.makeViewMap();
+        platformsMap = ViewParamFactory.makePlatformMap();
+        createStructureMap(componentsMap, CreateComponent);
+        createStructureMap(viewsMap, CreateView);
+        createStructureMap(platformsMap, CreatePlatform);
+    }
+
+    function createStructureMap(typeMap, typeClass) {
+        structureMap.set(typeMap, typeClass);
     }
 
     exports.init = init;

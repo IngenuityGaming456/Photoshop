@@ -12,6 +12,7 @@ var parentRef = params.parentName ? getInsertionReference(app.activeDocument, pa
 var buttonRef = insertLayer(parentRef, buttonName, "layerSection");
 for(var i=0;i<statesCount;i++) {
     var layerRef = insertLayer(buttonRef, buttonStruct[i], "layerSection");
+    insertLayer(layerRef, buttonStruct[i], "artLayer");
     insertLayer(layerRef, "", "artLayer", layerConfig, layerKindConfig);
 }
 buttonRef.id;

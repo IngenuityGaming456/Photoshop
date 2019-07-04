@@ -35,42 +35,47 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var path = require("path");
 var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
-var CreateView = /** @class */ (function () {
-    function CreateView(generator, element, viewsMap) {
+var path = require("path");
+var CreateViewStructure = /** @class */ (function () {
+    function CreateViewStructure(generator, viewClass) {
         this._generator = generator;
-        this.drawStruct(viewsMap.get(element.label));
+        this._viewClass = viewClass;
+        this._element = viewClass.getElement();
+        this.drawStruct(this._element);
     }
-    CreateView.prototype.drawStruct = function (params) {
+    CreateViewStructure.prototype.drawStruct = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _i, keys;
+            var insertionPoint, _a, _b, _i, keys;
             return __generator(this, function (_c) {
                 switch (_c.label) {
-                    case 0:
+                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct()];
+                    case 1:
+                        insertionPoint = _c.sent();
+                        if (!(insertionPoint !== "invalid")) return [3 /*break*/, 5];
                         _a = [];
                         for (_b in params)
                             _a.push(_b);
                         _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
-                        keys = _a[_i];
-                        if (!params.hasOwnProperty(keys)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.makeStruct(params[keys], null)];
+                        _c.label = 2;
                     case 2:
-                        _c.sent();
-                        _c.label = 3;
+                        if (!(_i < _a.length)) return [3 /*break*/, 5];
+                        keys = _a[_i];
+                        if (!params.hasOwnProperty(keys)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.makeStruct(params[keys], insertionPoint)];
                     case 3:
+                        _c.sent();
+                        _c.label = 4;
+                    case 4:
                         _i++;
-                        return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/, Promise.resolve()];
+                        return [3 /*break*/, 2];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
     };
-    CreateView.prototype.makeStruct = function (parserObject, baseKeyName) {
+    CreateViewStructure.prototype.makeStruct = function (parserObject, insertionPoint) {
         return __awaiter(this, void 0, void 0, function () {
             var layerType, _a, _b, _i, keys, jsxParams;
             return __generator(this, function (_c) {
@@ -88,20 +93,18 @@ var CreateView = /** @class */ (function () {
                         if (!parserObject.hasOwnProperty(keys)) return [3 /*break*/, 6];
                         layerType = parserObject[keys].type;
                         jsxParams.childName = parserObject[keys].id;
-                        if (!!baseKeyName) return [3 /*break*/, 4];
-                        baseKeyName = keys;
-                        jsxParams.childName = baseKeyName;
+                        jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : insertionPoint;
+                        if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 4];
+                        jsxParams.childName = keys;
                         jsxParams.type = "layerSection";
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname + "../../../jsx/InsertLayer.jsx"), jsxParams)];
+                        return [4 /*yield*/, this.createBaseStruct(jsxParams)];
                     case 2:
                         _c.sent();
-                        return [4 /*yield*/, this.makeStruct(parserObject[keys], baseKeyName)];
+                        return [4 /*yield*/, this.makeStruct(parserObject[keys], keys)];
                     case 3:
                         _c.sent();
                         return [3 /*break*/, 6];
-                    case 4:
-                        jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : baseKeyName;
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType)];
+                    case 4: return [4 /*yield*/, this.createElementTree(jsxParams, layerType)];
                     case 5:
                         _c.sent();
                         _c.label = 6;
@@ -113,7 +116,16 @@ var CreateView = /** @class */ (function () {
             });
         });
     };
-    CreateView.prototype.createElementTree = function (jsxParams, layerType) {
+    CreateViewStructure.prototype.createBaseStruct = function (jsxParams) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                jsxParams["checkSelection"] = "true";
+                this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), jsxParams);
+                return [2 /*return*/];
+            });
+        });
+    };
+    CreateViewStructure.prototype.createElementTree = function (jsxParams, layerType) {
         return __awaiter(this, void 0, void 0, function () {
             var jsonMap, element;
             return __generator(this, function (_a) {
@@ -139,7 +151,7 @@ var CreateView = /** @class */ (function () {
             });
         });
     };
-    return CreateView;
+    return CreateViewStructure;
 }());
-exports.CreateView = CreateView;
-//# sourceMappingURL=CreateView.js.map
+exports.CreateViewStructure = CreateViewStructure;
+//# sourceMappingURL=CreateViewStructure.js.map

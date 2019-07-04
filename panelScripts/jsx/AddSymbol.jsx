@@ -9,9 +9,8 @@ var layerConfig = {
     kind: LayerKind.TEXT
 };
 var symbolsRef;
-try {
-    symbolsRef = getInsertionReference(app.activeDocument, "Symbols");
-} catch(err) {
+symbolsRef = getInsertionReference(app.activeDocument, "Symbols");
+if(!symbolsRef) {
     symbolsRef = insertLayer(app.activeDocument, "Symbols", "layerSection");
 }
 var symbolNameRef = insertLayer(symbolsRef, symbolName, "layerSection");

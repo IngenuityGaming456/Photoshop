@@ -44,7 +44,6 @@ export class QuestJsonComponent {
 
     public setJsx(generator, params): Promise<any> {
         return new Promise(resolve => {
-            let x = this.setJsxPath();
             generator.evaluateJSXFile(this.setJsxPath(), params)
                 .then(id => {
                     this.setLayerMetaData(generator, this._type, id)
