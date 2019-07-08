@@ -97,6 +97,10 @@
       "id": "autoPlayMeter",
       "parent": "AutoPlayOffBtnContainer"
     },
+    "promoMessageContainer": {
+      "type": "container",
+      "id": "promoMessageContainer"
+    },
     "Symbols": {
       "type": "container",
       "id": "Symbols"

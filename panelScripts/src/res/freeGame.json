@@ -1,626 +1,109 @@
 {
     "freeGame": {
-        "gameLogo": {
-            "x": 482,
-            "y": 30,
-            "w": 364,
-            "h": 72,
-            "scale": 1,
-            "id": "freeGame_logo",
-            "image": "freeGame",
-            "frames": "FreeSpin_Logo.png",
-            "type": "image",
-            "visible": true
-        },
-        "freeGameLeft": {
-            "x": 170,
-            "y": 65,
-            "w": 221,
-            "h": 43,
-            "scale": 1,
-            "id": "BaseGame_Logo",
-            "type": "image",
-            "images": "freeGame",
-            "frames": "FreeSpin_Logo.png",
-            "visible": true
-        },
-        "freeGameWin_base": {
-            "x": 900,
-            "y": 65,
-            "w": 221,
-            "h": 43,
-            "scale": 1,
-            "id": "freeGameWin_base",
-            "image": "freeGame",
-            "frames": "Freegame_Meter.png",
-            "type": "image",
-            "visible": true
-        },
-        "freeGameleft_base": {
-            "x": 170,
-            "y": 65,
-            "w": 221,
-            "h": 43,
-            "scale": 1,
-            "id": "freeGameleft_base",
-            "image": "freeGame",
-            "frames": "Freegame_Meter.png",
-            "type": "image",
-            "visible": true
-        },
-        "freeGameLeftLabel": {
-            "x": 170,
-            "y": 45,
-            "w": 220,
-            "h": 25,
-            "type": "label",
-            "text": "FREE GAMES LEFT",
-            "showBounds": false,
-            "id": "freeGameLeftLabel",
-            "style": {
-                "font": "bold 20px Arial",
-                "fill": "#ffea04",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "stroke": "#b80000",
-                "strokeThickness": 5
-            },
-            "bounds": false
+        "gameLogoContainer": {
+            "type": "container",
+            "id": "gameLogoContainer"
         },
         "freegameleftMtr": {
-            "x": 175,
-            "y": 75,
-            "w": 215,
-            "h": 26,
-            "visible": true,
             "type": "meter",
             "text": "$00000000",
-            "bounds": false,
-            "id": "freegameleftMtr",
-            "style": {
-                "font": "bold 21px 'MyriadPro-BoldCond'",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "fill": "#fff"
-            }
-        },
-        "freeGameWinLabel": {
-            "x": 935,
-            "y": 45,
-            "w": 150,
-            "h": 25,
-            "type": "label",
-            "text": "FREE GAMES WIN",
-            "visible": true,
-            "showBounds": false,
-            "id": "freeGameWinLabel",
-            "style": {
-                "font": "bold 20px Arial",
-                "fill": "#ffea04",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "stroke": "#b80000",
-                "strokeThickness": 5
-            },
-            "bounds": false
+            "id": "freegameleftMtr"
         },
         "totalwinMtrFG": {
-            "x": 915,
-            "y": 77,
-            "w": 130,
-            "h": 26,
-            "visible": true,
             "type": "meter",
             "text": "$00000000",
-            "bounds": false,
-            "id": "totalwinMtrFG",
-            "style": {
-                "font": "bold 21px 'MyriadPro-BoldCond'",
-                "boundsAlignH": "right",
-                "boundsAlignV": "middle",
-                "fill": "#fff"
-            }
+            "id": "totalwinMtrFG"
         },
         "reelsContainer": {
-            "x": 170,
-            "y": 106,
-            "w": 950,
-            "h": 500,
-            "visible": true,
             "type": "container",
             "id": "reelsContainer"
         },
-        "reelsBackground": {
-            "x": 0,
-            "y": 0,
-            "w": 950,
-            "h": 500,
-            "radius": 10,
-            "alpha": 1,
-            "type": "shape",
-            "shape": "roundcornerrectangle",
-            "fillColor": "0X24390e",
-            "fillAlpha": 0.75,
-            "strokeColor": "0Xffffff",
-            "strokeAlpha": 0,
-            "id": "reelsBackground",
-            "visible": true,
-            "parent": "reelsContainer"
-        },
-        "reel1Background": {
-            "x": 13,
-            "y": 9,
-            "w": 184,
-            "h": 480,
-            "alpha": 1,
-            "type": "shape",
-            "shape": "rectangle",
-            "fillColor": "0X051400",
-            "fillAlpha": 0.5,
-            "strokeSize": 0,
-            "strokeColor": "0Xffffff",
-            "strokeAlpha": 0,
-            "id": "reelsBackground",
-            "visible": true,
-            "parent": "reelsContainer"
-        },
-        "reel2Background": {
-            "x": 199,
-            "y": 9,
-            "w": 184,
-            "h": 480,
-            "alpha": 1,
-            "type": "shape",
-            "shape": "rectangle",
-            "fillColor": "0X051400",
-            "fillAlpha": 0.5,
-            "strokeSize": 0,
-            "strokeColor": "0Xffffff",
-            "strokeAlpha": 0,
-            "id": "reelsBackground",
-            "visible": true,
-            "parent": "reelsContainer"
-        },
-        "reel3Background": {
-            "x": 385,
-            "y": 9,
-            "w": 184,
-            "h": 480,
-            "alpha": 1,
-            "type": "shape",
-            "shape": "rectangle",
-            "fillColor": "0X051400",
-            "fillAlpha": 0.5,
-            "strokeSize": 0,
-            "strokeColor": "0Xffffff",
-            "strokeAlpha": 0,
-            "id": "reelsBackground",
-            "visible": true,
-            "parent": "reelsContainer"
-        },
-        "reel4Background": {
-            "x": 571,
-            "y": 9,
-            "w": 184,
-            "h": 480,
-            "radius": 10,
-            "alpha": 1,
-            "type": "shape",
-            "shape": "rectangle",
-            "fillColor": "0X051400",
-            "fillAlpha": 0.5,
-            "strokeSize": 0,
-            "strokeColor": "0Xffffff",
-            "strokeAlpha": 0,
-            "id": "reelsBackground",
-            "visible": true,
-            "parent": "reelsContainer"
-        },
-        "reel5Background": {
-            "x": 756,
-            "y": 9,
-            "w": 184,
-            "h": 480,
-            "radius": 10,
-            "alpha": 1,
-            "type": "shape",
-            "shape": "rectangle",
-            "fillColor": "0X051400",
-            "fillAlpha": 0.5,
-            "strokeSize": 0,
-            "strokeColor": "0Xffffff",
-            "strokeAlpha": 0,
-            "id": "reelsBackground",
-            "visible": true,
+        "reelsBGContainer": {
+            "type": "container",
+            "id": "reelsBGContainer",
             "parent": "reelsContainer"
         },
         "5OfAKindContainer": {
-            "x": 0,
-            "y": 0,
-            "regX": 640,
-            "regY": 360,
             "type": "container",
-            "id": "5OfAKindContainer",
-            "showBounds": true,
-            "visible": false
-        },
-        "5OfAKindLabel": {
-            "x": 0,
-            "y": 0,
-            "w": 1280,
-            "h": 720,
-            "type": "label",
-            "text": "lbl_5OfAKind",
-            "style": {
-                "font": "bold 130px ArialBlack",
-                "fill": "#7dff00",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "stroke": "#000000",
-                "strokeThickness": 4
-            },
-            "shadow": {
-                "color": "#000000",
-                "blurX": 4,
-                "blurY": 4,
-                "quality": 8
-            },
-
-            "showBounds": false,
-            "visible": true,
-            "parent": "5OfAKindContainer"
+            "id": "5OfAKindContainer"
         },
         "buttonsContainer": {
-            "x": 0,
-            "y": 0,
-            "w": 1280,
-            "h": 720,
             "type": "container",
-            "visible": true,
-            "bounds": false,
             "id": "buttonsContainer"
         },
         "Button_Panel_Base": {
-            "x": 140,
-            "y": 637,
-            "w": 1145,
-            "h": 129,
-            "visible": true,
             "type": "image",
             "id": "Button_Panel_Base",
-            "image": "button_panel_base",
-            "frames": "Button_Base.png",
-            "parent": "buttonsContainer"
-        },
-        "Credit_Base": {
-            "x": 603,
-            "y": 656,
-            "w": 233,
-            "h": 46,
-            "visible": true,
-            "type": "image",
-            "id": "Button_Panel_Base",
-            "image": "button_panel_base",
-            "frames": "Credit_Base.png",
-            "parent": "buttonsContainer"
-        },
-        "Bet_Total_Bet_Base": {
-            "x": 415,
-            "y": 656,
-            "w": 181,
-            "h": 46,
-            "visible": true,
-            "type": "image",
-            "id": "Button_Panel_Base",
-            "image": "button_panel_base",
-            "frames": "Bet_Total_Bet_Base.png",
-            "parent": "buttonsContainer"
-        },
-        "bet_base": {
-            "x": 226,
-            "y": 656,
-            "w": 181,
-            "h": 46,
-            "visible": true,
-            "type": "image",
-            "id": "Button_Panel_Base",
-            "image": "button_panel_base",
-            "frames": "Bet_Total_Bet_Base.png",
-            "parent": "buttonsContainer"
-        },
-        "Win_Base": {
-            "x": 605,
-            "y": 656,
-            "w": 233,
-            "h": 26,
-            "visible": true,
-            "type": "image",
-            "id": "Button_Panel_Base",
-            "image": "button_panel_base",
-            "frames": "Win_Base.png",
-            "parent": "buttonsContainer"
-        },
-        "paidmeterLabel": {
-            "x": 606,
-            "y": 658,
-            "w": 100,
-            "h": 26,
-            "visible": true,
-            "type": "label",
-            "text": "paidmeter_Text",
-            "id": "paidmeter_Text",
-            "bounds": false,
-            "style": {
-                "font": "bold 14px 'MyriadPro-Bold'",
-                "boundsAlignH": "left",
-                "boundsAlignV": "middle",
-                "fill": "#931100",
-                "stroke": "#000000"
-            },
             "parent": "buttonsContainer"
         },
         "paidmeter": {
-            "x": 706,
-            "y": 659,
-            "w": 130,
-            "h": 26,
-            "visible": true,
             "type": "meter",
             "text": "$000000",
-            "bounds": false,
             "id": "winMtrFG",
-            "style": {
-                "font": "bold 21px 'MyriadPro-BoldCond'",
-                "boundsAlignH": "right",
-                "boundsAlignV": "middle",
-                "fill": "#931100"
-            },
-            "parent": "buttonsContainer"
-        },
-        "balancemeter_Label": {
-            "x": 606,
-            "y": 683,
-            "w": 100,
-            "h": 26,
-            "visible": true,
-            "type": "label",
-            "text": "balancemeter_Text",
-            "id": "balancemeter_Text",
-            "style": {
-                "font": "bold 14px 'MyriadPro-Bold'",
-                "boundsAlignH": "left",
-                "boundsAlignV": "middle",
-                "fill": "#434a5d",
-                "stroke": "#000000",
-                "strokeThickness": 0
-            },
             "parent": "buttonsContainer"
         },
         "balancemeter": {
-            "x": 706,
-            "y": 682,
-            "w": 132,
-            "h": 26,
-            "visible": true,
             "type": "meter",
             "text": "$000000000",
             "id": "balance",
-            "style": {
-                "font": "bold 21px 'MyriadPro-BoldCond'",
-                "boundsAlignH": "right",
-                "boundsAlignV": "middle",
-                "fill": "#001247"
-            },
-            "parent": "buttonsContainer"
-        },
-        "totalbetmeter_Label": {
-            "x": 415,
-            "y": 683,
-            "w": 181,
-            "h": 26,
-            "bounds": false,
-            "visible": true,
-            "type": "label",
-            "text": "totalbetmeter_Text",
-            "id": "totalbetmeter_Label",
-            "style": {
-                "font": "bold 14px 'MyriadPro-Bold'",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "fill": "#434a5d",
-                "stroke": "#000000",
-                "strokeThickness": 0
-            },
             "parent": "buttonsContainer"
         },
         "totalbetmeter": {
-            "x": 415,
-            "y": 659,
-            "w": 181,
-            "h": 26,
-            "visible": true,
             "type": "meter",
             "text": "0",
             "id": "totalbet",
-            "style": {
-                "font": "bold 21px 'MyriadPro-BoldCond'",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "fill": "#001247"
-            },
             "parent": "buttonsContainer"
         },
         "minusButtonBet": {
-            "x": 226,
-            "y": 658,
-            "w": 36,
-            "h": 24,
-            "visible": false,
             "type": "button",
             "id": "stakeDownBtn",
-            "framerate": 1,
-            "images": "button_panel_base",
-            "frames": {
-                "over": "Lines_Decrement_Over.png",
-                "down": "Lines_Decrement_Down.png",
-                "out": "Lines_Decrement_Up.png",
-                "disable": "Lines_Decrement_Disable.png"
-            },
             "parent": "buttonsContainer"
         },
         "plusButtonBet": {
-            "x": 370,
-            "y": 658,
-            "w": 36,
-            "h": 24,
-            "visible": false,
             "type": "button",
             "id": "stakeUpBtn",
-            "framerate": 1,
-            "images": "button_panel_base",
-            "frames": {
-                "over": "Lines_Increment_Over.png",
-                "down": "Lines_Increment_Down.png",
-                "out": "Lines_Increment_Up.png",
-                "disable": "Lines_Increment_Disable.png"
-            },
             "parent": "buttonsContainer"
         },
         "betmeter_Label": {
-            "x": 226,
-            "y": 683,
-            "w": 181,
-            "h": 26,
-            "bounds": false,
-            "visible": true,
             "type": "label",
             "text": "betmeter_Text",
             "id": "betmeter_Label",
-            "style": {
-                "font": "bold 14px 'MyriadPro-Bold'",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "fill": "#434a5d",
-                "stroke": "#000000",
-                "strokeThickness": 0
-            },
             "parent": "buttonsContainer"
         },
         "coinMeter": {
-            "x": 262,
-            "y": 659,
-            "w": 109,
-            "h": 26,
             "type": "meter",
             "text": "0.1",
             "id": "bet",
-            "bounds": false,
-            "style": {
-                "font": "bold 21px 'MyriadPro-BoldCond'",
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "fill": "#001247"
-            },
-            "parent": "buttonsContainer",
-            "visible": true
+            "parent": "buttonsContainer"
         },
         "skipButton": {
-            "x": 977,
-            "y": 638,
-            "w": 191,
-            "h": 95,
             "type": "button",
             "id": "skip",
-            "visible": true,
-            "images": "button_panel_base",
-            "frames": {
-                "over": "Play_Over.png",
-                "out": "Play_Up.png",
-                "down": "Play_Down.png",
-                "disable": "Play_Disable.png"
-            },
             "parent": "buttonsContainer"
         },
         "spinStopButton": {
-            "x": 977,
-            "y": 638,
-            "w": 191,
-            "h": 95,
             "type": "button",
             "id": "spinStop",
-            "visible": true,
-            "images": "button_panel_base",
-            "frames": {
-                "over": "Stop_Over.png",
-                "down": "Stop_Down.png",
-                "out": "Stop_Up.png"
-            },
             "parent": "buttonsContainer"
         },
         "helpBtn": {
-            "x": 133,
-            "y": 639,
-            "w": 91,
-            "h": 90,
-            "visible": true,
-            "enabled": false,
             "type": "image",
             "id": "info",
-            "image": "button_panel_base",
-            "frames": "Help_Disable.png",
             "parent": "buttonsContainer"
         },
         "AutoPlayOnBtnContainer": {
-            "x": 845,
-            "y": 657,
             "type": "container",
             "id": "AutoPlayOnBtnContainer",
-            "visible": true,
             "parent": "buttonsContainer"
         },
-        "autoplay_base_On": {
-            "x": 0,
-            "y": 0,
-            "w": 125,
-            "h": 46,
-            "visible": true,
-            "type": "image",
-            "id": "autoplay_base_On",
-            "image": "button_panel_base",
-            "frames": "Auto-ON-Base.png",
-            "parent": "AutoPlayOnBtnContainer"
-        },
         "autoPlayOnButton": {
-            "x": -2,
-            "y": 0,
-            "w": 188,
-            "h": 73,
-            "visible": true,
-            "enabled": false,
             "id": "autoPlayOn",
             "type": "image",
-            "image": "button_panel_base",
-            "frames": "auto-on-bu-disable.png",
             "parent": "AutoPlayOnBtnContainer"
         },
-        "autoplayLabelOn": {
-            "x": -25,
-            "y": 11,
-            "h": 50,
-            "w": 180,
-            "visible": true,
-            "type": "label",
-            "id": "autoplay_lbl_On",
-            "text": "lbl_auto_play",
-            "style": {
-                "fill": "#ffffff",
-                "stroke": "#000000",
-                "strokeThickness": 0,
-                "boundsAlignH": "center",
-                "boundsAlignV": "middle",
-                "font": "bold 13px Verdana"
-            },
-            "parent": "AutoPlayOnBtnContainer"
+        "promoMessageContainer": {
+            "type": "container",
+            "id": "promoMessageContainer"
         }
     }
 }
