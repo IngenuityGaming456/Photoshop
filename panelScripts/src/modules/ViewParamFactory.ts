@@ -1,17 +1,17 @@
-let baseGameStruct =   require("../res/baseGame"),
-    bigWinStruct =     require("../res/bigWin"),
-    paytableStruct =   require("../res/paytable"),
+let baseGameStruct = require("../res/baseGame"),
+    bigWinStruct = require("../res/bigWin"),
+    paytableStruct = require("../res/paytable"),
     introOutroStruct = require("../res/IntroOutro"),
-    freeGameStruct =   require("../res/freeGame"),
+    freeGameStruct = require("../res/freeGame"),
     backgroundStruct = require("../res/background"),
-    platformStruct =   require("../res/platform");
+    platformStruct = require("../res/platform");
 
 export class ViewParamFactory {
 
     public static makeViewMap() {
         let viewMap = new Map(),
-            backgroundBG = {backgrounds: backgroundStruct.backgrounds},
-            backgroundFG = {backgroundsFg: backgroundStruct.fgbackgrounds};
+            backgroundBG = { backgrounds: backgroundStruct.backgrounds },
+            backgroundFG = { backgroundsFg: backgroundStruct.fgbackgrounds };
         viewMap.set("AddMainView", {
             baseGame: baseGameStruct,
             bigWin: bigWinStruct,
@@ -31,8 +31,8 @@ export class ViewParamFactory {
     };
 
     public static makePlatformMap() {
-        let desktopPlatform = {desktop: platformStruct.desktop},
-            mobilePlatform = {mobile: platformStruct.mobile};
+        let desktopPlatform = { desktop: platformStruct.desktop },
+            mobilePlatform = { mobile: platformStruct.mobile };
         let platformMap = new Map();
         platformMap.set("DesktopView", {
             desktop: desktopPlatform

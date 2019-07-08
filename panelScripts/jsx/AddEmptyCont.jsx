@@ -1,4 +1,4 @@
-#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\Projects\\PS\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var emptyContName = "EmptyContainer" + params.clicks;
 var layerConfig = {
     kind: LayerKind.TEXT
