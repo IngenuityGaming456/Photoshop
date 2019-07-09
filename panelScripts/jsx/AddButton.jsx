@@ -8,7 +8,8 @@ var buttonName = params.childName ? params.childName : "Button" + params.clicks;
 // var layerKindConfig = {
 //     contents: ""
 // };
-var parentRef = params.parentName ? getInsertionReference(app.activeDocument, params.parentName) : app.activeDocument;
+var parentRef = getParentRef(params);
+
 var buttonRef = insertLayer(parentRef, buttonName, "layerSection");
 for (var i = 0; i < statesCount; i++) {
     var layerRef = insertLayer(buttonRef, buttonStruct[i], "layerSection");
