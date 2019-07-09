@@ -72,6 +72,16 @@
       "id": "info",
       "parent": "buttonsContainer"
     },
+    "menuContainer": {
+      "type": "container",
+      "id": "MenuContainer",
+      "parent": "buttonsContainer"
+    },
+    "settingsBtn": {
+      "type": "button",
+      "id": "setting",
+      "parent": "menuContainer"
+    },
     "AutoPlayOnBtnContainer": {
       "type": "container",
       "id": "AutoPlayOnBtnContainer",
