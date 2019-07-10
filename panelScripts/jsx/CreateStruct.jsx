@@ -72,3 +72,19 @@ function getParentRef(params) {
 
     return parentRef;
 }
+
+/**
+ * Display a toast message, which hides after some time. 
+ * @param params The message | {message: "custom message", duration: 1000}
+ */
+function showToastMessage(params) {
+    var win = new Window("palette");
+    var duration = (params && params.duration) ? params.duration : 1000;
+    var message = (params && params.message) ? params.message : message;
+
+    win.someMessage = win.add("statictext", undefined, message);
+    win.show();
+    $.sleep(duration);
+    // app.refresh();
+    win.close();
+}  
