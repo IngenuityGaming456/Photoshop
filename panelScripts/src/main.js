@@ -203,6 +203,14 @@
                 _handleError(error);
             }
         }
+
+        // for the possibility of platform menu getting deleted
+        try {
+            _initPlatformMenuState();
+        } catch (error) {
+            _handleError(error);
+        }
+
     }
 
     async function onButtonMenuClicked(event) {
