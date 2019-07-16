@@ -83,6 +83,9 @@
         _storeMenuByLabel();
         // first disable all menu, then enable eligible platform menu.
         await setEnableMenuByGroup(undefined, false);
+        // always keep all UI menu enabled.
+        await setEnableMenuByGroup([menuGroupEnum.Menu_UI], true);
+        // initiate the state of platforms menu. 
         await _initPlatformMenuState();
 
         _generator.onPhotoshopEvent("generatorMenuChanged", onButtonMenuClicked);
@@ -192,6 +195,9 @@
                         let newJsxPromise = _generator.evaluateJSXFile(path.join(__dirname, "../jsx/getChildrenName.jsx"));
                         newJsxPromise.then(_evaluateCommonChildrenName, _handleError);
                     }
+                    else {
+                        setEnableMenuByGroup(menuGroupEnum.Menu_View, false);
+                    }
                 });
             } catch (error) {
                 _handleError(error);
@@ -217,22 +223,6 @@
                 // NOTE: menu.name is the the `label` of menu.
                 let target = getMenuByLabel(menu.name);
                 menuAuxData["is" + target.displayName + "Created"] = true;
-
-                // if the entry doesn't exist, it will create a new one.
-                // it will iterate through all platform views and set the corresponding [`isCreated`] in `menuAuxData` to true.
-                // let should_level1 = elementMap.get(menu.name);
-                // let shouldContain = [];
-
-                // for (const should_level2 in should_level1) {
-                //     if (should_level1.hasOwnProperty(should_level2)) {
-                //         const item = should_level1[should_level2];
-                //         shouldContain = shouldContain.concat(Object.keys(item));
-                //     }
-                // }
-
-                // shouldContain.forEach((platformView, idx) => {
-                //     menuAuxData["is" + platformView + "Created"] = true;
-                // });
             }
         } catch (error) {
             _handleError(error);
