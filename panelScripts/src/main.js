@@ -5,7 +5,10 @@
      * A central place to store all string literals.
      */
     let CONSTANTS = {
-        COMMON_NAME: "common"
+        COMMON_NAME: "common",
+        PAYLINES_CONT: "Payline",
+        SYMBOLS_CONT: "Symbols",
+        WIN_FRAMES_CONT: "WinFrames"
     };
 
     let _generator, documentPromise = [],
@@ -36,6 +39,15 @@
         Menu_UI: "Menu_UI",
         Menu_Special_UI: "Menu_Special_UI"
     };
+
+    /**
+     * This enum links the special-menu CONTAINERS `id` to their menu labels.
+     */
+    var specialUIMenuEnum = {
+        PAYLINES_CONT: "AddSymbol",
+        SYMBOLS_CONT: "AddPayline",
+        WIN_FRAMES_CONT: "AddWinFrame"
+    }
 
     /**
      * This object stores all the menu items as array by groups.
@@ -197,6 +209,9 @@
                     }
                     else {
                         setEnableMenuByGroup(menuGroupEnum.Menu_View, false);
+
+                        // now enable/disable special UI menu
+                        updateSpecialUIMenu(selectedName);
                     }
                 });
             } catch (error) {
@@ -293,6 +308,17 @@
 
     function createStructureMap(typeMap, typeClass) {
         structureMap.set(typeMap, typeClass);
+    }
+
+    /**
+     * This function enables/disables special UI menu.
+     * @param {string} selectedName selected layer name.
+     */
+    async function updateSpecialUIMenu(selectedName) {
+        // if selected matches with CONTAINERS name of paylines, symbols or WinFrames, then disable/enable those special-UI menu.
+        await setEnableMenuByLabel(specialUIMenuEnum.PAYLINES_CONT, (selectedName === CONSTANTS.PAYLINES_CONT));
+        await setEnableMenuByLabel(specialUIMenuEnum.SYMBOLS_CONT, (selectedName === CONSTANTS.SYMBOLS_CONT));
+        await setEnableMenuByLabel(specialUIMenuEnum.WIN_FRAMES_CONT, (selectedName === CONSTANTS.WIN_FRAMES_CONT));
     }
 
     /**
