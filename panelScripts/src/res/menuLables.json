@@ -1,66 +1,80 @@
 {
   "Desktop": {
     "label": "DesktopView",
-    "displayName": "Desktop"
+    "displayName": "Desktop",
+    "menuGroup": "Menu_Platform"
   },
   "Mobile": {
     "label": "MobileView",
-    "displayName": "Mobile"
+    "displayName": "Mobile",
+    "menuGroup": "Menu_Platform"
   },
   "FreeGameView": {
     "label": "AddFreeGameView",
-    "displayName": "FreeGameView"
+    "displayName": "FreeGameView",
+    "menuGroup": "Menu_View"
   },
   "IntroOutro": {
     "label": "AddIntroOutro",
-    "displayName": "IntroOutro"
+    "displayName": "IntroOutro",
+    "menuGroup": "Menu_View"
   },
   "Paytable": {
     "label": "AddPaytable",
-    "displayName": "Paytable"
+    "displayName": "Paytable",
+    "menuGroup": "Menu_View"
   },
   "MainView": {
     "label": "AddMainView",
-    "displayName": "MainView"
+    "displayName": "MainView",
+    "menuGroup": "Menu_View"
   },
   "EmptyContainer": {
     "label": "AddEmptyCont",
     "displayName": "EmptyContainer",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_UI"
   },
   "Meter": {
     "label": "AddMeter",
     "displayName": "Meter",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_UI"
   },
   "Button": {
     "label": "AddButton",
     "displayName": "Button",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_UI"
   },
   "Animation": {
     "label": "AddAnimation",
     "displayName": "Animation",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_UI"
   },
   "Spine": {
     "label": "AddSpine",
     "displayName": "Spine",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_UI"
   },
   "Symbol": {
     "label": "AddSymbol",
     "displayName": "Symbol",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_Special_UI"
   },
   "Payline": {
     "label": "AddPayline",
     "displayName": "Payline",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_Special_UI"
   },
   "WinFrame": {
     "label": "AddWinFrame",
     "displayName": "WinFrame",
-    "type": "comp"
+    "type": "comp",
+    "menuGroup": "Menu_Special_UI"
   }
 }
