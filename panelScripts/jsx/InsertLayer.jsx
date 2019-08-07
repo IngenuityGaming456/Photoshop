@@ -1,17 +1,11 @@
-#include "D:\\Projects\\PS\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
-var parentRef = params.parentName ? getInsertionReference(app.activeDocument, params.parentName) :
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
     app.activeDocument;
-if (params.checkSelection) {
-    var selectedLayers = $.evalFile("D:\\Projects\\PS\\photoshopscript\\panelScripts\\jsx\\SelectedLayers.jsx");
-    var selectedLayersString = selectedLayers.toString();
-    if (selectedLayersString.length) {
-        parentRef = app.activeDocument.activeLayer;
-    }
-}
 var layerConfig;
 if (params.subType && params.subType === "text") {
     layerConfig = {
         kind: LayerKind.TEXT
     };
 }
-insertLayer(parentRef, params.childName, params.type, layerConfig);
+var childLayerRef = insertLayer(parentRef, params.childName, params.type, layerConfig);
+childLayerRef.id;

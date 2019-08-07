@@ -39,18 +39,20 @@ var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
 var path = require("path");
 var CreateViewStructure = /** @class */ (function () {
-    function CreateViewStructure(generator, viewClass) {
-        this._generator = generator;
-        this._viewClass = viewClass;
-        this._element = viewClass.getElement();
-        this.drawStruct(this._element);
+    function CreateViewStructure(dependencies) {
+        this._viewClass = dependencies[0];
     }
+    CreateViewStructure.prototype.execute = function (generator, menuName, factoryMap, activeDocument) {
+        this._generator = generator;
+        this._element = factoryMap.get(menuName);
+        this.drawStruct(this._element);
+    };
     CreateViewStructure.prototype.drawStruct = function (params) {
         return __awaiter(this, void 0, void 0, function () {
             var insertionPoint, _a, _b, _i, keys;
             return __generator(this, function (_c) {
                 switch (_c.label) {
-                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct()];
+                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator)];
                     case 1:
                         insertionPoint = _c.sent();
                         if (!(insertionPoint !== "invalid")) return [3 /*break*/, 5];
@@ -77,41 +79,61 @@ var CreateViewStructure = /** @class */ (function () {
     };
     CreateViewStructure.prototype.makeStruct = function (parserObject, insertionPoint) {
         return __awaiter(this, void 0, void 0, function () {
-            var layerType, _a, _b, _i, keys, jsxParams;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var layerType, _a, _b, _i, keys, jsxParams, _c, _d;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         _a = [];
                         for (_b in parserObject)
                             _a.push(_b);
                         _i = 0;
-                        _c.label = 1;
+                        _e.label = 1;
                     case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 7];
+                        if (!(_i < _a.length)) return [3 /*break*/, 10];
                         keys = _a[_i];
-                        jsxParams = { parentName: "", childName: "", type: "" };
-                        if (!parserObject.hasOwnProperty(keys)) return [3 /*break*/, 6];
+                        jsxParams = { parentId: "", childName: "", type: "" };
+                        if (!parserObject.hasOwnProperty(keys)) return [3 /*break*/, 9];
                         layerType = parserObject[keys].type;
                         jsxParams.childName = parserObject[keys].id;
-                        jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : insertionPoint;
-                        if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 4];
+                        _c = jsxParams;
+                        if (!parserObject[keys].parent) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.findParentId(parserObject[keys].parent, insertionPoint)];
+                    case 2:
+                        _d = _e.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        _d = insertionPoint;
+                        _e.label = 4;
+                    case 4:
+                        _c.parentId = _d;
+                        if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 7];
                         jsxParams.childName = keys;
                         jsxParams.type = "layerSection";
                         return [4 /*yield*/, this.createBaseStruct(jsxParams)];
-                    case 2:
-                        _c.sent();
-                        return [4 /*yield*/, this.makeStruct(parserObject[keys], keys)];
-                    case 3:
-                        _c.sent();
-                        return [3 /*break*/, 6];
-                    case 4: return [4 /*yield*/, this.createElementTree(jsxParams, layerType)];
                     case 5:
-                        _c.sent();
-                        _c.label = 6;
+                        insertionPoint = _e.sent();
+                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint)];
                     case 6:
+                        _e.sent();
+                        return [3 /*break*/, 9];
+                    case 7: return [4 /*yield*/, this.createElementTree(jsxParams, layerType)];
+                    case 8:
+                        _e.sent();
+                        _e.label = 9;
+                    case 9:
                         _i++;
                         return [3 /*break*/, 1];
-                    case 7: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateViewStructure.prototype.findParentId = function (childName, parentId) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/parentId.jsx"), { childName: childName, parentId: parentId })];
+                    case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -119,9 +141,10 @@ var CreateViewStructure = /** @class */ (function () {
     CreateViewStructure.prototype.createBaseStruct = function (jsxParams) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                jsxParams["checkSelection"] = "true";
-                this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), jsxParams);
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), jsxParams)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
             });
         });
     };

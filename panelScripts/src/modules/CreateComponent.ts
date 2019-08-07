@@ -1,17 +1,28 @@
 import {Restructure} from "./Restructure";
 import * as path from "path";
+import {IFactory} from "../interfaces/IJsxParam";
 
-export class CreateComponent {
-    private readonly _generator;
-    public constructor(generator, element, componentsMap) {
+export class CreateComponent implements IFactory{
+    private _generator;
+
+    public execute(generator, element, componentsMap, activeDocument) {
         this._generator = generator;
         let elementValue = componentsMap.get(element);
         let sequenceId = Restructure.sequenceStructure(elementValue);
         this.callComponentJsx(sequenceId, element)
-            .then( (id) => {
-                    this._generator.setLayerSettingsForPlugin(elementValue.displayName, id, "LayoutPlugin");
-                    let controlledArray = elementValue.elementArray;
-                    controlledArray.push({id: id, sequence: sequenceId});
+            .then( id => {
+                return new Promise(resolve => {
+                    this._generator.setLayerSettingsForPlugin(
+                        elementValue.label, id, "type")
+                        .then(() => {
+                            resolve(id);
+                            }
+                        );
+                });
+            })
+            .then(id => {
+                let controlledArray = elementValue.elementArray;
+                controlledArray.push({id: id, sequence: sequenceId});
             });
     }
 

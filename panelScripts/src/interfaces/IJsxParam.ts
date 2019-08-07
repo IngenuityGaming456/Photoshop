@@ -1,5 +1,5 @@
 export interface IJsxParam {
-    parentName: string,
+    parentId: string,
     childName: string,
     type?: string,
     subType?: string
@@ -10,12 +10,19 @@ export interface ISequence {
     sequence: number
 }
 
-export interface IStructure {
-    drawStruct(params: Object): void;
-    makeStruct(parserObject: Object, insertionPoint: string): void;
+// export interface IStructure extends IFactory {
+//     drawStruct(params: Object): void;
+//     makeStruct(parserObject: Object, insertionPoint: string): void;
+// }
+//
+export interface IViewStructure {
+    shouldDrawStruct(generator): Promise<string>;
 }
 
-export interface IViewStructure {
-    getElement(): Object;
-    shouldDrawStruct(): Promise<string>;
+export interface IFactoryConstruct {
+    new(dependencies?): IFactory;
+}
+
+export interface IFactory {
+    execute(generator, menuName: string, factoryMap, activeDocument);
 }

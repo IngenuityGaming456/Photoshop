@@ -37,27 +37,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
 var CreateView = /** @class */ (function () {
-    function CreateView(generator, viewKey, viewMap) {
-        this._viewKey = viewKey;
-        this._viewMap = viewMap;
-        this._generator = generator;
+    function CreateView() {
     }
-    CreateView.prototype.getElement = function () {
-        return this._viewMap.get(this._viewKey);
-    };
-    CreateView.prototype.shouldDrawStruct = function () {
+    CreateView.prototype.shouldDrawStruct = function (generator) {
         return __awaiter(this, void 0, void 0, function () {
-            var jsxPath, selectedLayers, selectedLayersArray;
+            var selectedLayers, selectedLayerId, selectedLayersArray, selectedLayersIdArray;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        jsxPath = path.join(__dirname, "../../jsx/SelectedLayers.jsx");
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(jsxPath)];
+                    case 0: return [4 /*yield*/, generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayers.jsx"))];
                     case 1:
                         selectedLayers = _a.sent();
+                        return [4 /*yield*/, generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
+                    case 2:
+                        selectedLayerId = _a.sent();
                         selectedLayersArray = selectedLayers.split(",");
+                        selectedLayersIdArray = selectedLayerId.toString().split(",");
                         if (~selectedLayersArray.indexOf("common") && selectedLayersArray.length === 1) {
-                            return [2 /*return*/, Promise.resolve("common")];
+                            return [2 /*return*/, Promise.resolve(selectedLayersIdArray[0])];
                         }
                         return [2 /*return*/, Promise.reject("invalid")];
                 }
@@ -68,22 +64,16 @@ var CreateView = /** @class */ (function () {
 }());
 exports.CreateView = CreateView;
 var CreatePlatform = /** @class */ (function () {
-    function CreatePlatform(generator, platformKey, platformMap) {
-        this._platformKey = platformKey;
-        this._platformMap = platformMap;
-        this._generator = generator;
+    function CreatePlatform() {
     }
-    CreatePlatform.prototype.getElement = function () {
-        return this._platformMap.get(this._platformKey);
-    };
-    CreatePlatform.prototype.shouldDrawStruct = function () {
+    CreatePlatform.prototype.shouldDrawStruct = function (generator) {
         return __awaiter(this, void 0, void 0, function () {
             var jsxPath, selectedLayers;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         jsxPath = path.join(__dirname, "../../jsx/SelectedLayers.jsx");
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(jsxPath)];
+                        return [4 /*yield*/, generator.evaluateJSXFile(jsxPath)];
                     case 1:
                         selectedLayers = _a.sent();
                         if (!selectedLayers.length) {

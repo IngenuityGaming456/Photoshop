@@ -1,28 +1,5 @@
 {
   "baseGame": {
-    "gameLogoContainer": {
-      "type": "container",
-      "id": "gameLogoContainer"
-    },
-    "reelsContainer": {
-      "type": "container",
-      "id": "reelsContainer"
-    },
-    "reelsBGContainer": {
-      "type": "container",
-      "id": "reelsBGContainer",
-      "parent": "reelsContainer"
-    },
-    "anticipationAnim": {
-      "type": "animation",
-      "id": "anticipationAnim",
-      "frameRate": 15,
-      "loop": true
-    },
-    "5OfAKindContainer": {
-      "type": "container",
-      "id": "5OfAKindContainer"
-    },
     "buttonsContainer": {
       "type": "container",
       "id": "buttonsContainer"
@@ -74,7 +51,7 @@
     },
     "menuContainer": {
       "type": "container",
-      "id": "MenuContainer",
+      "id": "menuContainer",
       "parent": "buttonsContainer"
     },
     "settingsBtn": {
@@ -110,6 +87,29 @@
     "promoMessageContainer": {
       "type": "container",
       "id": "promoMessageContainer"
+    },
+    "5OfAKindContainer": {
+      "type": "container",
+      "id": "5OfAKindContainer"
+    },
+    "anticipationAnim": {
+      "type": "animation",
+      "id": "anticipationAnim",
+      "frameRate": 15,
+      "loop": true
+    },
+    "reelsContainer": {
+      "type": "container",
+      "id": "reelsContainer"
+    },
+    "reelsBGContainer": {
+      "type": "container",
+      "id": "reelsBGContainer",
+      "parent": "reelsContainer"
+    },
+    "gameLogoContainer": {
+      "type": "container",
+      "id": "gameLogoContainer"
     },
     "Symbols": {
       "type": "container",

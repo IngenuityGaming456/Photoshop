@@ -1,23 +1,26 @@
-import {IJsxParam, IStructure, IViewStructure} from "../interfaces/IJsxParam";
+import {IFactory, IJsxParam, IViewStructure} from "../interfaces/IJsxParam";
 import {JsonComponentsFactory} from "./JsonComponentsFactory";
 import {PhotoshopJsonComponent, QuestJsonComponent} from "./JsonComponents";
 import * as path from "path";
 
-export class CreateViewStructure implements  IStructure {
+export class CreateViewStructure implements  IFactory {
 
-    private readonly _generator;
-    private readonly _element;
+    private _generator;
+    private _element;
     private readonly _viewClass : IViewStructure;
 
-    public constructor(generator, viewClass: IViewStructure) {
+    public constructor(dependencies: Array<IViewStructure>) {
+        this._viewClass = dependencies[0];
+    }
+
+    public execute(generator, menuName: string, factoryMap, activeDocument) {
         this._generator = generator;
-        this._viewClass = viewClass;
-        this._element = viewClass.getElement();
+        this._element = factoryMap.get(menuName);
         this.drawStruct(this._element);
     }
 
-    public async drawStruct(params: Object) {
-        let insertionPoint = await this._viewClass.shouldDrawStruct();
+    private async drawStruct(params: Object) {
+        let insertionPoint = await this._viewClass.shouldDrawStruct(this._generator);
         if(insertionPoint !== "invalid") {
             for (let keys in params) {
                 if (params.hasOwnProperty(keys)) {
@@ -27,19 +30,20 @@ export class CreateViewStructure implements  IStructure {
         }
     }
 
-    public async makeStruct(parserObject: Object, insertionPoint: string) {
+    private async makeStruct(parserObject: Object, insertionPoint: string) {
         let layerType: string;
         for(let keys in parserObject) {
-            let jsxParams: IJsxParam = {parentName: "", childName: "", type: ""};
+            let jsxParams: IJsxParam = {parentId: "", childName: "", type: ""};
             if(parserObject.hasOwnProperty(keys)) {
                 layerType = parserObject[keys].type;
                 jsxParams.childName = parserObject[keys].id;
-                jsxParams.parentName = parserObject[keys].parent ? parserObject[keys].parent : insertionPoint;
+                jsxParams.parentId = parserObject[keys].parent ?
+                                     await this.findParentId(parserObject[keys].parent, insertionPoint) : insertionPoint;
                 if(!layerType && !jsxParams.childName) {
                     jsxParams.childName = keys;
                     jsxParams.type = "layerSection";
-                    await this.createBaseStruct(jsxParams);
-                    await this.makeStruct(parserObject[keys], keys);
+                    insertionPoint = await this.createBaseStruct(jsxParams);
+                    await this.makeStruct(parserObject[keys], insertionPoint);
                 } else {
                     await this.createElementTree(jsxParams, layerType);
                 }
@@ -47,9 +51,13 @@ export class CreateViewStructure implements  IStructure {
         }
     }
 
-    private async createBaseStruct(jsxParams: IJsxParam) {
-        jsxParams["checkSelection"] = "true";
-        this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"),
+    private async findParentId(childName, parentId): Promise<string> {
+        return await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/parentId.jsx"),
+            {childName: childName, parentId: parentId});
+    }
+
+    private async createBaseStruct(jsxParams: IJsxParam): Promise<string> {
+        return await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"),
         jsxParams);
     }
 

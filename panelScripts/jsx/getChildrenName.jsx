@@ -1,5 +1,5 @@
 /**
- * Returns an array of all chilren name of selected item.
+ * Returns an array of all children name of selected item.
  */
 
 var childrenArray = [];

@@ -2,7 +2,6 @@ function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConf
     var childLayer;
     if (layerType === "layerSection") {
         childLayer = parentRef.layerSets.add();
-        childLayer.name = childName;
     }
     if (layerType === "artLayer") {
         childLayer = parentRef.artLayers.add();
@@ -13,10 +12,9 @@ function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConf
             childLayer.name = childName;
             childLayer.kind = layerConfig.kind;
             childLayer.textItem.contents = layerKindConfig ? layerKindConfig.contents : "Default";
-        } else {
-            childLayer.name = getPathName(parentRef, childName + ".png");
         }
     }
+    childLayer.name = childName;
     return childLayer;
 }
 
@@ -40,6 +38,15 @@ function getInsertionReference(upperLevelRef, searchKey) {
     return null;
 }
 
+function getInsertionReferenceById(id) {
+    var ref = new ActionReference();
+    ref.putIdentifier(charIDToTypeID('Lyr '), Number(id));
+    var desc = new ActionDescriptor();
+    desc.putReference(charIDToTypeID("null"), ref );
+    executeAction(charIDToTypeID("slct"), desc, DialogModes.NO );
+    return app.activeDocument.activeLayer;
+}
+
 function getPathName(layerRef, pathName) {
     if (layerRef === app.activeDocument) {
         return pathName;
@@ -52,22 +59,16 @@ function getPathName(layerRef, pathName) {
  * Returns the parent reference to be used when creating a new Element.
  * @param {optional} params parameters for the elements to be created.
  */
-function getParentRef(params) {
+function getParentRef() {
     var parentRef;
+    var selectedLayers = $.evalFile("D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\SelectedLayers.jsx");
+    var selectedLayersString = selectedLayers.toString();
 
-    if (params && params.parentName) {
-        parentRef = getInsertionReference(app.activeDocument, params.parentName);
-    }
-    else {
-        var selectedLayers = $.evalFile("D:\\Projects\\PS\\photoshopscript\\panelScripts\\jsx\\SelectedLayers.jsx");
-        var selectedLayersString = selectedLayers.toString();
-
-        if (selectedLayersString.length && !app.activeDocument.activeLayer.kind) {
-            // if a container is selected.
-            parentRef = app.activeDocument.activeLayer;
-        } else {
-            parentRef = app.activeDocument;
-        }
+    if (selectedLayersString.length && !app.activeDocument.activeLayer.kind) {
+        // if a container is selected.
+        parentRef = app.activeDocument.activeLayer;
+    } else {
+        parentRef = app.activeDocument;
     }
 
     return parentRef;

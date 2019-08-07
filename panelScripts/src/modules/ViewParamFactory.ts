@@ -13,19 +13,16 @@ export class ViewParamFactory {
             backgroundBG = { backgrounds: backgroundStruct.backgrounds },
             backgroundFG = { backgroundsFg: backgroundStruct.fgbackgrounds };
         viewMap.set("AddMainView", {
-            baseGame: baseGameStruct,
+            background: backgroundBG,
             bigWin: bigWinStruct,
-            background: backgroundBG
-        });
-        viewMap.set("AddPaytable", {
+            baseGame: baseGameStruct
+        }).set("AddPaytable", {
             paytable: paytableStruct
-        });
-        viewMap.set("AddIntroOutro", {
+        }).set("AddIntroOutro", {
             introOutro: introOutroStruct
-        });
-        viewMap.set("AddFreeGameView", {
-            freeGame: freeGameStruct,
-            background: backgroundFG
+        }).set("AddFreeGameView", {
+            background: backgroundFG,
+            freeGame: freeGameStruct
         });
         return viewMap;
     };
@@ -36,10 +33,21 @@ export class ViewParamFactory {
         let platformMap = new Map();
         platformMap.set("DesktopView", {
             desktop: desktopPlatform
-        });
-        platformMap.set("MobileView", {
+        }).set("MobileView", {
             mobile: mobilePlatform
         });
         return platformMap;
+    }
+
+    public static makeLayoutMap() {
+        const layoutMap = new Map();
+        layoutMap.set("LayoutEnabled", {});
+        return layoutMap;
+    }
+
+    public static makeTestingMap() {
+        const testingMap = new Map();
+        testingMap.set("Testing", {});
+        return testingMap;
     }
 }

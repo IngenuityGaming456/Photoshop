@@ -1,4 +1,4 @@
-#include "D:\\Projects\\PS\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 if (app.activeDocument.activeLayer.name === "languages") {
     var languagesArray = params.languages;
     var languagesCount = languagesArray.length;

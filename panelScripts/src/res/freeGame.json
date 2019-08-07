@@ -1,9 +1,5 @@
 {
     "freeGame": {
-        "gameLogoContainer": {
-            "type": "container",
-            "id": "gameLogoContainer"
-        },
         "freegameleftMtr": {
             "type": "meter",
             "text": "$00000000",
@@ -13,15 +9,6 @@
             "type": "meter",
             "text": "$00000000",
             "id": "totalwinMtrFG"
-        },
-        "reelsContainer": {
-            "type": "container",
-            "id": "reelsContainer"
-        },
-        "reelsBGContainer": {
-            "type": "container",
-            "id": "reelsBGContainer",
-            "parent": "reelsContainer"
         },
         "5OfAKindContainer": {
             "type": "container",
@@ -104,6 +91,19 @@
         "promoMessageContainer": {
             "type": "container",
             "id": "promoMessageContainer"
+        },
+        "reelsContainer": {
+            "type": "container",
+            "id": "reelsContainer"
+        },
+        "reelsBGContainer": {
+            "type": "container",
+            "id": "reelsBGContainer",
+            "parent": "reelsContainer"
+        },
+        "gameLogoContainer": {
+            "type": "container",
+            "id": "gameLogoContainer"
         }
     }
 }
