@@ -24,5 +24,14 @@ export interface IFactoryConstruct {
 }
 
 export interface IFactory {
-    execute(generator, menuName: string, factoryMap, activeDocument);
+    execute(params: IParams);
+}
+
+export interface IParams {
+    ref
+    dep
+    generator,
+    menuName?: string,
+    factoryMap?,
+    activeDocument?
 }

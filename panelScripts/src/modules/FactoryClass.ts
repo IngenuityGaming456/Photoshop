@@ -1,17 +1,11 @@
-import {IFactory, IFactoryConstruct} from "../interfaces/IJsxParam";
+import {IFactory, IFactoryConstruct, IParams} from "../interfaces/IJsxParam";
 
 export class FactoryClass {
 
-    private readonly _generator;
-    private readonly _menuName: string;
-    private readonly _factoryMap;
-    private readonly  _activeDocument;
+    private readonly params: IParams;
 
-    constructor(generator, menuName, factoryMap, activeDocument) {
-        this._generator = generator;
-        this._menuName = menuName;
-        this._factoryMap = factoryMap;
-        this._activeDocument = activeDocument;
+    constructor(params: IParams) {
+        this.params = params;
     }
 
     public construct(factoryConstruct: IFactoryConstruct, dependencies): IFactory {
@@ -20,13 +14,24 @@ export class FactoryClass {
             dependentObjs.push(new item());
         });
         if(dependentObjs.length) {
-            return new factoryConstruct(dependentObjs);
+            return new factoryConstruct(...dependentObjs);
         }
         return new factoryConstruct();
     }
 
     public execute(factory: IFactory) {
-        factory.execute(this._generator, this._menuName, this._factoryMap, this._activeDocument);
+        factory.execute(this.params);
     }
 
 }
+
+let factoryClass;
+
+export const inject = function (params: IParams): IFactory {
+    factoryClass = new FactoryClass(params);
+    return factoryClass.construct(params.ref, params.dep);
+};
+
+export const execute = function(factory: IFactory) {
+    factoryClass.execute(factory);
+};

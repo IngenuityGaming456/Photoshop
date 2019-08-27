@@ -50,4 +50,12 @@ export class ViewParamFactory {
         testingMap.set("Testing", {});
         return testingMap;
     }
+
+    public static makeLocalisationMap() {
+        const localisationMap = new Map();
+        localisationMap.set("Localise", {});
+        return localisationMap;
+    }
+
 }
+

@@ -1,4 +1,4 @@
-import {IFactory, IJsxParam, IViewStructure} from "../interfaces/IJsxParam";
+import {IFactory, IJsxParam, IParams, IViewStructure} from "../interfaces/IJsxParam";
 import {JsonComponentsFactory} from "./JsonComponentsFactory";
 import {PhotoshopJsonComponent, QuestJsonComponent} from "./JsonComponents";
 import * as path from "path";
@@ -9,13 +9,13 @@ export class CreateViewStructure implements  IFactory {
     private _element;
     private readonly _viewClass : IViewStructure;
 
-    public constructor(dependencies: Array<IViewStructure>) {
-        this._viewClass = dependencies[0];
+    public constructor(viewClass: IViewStructure) {
+        this._viewClass = viewClass;
     }
 
-    public execute(generator, menuName: string, factoryMap, activeDocument) {
-        this._generator = generator;
-        this._element = factoryMap.get(menuName);
+    public execute(params: IParams) {
+        this._generator = params.generator;
+        this._element = params.factoryMap.get(params.menuName);
         this.drawStruct(this._element);
     }
 

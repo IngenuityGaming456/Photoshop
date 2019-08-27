@@ -39,12 +39,12 @@ var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
 var path = require("path");
 var CreateViewStructure = /** @class */ (function () {
-    function CreateViewStructure(dependencies) {
-        this._viewClass = dependencies[0];
+    function CreateViewStructure(viewClass) {
+        this._viewClass = viewClass;
     }
-    CreateViewStructure.prototype.execute = function (generator, menuName, factoryMap, activeDocument) {
-        this._generator = generator;
-        this._element = factoryMap.get(menuName);
+    CreateViewStructure.prototype.execute = function (params) {
+        this._generator = params.generator;
+        this._element = params.factoryMap.get(params.menuName);
         this.drawStruct(this._element);
     };
     CreateViewStructure.prototype.drawStruct = function (params) {

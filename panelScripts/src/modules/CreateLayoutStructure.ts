@@ -1,4 +1,4 @@
-import {IFactory} from "../interfaces/IJsxParam";
+import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {Generator} from "../../../generator-core/lib/generator.js";
 import * as fs from "fs";
 import * as path from "path";
@@ -14,10 +14,10 @@ export class CreateLayoutStructure implements IFactory {
     public static listenerFn: Function;
     public static modifiedIds = [];
 
-    public async execute(generator, menuName: string, factoryMap, activeDocument) {
-        this._generator = generator;
+    public async execute(params: IParams) {
+        this._generator = params.generator;
         this._pluginId = packageJson.name;
-        this._activeDocument = activeDocument;
+        this._activeDocument = params.activeDocument;
         this.unsubscribeEventListener("imageChanged");
         this._document = await this.requestDocument();
         let result = JSON.stringify(this._document, null, "  ");

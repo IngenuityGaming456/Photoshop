@@ -733,7 +733,7 @@
     Document.prototype.removeUnwantedLayers = function(rawChange){
         var unwantedLayers = [];
         rawChange.forEach((item, index) => {
-            if((item.added && item.removed)) {
+            if(item.added && item.removed) {
                 unwantedLayers.push(index);
             }
         });
@@ -794,11 +794,11 @@
     Document.prototype._updateLayers = function (rawChange) {
         this.removeUnwantedLayers(rawChange);
         this.removeUnwantedProperty(rawChange);
+
         var rawLayerChange = {
             id: this.id,
             layers: rawChange
         };
-
         // Find all the existing layers that need to be updated
         var changes = this._getChangedLayers(rawLayerChange.layers);
         // Add in all the changed layer ranges

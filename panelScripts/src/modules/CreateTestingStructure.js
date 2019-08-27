@@ -40,19 +40,19 @@ var path = require("path");
 var CreateTestingStructure = /** @class */ (function () {
     function CreateTestingStructure() {
     }
-    CreateTestingStructure.prototype.execute = function (generator, menuName, factoryMap, activeDocument) {
+    CreateTestingStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
             var modifiedIdsCount, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        generator.onPhotoshopEvent("imageChanged", CreateLayoutStructure_1.CreateLayoutStructure.listenerFn);
+                        params.generator.onPhotoshopEvent("imageChanged", CreateLayoutStructure_1.CreateLayoutStructure.listenerFn);
                         modifiedIdsCount = CreateLayoutStructure_1.CreateLayoutStructure.modifiedIds.length;
                         i = 0;
                         _a.label = 1;
                     case 1:
                         if (!(i < modifiedIdsCount)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: CreateLayoutStructure_1.CreateLayoutStructure.modifiedIds[i],
+                        return [4 /*yield*/, params.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: CreateLayoutStructure_1.CreateLayoutStructure.modifiedIds[i],
                                 remove: true
                             })];
                     case 2:

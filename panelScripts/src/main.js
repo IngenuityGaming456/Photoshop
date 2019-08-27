@@ -5,17 +5,19 @@
         CreateView = require("./modules/CreateViewClasses").CreateView,
         CreateViewStructure = require("./modules/CreateViewStructure").CreateViewStructure,
         CreatePlatform = require("./modules/CreateViewClasses").CreatePlatform,
-        FactoryClass = require("./modules/FactoryClass").FactoryClass,
+        inject = require("./modules/FactoryClass").inject,
+        execute = require("./modules/FactoryClass").execute,
         Restructure = require("./modules/Restructure").Restructure,
         ViewParamFactory = require("./modules/ViewParamFactory").ViewParamFactory,
         CreateComponent = require("./modules/CreateComponent").CreateComponent,
         LayerManager = require("./modules/LayerManager").LayerManager,
+        CreateLocalisationStructure = require("./modules/CreateLocalisationStructure").CreateLocalisationStructure,
         CreateTestingStructure = require("./modules/CreateTestingStructure").CreateTestingStructure,
         CreateLayoutStructure = require("./modules/CreateLayoutStructure").CreateLayoutStructure,
         DocumentManager = require("../lib/documentmanager"),
         menuLables = require("./res/menuLables"),
         path = require('path'), structureMap, _layerManager,
-        componentsMap, viewsMap, platformsMap, layoutMap, testingMap;
+        componentsMap, viewsMap, platformsMap, layoutMap, localisationMap, testingMap;
 
     /**
      * This is the first function to get called by the generator.
@@ -23,23 +25,25 @@
      */
     async function init(generator, config, logger) {
         _generator = generator;
-         createObjects();
-         await addMenuItems(menuLables);
-         await initDocument(config, logger);
-         activateListeners();
+        createObjects();
+        await addMenuItems(menuLables);
+        await initDocument(config, logger);
+        activateListeners();
     }
 
     async function initDocument(config, logger) {
         _documentManager = new DocumentManager(_generator, config, logger);
         _documentManager.once("activeDocumentChanged", async(activeDocumentId) => {
             _activeDocument = await _documentManager.getDocument(activeDocumentId);
-            _layerManager = new LayerManager(_generator, _activeDocument);
+            _layerManager = inject({ref: LayerManager, dep: [],
+                generator: _generator, activeDocument: _activeDocument});
+            execute(_layerManager);
             await _generator.evaluateJSXFileSharedSafe(path.join(__dirname, "../jsx/networkEventCharSubscribe.jsx"));
             await _generator.evaluateJSXFile(path.join(__dirname, "../jsx/alert.jsx"), {
                 message: "Document is ready to be updated as you work"
             });
         });
-    }
+}
 
     function activateListeners() {
         _generator.onPhotoshopEvent("generatorMenuChanged", onButtonMenuClicked);
@@ -94,9 +98,10 @@
         const elementMap = getElementMap(menu.name);
         const classObj = structureMap.get(elementMap);
         if(classObj) {
-            const factoryClass = new FactoryClass(_generator, menu.name, elementMap, _activeDocument);
-            const factoryObj = factoryClass.construct(classObj.ref, classObj.dep);
-            factoryClass.execute(factoryObj);
+            const factoryObj = inject({ref: classObj.ref, dep: classObj.dep,
+                                               generator: _generator, menuName: menu.name,
+                                               factoryMap: elementMap, activeDocument: _activeDocument});
+            execute(factoryObj);
         }
     }
 
@@ -137,6 +142,7 @@
         viewsMap = ViewParamFactory.makeViewMap();
         platformsMap = ViewParamFactory.makePlatformMap();
         layoutMap = ViewParamFactory.makeLayoutMap();
+        localisationMap = ViewParamFactory.makeLocalisationMap();
         testingMap = ViewParamFactory.makeTestingMap();
         structureMap
         .set(componentsMap, {
@@ -153,6 +159,10 @@
         })
         .set(layoutMap, {
             ref: CreateLayoutStructure,
+            dep: []
+        })
+        .set(localisationMap, {
+            ref: CreateLocalisationStructure,
             dep: []
         })
         .set(testingMap, {

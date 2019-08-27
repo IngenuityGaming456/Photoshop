@@ -1,30 +1,90 @@
 import {Document} from "../../lib/dom/document.js";
 import {Generator} from "../../../generator-core/lib/generator.js";
+import {IParams} from "../interfaces/IJsxParam";
+import * as path from "path";
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
 
 export class LayerManager {
-    private readonly _generator: Generator;
-    private readonly _activeDocument: Document;
-    private readonly pluginId: string;
+    private  _generator: Generator;
+    private  _activeDocument: Document;
+    private  pluginId: string;
     public static promiseArray: Array<Promise<any>> = [];
-    public constructor(generator: Generator, activeDocument: Document) {
-        this._generator = generator;
-        this._activeDocument = activeDocument;
+    private eventName: string;
+    private selectedLayers = [];
+    private localisedLayers = [];
+    private copiedLayers = [];
+    private isPasteEvent = false;
+
+    public execute(params: IParams) {
+        this._generator = params.generator;
+        this._activeDocument = params.activeDocument;
         this.pluginId = packageJson.name;
+        this.subscribeListeners();
     }
 
-    public async addBufferData(changedLayers) {
-        if (this._generator.isPasteEvent) {
-            const addedLayers = this.handlePasteEvent(changedLayers, undefined);
-            await this.getImageDataOfPaste(addedLayers);
-            this._generator.isPasteEvent = false;
-        } else {
-            this.handleImportEvent(changedLayers, undefined);
+    private subscribeListeners() {
+        this._generator.on("eventProcessed", eventName => {
+            this.eventName = eventName;
+            this.handleEvents();
+        });
+        this._generator.on("localisation", localisedLayers => {
+            this.localisedLayers = localisedLayers;
+        })
+    }
+
+    private async handleEvents() {
+        switch(this.eventName) {
+            case Events.SELECT :
+                this.selectedLayers = await this.getSelectedLayers();
+                break;
+            case Events.COPY :
+                this.copiedLayers = await this.getSelectedLayers();
+                break;
+            case Events.PASTE :
+                this.isPasteEvent = true;
         }
     }
 
-    private handlePasteEvent(changedLayers, addedLayers) {
+    private async getSelectedLayers() {
+        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+        return selectedLayersString.toString().split(",");
+    }
+
+    public async addBufferData(changedLayers) {
+        switch(this.eventName) {
+            case Events.COPYTOLAYER :
+                await this.handleDuplicate(changedLayers, this.selectedLayers);
+                break;
+            case Events.DUPLICATE :
+                await this.handleDuplicateEvent(changedLayers);
+                break;
+            default :
+                await this.handleImportEvent(changedLayers, undefined);
+        }
+    }
+
+    private async handleDuplicateEvent(changedLayers) {
+        if(this.isPasteEvent) {
+            await this.handleDuplicate(changedLayers, this.copiedLayers);
+            this.isPasteEvent = false;
+            return;
+        }
+        if(this.localisedLayers.length) {
+            await this.handleDuplicate(changedLayers, this.localisedLayers);
+            this.localisedLayers.splice(0, 1);
+            return;
+        }
+        await this.handleDuplicate(changedLayers, this.selectedLayers);
+    }
+
+    private async handleDuplicate(changedLayers, parentLayers) {
+        const addedLayers = this.handleEvent(changedLayers, undefined);
+        await this.getImageDataOfEvent(addedLayers, parentLayers);
+    }
+
+
+    private handleEvent(changedLayers, addedLayers) {
         addedLayers = addedLayers || [];
         const layersCount = changedLayers.length;
         for(let i=0;i<layersCount;i++) {
@@ -33,7 +93,7 @@ export class LayerManager {
                 addedLayers.push(change);
             } else {
                 if(change.layers) {
-                    addedLayers = this.handlePasteEvent(change.layers, addedLayers);
+                    addedLayers = this.handleEvent(change.layers, addedLayers);
                 }
             }
         }
@@ -69,40 +129,46 @@ export class LayerManager {
                 };
                 return this.setLayerSettings(bufferPayload, layerId);
             })
-            .catch((err) => console.log(err));
         //bufferPromise.then(() => console.log("Buffer Added to metadata"));
         promiseArray.push(bufferPromise);
     }
 
-    private async getImageDataOfPaste(layersArray) {
+    private async getImageDataOfEvent(layersArray, parentLayers) {
         //console.log("Paste Image Pixel Data Addition Started");
         const layersCount = layersArray.length;
         for(let i=0;i<layersCount;i++) {
             const copiedLayerRef = this.findLayerRef(this._activeDocument.layers.layers,
-                                                     this._generator.copiedLayers[i]);
+                                                     parentLayers[i]);
             if(copiedLayerRef instanceof LayerClass.LayerGroup) {
+                if(this.getGeneratorSettings(copiedLayerRef)) {
+                    await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
+                }
                 const pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
-                await this.handleGroupPaste(copiedLayerRef, pastedLayerRef);
+                await this.handleGroupEvent(copiedLayerRef, pastedLayerRef);
             } else {
-                await this.setBufferOnPaste(this._activeDocument.id, this._generator.copiedLayers[i], layersArray[i].id);
+                await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
             }
         }
     }
 
-    private async handleGroupPaste(copiedLayerGroup, pastedLayerGroup) {
+    private getGeneratorSettings(parentLayerRef): boolean {
+        return parentLayerRef.generatorSettings && parentLayerRef.generatorSettings[this.pluginId];
+    }
+
+    private async handleGroupEvent(copiedLayerGroup, pastedLayerGroup) {
         const copiedLayers = copiedLayerGroup.layers;
         const pastedLayers = pastedLayerGroup.layers;
         const layersCount = copiedLayers.length;
         for(let i=0;i<layersCount;i++) {
             if(copiedLayers[i] instanceof LayerClass.LayerGroup) {
-                await this.handleGroupPaste(copiedLayers[i], pastedLayers[i]);
+                await this.handleGroupEvent(copiedLayers[i], pastedLayers[i]);
             } else {
-                await this.setBufferOnPaste(this._activeDocument.id, copiedLayers[i].id, pastedLayers[i].id);
+                await this.setBufferOnEvent(this._activeDocument.id, copiedLayers[i].id, pastedLayers[i].id);
             }
         }
     }
 
-    private async setBufferOnPaste(documentId, copyId, pasteId) {
+    private async setBufferOnEvent(documentId, copyId, pasteId) {
         let bufferPayload = await this._generator.getLayerSettingsForPlugin(documentId, copyId, this.pluginId);
         await this.setLayerSettings(bufferPayload, pasteId);
         //console.log("Paste Image Pixel Data Added");
@@ -142,5 +208,12 @@ export class LayerManager {
         LayerManager.promiseArray.push(promise);
         return promise;
     }
+}
 
+enum Events {
+    DUPLICATE = "Dplc",
+    SELECT = "slct",
+    COPYTOLAYER = "CpTL",
+    COPY = "copy",
+    PASTE = "past"
 }

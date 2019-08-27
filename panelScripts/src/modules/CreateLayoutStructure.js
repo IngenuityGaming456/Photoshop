@@ -42,15 +42,15 @@ var packageJson = require("../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
     function CreateLayoutStructure() {
     }
-    CreateLayoutStructure.prototype.execute = function (generator, menuName, factoryMap, activeDocument) {
+    CreateLayoutStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, result;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        this._generator = generator;
+                        this._generator = params.generator;
                         this._pluginId = packageJson.name;
-                        this._activeDocument = activeDocument;
+                        this._activeDocument = params.activeDocument;
                         this.unsubscribeEventListener("imageChanged");
                         _a = this;
                         return [4 /*yield*/, this.requestDocument()];

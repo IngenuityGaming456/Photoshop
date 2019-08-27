@@ -41,6 +41,11 @@ var ViewParamFactory = /** @class */ (function () {
         testingMap.set("Testing", {});
         return testingMap;
     };
+    ViewParamFactory.makeLocalisationMap = function () {
+        var localisationMap = new Map();
+        localisationMap.set("Localise", {});
+        return localisationMap;
+    };
     return ViewParamFactory;
 }());
 exports.ViewParamFactory = ViewParamFactory;

@@ -1,12 +1,12 @@
 {
   "desktop" : {
-    "languages": {
-      "type": "container",
-      "id": "languages"
-    },
     "common": {
       "type": "container",
       "id": "common"
+    },
+    "languages": {
+      "type": "container",
+      "id": "languages"
     }
   },
   "mobile" : {

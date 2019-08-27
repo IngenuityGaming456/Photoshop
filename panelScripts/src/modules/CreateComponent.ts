@@ -1,38 +1,36 @@
 import {Restructure} from "./Restructure";
 import * as path from "path";
-import {IFactory} from "../interfaces/IJsxParam";
+import {IFactory, IParams} from "../interfaces/IJsxParam";
+import * as layerClass from "../../lib/dom/layer";
+let packageJson = require("../../package.json");
 
 export class CreateComponent implements IFactory{
     private _generator;
+    private _pluginId;
 
-    public execute(generator, element, componentsMap, activeDocument) {
-        this._generator = generator;
-        let elementValue = componentsMap.get(element);
+    public async execute(params: IParams) {
+        this._generator = params.generator;
+        this._pluginId = packageJson.name;
+        let elementValue = params.factoryMap.get(params.menuName);
         let sequenceId = Restructure.sequenceStructure(elementValue);
-        this.callComponentJsx(sequenceId, element)
-            .then( id => {
-                return new Promise(resolve => {
-                    this._generator.setLayerSettingsForPlugin(
-                        elementValue.label, id, "type")
-                        .then(() => {
-                            resolve(id);
-                            }
-                        );
-                });
-            })
-            .then(id => {
-                let controlledArray = elementValue.elementArray;
-                controlledArray.push({id: id, sequence: sequenceId});
-            });
+        let id = await this.callComponentJsx(sequenceId, params.menuName);
+        await this.setGeneratorSettings(id, elementValue);
+        const docLayers: layerClass.LayerGroup = params.activeDocument.layers;
+        const parentRef = docLayers.findLayer(id);
+        parentRef.layer._setGeneratorSettings({
+            [this._pluginId] : elementValue.label
+        });
+        let controlledArray = elementValue.elementArray;
+        controlledArray.push({id: id, sequence: sequenceId});
     }
 
-    private callComponentJsx(sequenceId: number, jsxName: string): Promise<number> {
-        return new Promise((resolve, reject) => {
-            let jsxPath = path.join(__dirname, "../../jsx/" + jsxName + ".jsx");
-            this._generator.evaluateJSXFile(jsxPath, {clicks: sequenceId})
-                .then(id => resolve(id))
-                .catch(err => reject(err));
-        });
+    private async callComponentJsx(sequenceId: number, jsxName: string): Promise<number> {
+        let jsxPath = path.join(__dirname, "../../jsx/" + jsxName + ".jsx");
+        return await this._generator.evaluateJSXFile(jsxPath, {clicks: sequenceId});
+    }
+
+    private async setGeneratorSettings(id, elementValue) {
+        await this._generator.setLayerSettingsForPlugin(elementValue.label, id, this._pluginId)
     }
 
 }

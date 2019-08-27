@@ -101,6 +101,10 @@
     "label": "LayoutEnabled",
     "displayName": "GetLayout"
   },
+  "Localisation": {
+    "label": "Localise",
+    "displayName": "Localise"
+  },
   "Testing": {
     "label": "Testing",
     "displayName": "Testing"

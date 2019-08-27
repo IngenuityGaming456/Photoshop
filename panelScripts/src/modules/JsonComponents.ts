@@ -1,4 +1,5 @@
 import * as path from "path";
+let packageJson = require("../../package.json");
 
 export class PhotoshopJsonComponent {
     private readonly _type: string;
@@ -32,10 +33,12 @@ export class PhotoshopJsonComponent {
 export class QuestJsonComponent {
     private readonly _path;
     private readonly _type;
+    private readonly _pluginId: string;
 
     public constructor(type: string, path: string) {
         this._path = path;
         this._type = type;
+        this._pluginId = packageJson.name;
     }
 
     public setJsxPath(): string {
@@ -53,7 +56,7 @@ export class QuestJsonComponent {
     }
 
     private async setLayerMetaData(generator, type: string, id): Promise<any> {
-        await generator.setLayerSettingsForPlugin(type, id, "LayoutPlugin");
+        await generator.setLayerSettingsForPlugin(type, id, this._pluginId);
         return Promise.resolve();
     }
 }
