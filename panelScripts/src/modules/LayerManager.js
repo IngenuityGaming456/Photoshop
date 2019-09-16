@@ -53,6 +53,9 @@ var LayerManager = /** @class */ (function () {
     };
     LayerManager.prototype.subscribeListeners = function () {
         var _this = this;
+        this._generator.on("handleLayersData", function (event) {
+            _this.handlePhotoshopEvents(event);
+        });
         this._generator.on("eventProcessed", function (eventName) {
             _this.eventName = eventName;
             _this.handleEvents();
@@ -93,6 +96,11 @@ var LayerManager = /** @class */ (function () {
                 }
             });
         });
+    };
+    LayerManager.prototype.handlePhotoshopEvents = function (event) {
+        if (event.layers) {
+            this.addBufferData(event.layers);
+        }
     };
     LayerManager.prototype.getSelectedLayers = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -221,8 +229,7 @@ var LayerManager = /** @class */ (function () {
                 "pixels": base64Pixmap
             };
             return _this.setLayerSettings(bufferPayload, layerId);
-        })
-            .catch(function (err) { return console.log(err); });
+        });
         //bufferPromise.then(() => console.log("Buffer Added to metadata"));
         promiseArray.push(bufferPromise);
     };

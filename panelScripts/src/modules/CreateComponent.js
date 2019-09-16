@@ -39,7 +39,8 @@ var Restructure_1 = require("./Restructure");
 var path = require("path");
 var packageJson = require("../../package.json");
 var CreateComponent = /** @class */ (function () {
-    function CreateComponent() {
+    function CreateComponent(modelFactory) {
+        this.modelFactory = modelFactory;
     }
     CreateComponent.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -49,7 +50,7 @@ var CreateComponent = /** @class */ (function () {
                     case 0:
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
-                        elementValue = params.factoryMap.get(params.menuName);
+                        elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
                         sequenceId = Restructure_1.Restructure.sequenceStructure(elementValue);
                         return [4 /*yield*/, this.callComponentJsx(sequenceId, params.menuName)];
                     case 1:

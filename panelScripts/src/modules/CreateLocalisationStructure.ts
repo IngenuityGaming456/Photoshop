@@ -20,7 +20,7 @@ export class CreateLocalisationStructure implements IFactory {
         const selectedIds = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
         return selectedIds.toString().split(",");
     }
-
+    
     private async getParents(idsArray: Array<string>) {
         const idsMap = new Map();
         idsArray.forEach((item) => {

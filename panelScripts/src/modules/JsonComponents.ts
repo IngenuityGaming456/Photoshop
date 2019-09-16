@@ -25,8 +25,7 @@ export class PhotoshopJsonComponent {
     }
 
     public async setJsx(generator, params): Promise<any> {
-        await generator.evaluateJSXFile(this.setJsxPath(), params);
-        return Promise.resolve();
+        return await generator.evaluateJSXFile(this.setJsxPath(), params);
     }
 }
 
@@ -50,7 +49,7 @@ export class QuestJsonComponent {
             generator.evaluateJSXFile(this.setJsxPath(), params)
                 .then(id => {
                     this.setLayerMetaData(generator, this._type, id)
-                        .then(() => resolve());
+                        .then(() => resolve(id));
                 })
         })
     }

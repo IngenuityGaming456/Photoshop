@@ -1,9 +1,4 @@
 {
-  "Platforms": {
-    "label": "AddPlatforms",
-    "displayName": "Platforms",
-    "enabled": false
-  },
   "Desktop": {
     "label": "DesktopView",
     "displayName": "Desktop",
@@ -13,11 +8,6 @@
     "label": "MobileView",
     "displayName": "Mobile",
     "menuGroup": "Menu_Platform"
-  },
-  "GameViews": {
-    "label": "AddGameViews",
-    "displayName": "GameViews",
-    "enabled": false
   },
   "FreeGameView": {
     "label": "AddFreeGameView",
@@ -38,11 +28,6 @@
     "label": "AddMainView",
     "displayName": "MainView",
     "menuGroup": "Menu_View"
-  },
-  "UIComponents": {
-    "label": "AddUIComponents",
-    "displayName": "UIComponents",
-    "enabled": false
   },
   "EmptyContainer": {
     "label": "AddEmptyCont",
@@ -91,11 +76,6 @@
     "displayName": "WinFrame",
     "type": "comp",
     "menuGroup": "Menu_Special_UI"
-  },
-  "Layout": {
-    "label": "LayoutMenu",
-    "displayName": "LayoutMenu",
-    "enabled": false
   },
   "LayoutEnabled": {
     "label": "LayoutEnabled",

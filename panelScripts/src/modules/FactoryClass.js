@@ -21,31 +21,41 @@ var __spread = (this && this.__spread) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var FactoryClass = /** @class */ (function () {
-    function FactoryClass(params) {
-        this.params = params;
+    function FactoryClass() {
+        this.dependencyMap = new Map();
+        this.cache = new Map();
     }
-    FactoryClass.prototype.construct = function (factoryConstruct, dependencies) {
-        var dependentObjs = [];
-        dependencies.forEach(function (item) {
-            dependentObjs.push(new item());
-        });
-        if (dependentObjs.length) {
-            return new (factoryConstruct.bind.apply(factoryConstruct, __spread([void 0], dependentObjs)))();
+    FactoryClass.getInstance = function () {
+        if (FactoryClass.instance) {
+            return FactoryClass.instance;
         }
-        return new factoryConstruct();
+        FactoryClass.instance = new FactoryClass();
+        return FactoryClass.instance;
     };
-    FactoryClass.prototype.execute = function (factory) {
-        factory.execute(this.params);
+    FactoryClass.prototype.construct = function (factoryConstruct, dependencies) {
+        var _this = this;
+        if (this.cache.get(factoryConstruct)) {
+            return this.cache.get(factoryConstruct);
+        }
+        var instance = new (factoryConstruct.bind.apply(factoryConstruct, __spread([void 0], dependencies.map(function (item) { return _this.construct(item, _this.getItemDependencies(item)); }))))();
+        this.cache.set(factoryConstruct, instance);
+        return instance;
+    };
+    FactoryClass.prototype.getItemDependencies = function (item) {
+        if (!this.dependencyMap.get(item)) {
+            return item.deps ? item.deps : [];
+        }
+        return this.dependencyMap.get(item);
     };
     return FactoryClass;
 }());
 exports.FactoryClass = FactoryClass;
-var factoryClass;
 exports.inject = function (params) {
-    factoryClass = new FactoryClass(params);
+    var factoryClass = FactoryClass.getInstance();
+    factoryClass.dependencyMap.set(params.ref, params.dep);
     return factoryClass.construct(params.ref, params.dep);
 };
-exports.execute = function (factory) {
-    factoryClass.execute(factory);
+exports.execute = function (factory, params) {
+    factory.execute(params);
 };
 //# sourceMappingURL=FactoryClass.js.map

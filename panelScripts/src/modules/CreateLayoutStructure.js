@@ -37,27 +37,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
-var LayerManager_1 = require("./LayerManager");
 var packageJson = require("../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
     function CreateLayoutStructure() {
+        this.artLayers = [];
     }
     CreateLayoutStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, result;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
                         this._activeDocument = params.activeDocument;
                         this.unsubscribeEventListener("imageChanged");
-                        _a = this;
+                        this.modifyParentNames();
                         return [4 /*yield*/, this.requestDocument()];
                     case 1:
-                        _a._document = _b.sent();
-                        result = JSON.stringify(this._document, null, "  ");
-                        this.writeJSON(result);
+                        result = _a.sent();
+                        this.traverseObject(result.layers, this.filterResult.bind(this));
+                        this.writeJSON(result, this.getPath());
                         return [2 /*return*/];
                 }
             });
@@ -73,107 +73,122 @@ var CreateLayoutStructure = /** @class */ (function () {
             });
         });
     };
+    CreateLayoutStructure.prototype.getPath = function () {
+        var path = this._activeDocument.file;
+        var extIndex = path.search(/\.(psd)/);
+        return path.substring(0, extIndex);
+    };
     CreateLayoutStructure.prototype.unsubscribeEventListener = function (eventName) {
         var listeners = this._generator.photoshopEventListeners(eventName);
         // Just a hack, will write a very detailed code in later phase.
         CreateLayoutStructure.listenerFn = listeners[1];
         this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
     };
-    CreateLayoutStructure.prototype.writeJSON = function (result) {
+    CreateLayoutStructure.prototype.modifyParentNames = function () {
+        this.traverseObject(this._activeDocument.layers.layers, this.getAllArtLayers.bind(this));
+        this.modifyPaths();
+    };
+    CreateLayoutStructure.prototype.getAllArtLayers = function (artLayerRef) {
+        this.artLayers.push(artLayerRef);
+    };
+    CreateLayoutStructure.prototype.filterResult = function (artLayerRef) {
+        delete artLayerRef["generatorSettings"][this._pluginId];
+    };
+    CreateLayoutStructure.prototype.writeJSON = function (result, modifiedPath) {
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            var path, extIndex, modifiedPath;
             return __generator(this, function (_a) {
-                path = this._activeDocument.file;
-                extIndex = path.search(/\.(psd)/);
-                modifiedPath = path.substring(0, extIndex);
-                Promise.all(LayerManager_1.LayerManager.promiseArray)
-                    .then(function () {
-                    // this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/alert.jsx"), {
-                    //     message: "All layers have been pixel detailed"
-                    // });
-                    //dirty hack for 5th Aug demo
-                    fs.writeFile(modifiedPath + ".txt", result, function (err) {
-                        if (err) {
-                            console.log(err);
-                        }
-                        else {
-                            var artLayers = _this.getAllArtLayers(_this._document.layers, undefined);
-                            _this.modifyPaths(artLayers);
-                        }
-                    });
+                fs.writeFile(modifiedPath + ".txt", JSON.stringify(result, null, "  "), function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                        console.log("File successfully written");
+                    }
                 });
                 return [2 /*return*/];
             });
         });
     };
-    CreateLayoutStructure.prototype.getAllArtLayers = function (documentLayers, artLayers) {
-        artLayers = artLayers || [];
+    CreateLayoutStructure.prototype.traverseObject = function (documentLayers, callback) {
         var noOfLayers = documentLayers.length;
         for (var i = 0; i < noOfLayers; i++) {
             if (documentLayers[i].type === "layer") {
-                artLayers.push(documentLayers[i]);
+                callback(documentLayers[i]);
             }
             if (documentLayers[i].type === "layerSection") {
                 if (documentLayers[i].layers) {
-                    artLayers = this.getAllArtLayers(documentLayers[i].layers, artLayers);
+                    this.traverseObject(documentLayers[i].layers, callback);
                 }
             }
         }
-        return artLayers;
     };
-    CreateLayoutStructure.prototype.modifyPaths = function (artLayers) {
+    CreateLayoutStructure.prototype.modifyPaths = function () {
+        var noOfArtLayers = this.artLayers.length;
+        var layerMap = new Map();
+        var bufferMap = new Map();
+        var keyPixmap, generatorJson;
+        for (var i = 0; i < noOfArtLayers; i++) {
+            // if(artLayers[i].hasOwnProperty("generatorSettings")) {
+            generatorJson = this.artLayers[i].generatorSettings[this._pluginId];
+            if (generatorJson) {
+                keyPixmap = JSON.parse(generatorJson.json);
+            }
+            // }
+            var layerObj = {
+                buffer: keyPixmap.pixels,
+                frequency: 1,
+                name: this.artLayers[i].name
+            };
+            layerMap.set(this.artLayers[i].id, layerObj);
+            bufferMap.set(layerObj.buffer, {
+                freq: 0,
+                parentName: ""
+            });
+        }
+        //console.log("mapped");
+        this.getBufferFrequency(layerMap, bufferMap);
+    };
+    CreateLayoutStructure.prototype.getBufferFrequency = function (layerMap, bufferMap) {
+        var _this = this;
+        layerMap.forEach(function (value, key) {
+            var bufferObj = bufferMap.get(value.buffer);
+            bufferObj.freq++;
+            value.frequency = bufferObj.freq;
+            _this.modifyPathNames(value, key, bufferObj);
+        });
+    };
+    CreateLayoutStructure.prototype.modifyPathNames = function (value, key, bufferObj) {
         return __awaiter(this, void 0, void 0, function () {
-            var noOfArtLayers, layerMap, bufferMap, keyPixmap, generatorJson, i, layerObj;
             return __generator(this, function (_a) {
-                noOfArtLayers = artLayers.length;
-                layerMap = new Map();
-                bufferMap = new Map();
-                for (i = 0; i < noOfArtLayers; i++) {
-                    if (artLayers[i].hasOwnProperty("generatorSettings")) {
-                        generatorJson = artLayers[i].generatorSettings[this._pluginId];
-                        if (generatorJson) {
-                            keyPixmap = JSON.parse(generatorJson.json);
-                        }
-                    }
-                    layerObj = {
-                        buffer: keyPixmap.pixels,
-                        frequency: 1,
-                        name: artLayers[i].name
-                    };
-                    layerMap.set(artLayers[i].id, layerObj);
-                    bufferMap.set(layerObj.buffer, 0);
+                switch (_a.label) {
+                    case 0:
+                        if (!(value.frequency === 1)) return [3 /*break*/, 2];
+                        bufferObj.parentName = value.name;
+                        CreateLayoutStructure.modifiedIds.push(key);
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: key })];
+                    case 1:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, this.setDuplicateMetaData(bufferObj.parentName, key)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
                 }
-                //console.log("mapped");
-                this.getBufferFrequency(layerMap, bufferMap);
-                return [2 /*return*/];
             });
         });
     };
-    CreateLayoutStructure.prototype.getBufferFrequency = function (layerMap, bufferMap) {
-        layerMap.forEach(function (value, key) {
-            var freq = bufferMap.get(value.buffer);
-            freq++;
-            value.frequency = freq;
-            bufferMap.set(value.buffer, freq);
-            layerMap.set(key, value);
-        });
-        //console.log("layerMap updated");
-        this.modifyPathNames(layerMap);
-    };
-    CreateLayoutStructure.prototype.modifyPathNames = function (layerMap) {
-        var _this = this;
-        var promiseArray = [];
-        layerMap.forEach(function (value, key) {
-            if (value.frequency === 1) {
-                CreateLayoutStructure.modifiedIds.push(key);
-                promiseArray.push(_this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: key }));
-            }
-        });
-        Promise.all(promiseArray)
-            .then(function () {
-            _this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/alert.jsx"), {
-                message: "Export is complete"
+    CreateLayoutStructure.prototype.setDuplicateMetaData = function (parentName, key) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin({
+                            image: parentName
+                        }, key, this._pluginId + "Image")];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
             });
         });
     };

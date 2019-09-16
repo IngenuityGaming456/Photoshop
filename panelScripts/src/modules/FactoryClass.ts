@@ -1,37 +1,42 @@
-import {IFactory, IFactoryConstruct, IParams} from "../interfaces/IJsxParam";
+import {IClassParams, IFactory, IFactoryConstruct, IParams} from "../interfaces/IJsxParam";
 
 export class FactoryClass {
-
-    private readonly params: IParams;
-
-    constructor(params: IParams) {
-        this.params = params;
-    }
-
-    public construct(factoryConstruct: IFactoryConstruct, dependencies): IFactory {
-        let dependentObjs = [];
-        dependencies.forEach(item => {
-            dependentObjs.push(new item());
-        });
-        if(dependentObjs.length) {
-            return new factoryConstruct(...dependentObjs);
+    public dependencyMap = new Map();
+    public cache = new Map<IFactoryConstruct, IFactory>();
+    private static instance;
+    
+    public static getInstance() {
+        if(FactoryClass.instance) {
+            return FactoryClass.instance;
         }
-        return new factoryConstruct();
+        FactoryClass.instance = new FactoryClass();
+        return FactoryClass.instance;
+    }
+    
+    public construct(factoryConstruct: IFactoryConstruct, dependencies: Array<any>): any {
+        if(this.cache.get(factoryConstruct))  {
+            return this.cache.get(factoryConstruct);
+        }
+        const instance = new factoryConstruct(...dependencies.map(item => this.construct(item, this.getItemDependencies(item))));
+        this.cache.set(factoryConstruct, instance);
+        return instance;
     }
 
-    public execute(factory: IFactory) {
-        factory.execute(this.params);
+    private getItemDependencies(item: any) {
+        if(!this.dependencyMap.get(item)) {
+            return item.deps ? item.deps : [];
+        }
+        return this.dependencyMap.get(item);
     }
 
 }
 
-let factoryClass;
-
-export const inject = function (params: IParams): IFactory {
-    factoryClass = new FactoryClass(params);
+export const inject = function (params: IClassParams): any {
+    const factoryClass = FactoryClass.getInstance();
+    factoryClass.dependencyMap.set(params.ref, params.dep);
     return factoryClass.construct(params.ref, params.dep);
 };
 
-export const execute = function(factory: IFactory) {
-    factoryClass.execute(factory);
+export const execute = function(factory: IFactory, params: IParams) {
+    factory.execute(params);
 };

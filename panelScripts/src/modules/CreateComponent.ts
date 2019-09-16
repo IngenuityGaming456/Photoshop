@@ -2,16 +2,22 @@ import {Restructure} from "./Restructure";
 import * as path from "path";
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as layerClass from "../../lib/dom/layer";
+import {ModelFactory} from "../models/ModelFactory";
 let packageJson = require("../../package.json");
 
 export class CreateComponent implements IFactory{
     private _generator;
     private _pluginId;
+    private modelFactory;
+
+    public constructor(modelFactory: ModelFactory) {
+        this.modelFactory = modelFactory;
+    }
 
     public async execute(params: IParams) {
         this._generator = params.generator;
         this._pluginId = packageJson.name;
-        let elementValue = params.factoryMap.get(params.menuName);
+        let elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
         let sequenceId = Restructure.sequenceStructure(elementValue);
         let id = await this.callComponentJsx(sequenceId, params.menuName);
         await this.setGeneratorSettings(id, elementValue);

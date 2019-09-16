@@ -1,35 +1,57 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var EventEmitter = require("events");
-var EventHandler = /** @class */ (function (_super) {
-    __extends(EventHandler, _super);
-    function EventHandler() {
-        return _super !== null && _super.apply(this, arguments) || this;
+var EventsManager = /** @class */ (function () {
+    function EventsManager() {
     }
-    EventHandler.prototype.on = function (event, listener) {
-        return _super.prototype.on.call(this, event, listener);
+    EventsManager.prototype.execute = function (params) {
+        this.generator = params.generator;
+        this.isAddedEvent(params.events);
+        this.isDeletionEvent(params.events);
+        this.isRenameEvent(params.events);
     };
-    EventHandler.prototype.emit = function (event) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
+    EventsManager.prototype.isAddedEvent = function (event) {
+        if (event.layers && this.isAdded(event.layers)) {
+            this.generator.emit("layersAdded", event.layers);
         }
-        return _super.prototype.emit.call(this, event, args);
     };
-    EventHandler.prototype.once = function (event, listener) {
-        return _super.prototype.once.call(this, event, listener);
+    EventsManager.prototype.isDeletionEvent = function (event) {
+        if (event.layers && this.isDeletion(event.layers)) {
+            this.generator.emit("layersDeleted", event.layers);
+        }
     };
-    return EventHandler;
-}(EventEmitter));
-exports.EventHandler = EventHandler;
+    EventsManager.prototype.isRenameEvent = function (event) {
+        if (event.layers && !event.added && event.layers[0].name) {
+            this.generator.emit("layerRenamed", event.layers);
+        }
+    };
+    EventsManager.prototype.isAdded = function (layers) {
+        var layersCount = layers.length;
+        for (var i = 0; i < layersCount; i++) {
+            var subLayer = layers[i];
+            if (subLayer.hasOwnProperty("added")) {
+                return true;
+            }
+            if (subLayer.hasOwnProperty("layers")) {
+                return this.isAdded(subLayer.layers);
+            }
+        }
+    };
+    EventsManager.prototype.isDeletion = function (layers) {
+        var layersCount = layers.length;
+        for (var i = 0; i < layersCount; i++) {
+            var subLayer = layers[i];
+            if (subLayer.hasOwnProperty("removed")) {
+                return true;
+            }
+        }
+    };
+    return EventsManager;
+}());
+exports.EventsManager = EventsManager;
+// if(!event.layers[0].added && (event.layers[0].removed || event.layers[0].name)) {
+//     componentsMap.forEach(item => {
+//         Restructure.searchAndModifyControlledArray(event.layers, item);
+//     });
+// }
+// _layerManager.addBufferData(event.layers);
 //# sourceMappingURL=EventsManager.js.map

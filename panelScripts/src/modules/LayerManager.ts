@@ -1,11 +1,11 @@
 import {Document} from "../../lib/dom/document.js";
 import {Generator} from "../../../generator-core/lib/generator.js";
-import {IParams} from "../interfaces/IJsxParam";
+import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
 
-export class LayerManager {
+export class LayerManager implements IFactory{
     private  _generator: Generator;
     private  _activeDocument: Document;
     private  pluginId: string;
@@ -24,13 +24,16 @@ export class LayerManager {
     }
 
     private subscribeListeners() {
+        this._generator.on("handleLayersData", event => {
+            this.handlePhotoshopEvents(event);
+        });
         this._generator.on("eventProcessed", eventName => {
             this.eventName = eventName;
             this.handleEvents();
         });
         this._generator.on("localisation", localisedLayers => {
             this.localisedLayers = localisedLayers;
-        })
+        });
     }
 
     private async handleEvents() {
@@ -43,6 +46,12 @@ export class LayerManager {
                 break;
             case Events.PASTE :
                 this.isPasteEvent = true;
+        }
+    }
+
+    private handlePhotoshopEvents(event) {
+        if(event.layers) {
+            this.addBufferData(event.layers);
         }
     }
 
