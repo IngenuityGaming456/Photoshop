@@ -57,9 +57,7 @@ var PhotoshopJsonComponent = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, generator.evaluateJSXFile(this.setJsxPath(), params)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/, Promise.resolve()];
+                    case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -82,7 +80,7 @@ var QuestJsonComponent = /** @class */ (function () {
             generator.evaluateJSXFile(_this.setJsxPath(), params)
                 .then(function (id) {
                 _this.setLayerMetaData(generator, _this._type, id)
-                    .then(function () { return resolve(); });
+                    .then(function () { return resolve(id); });
             });
         });
     };

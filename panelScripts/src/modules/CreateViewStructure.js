@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
 var path = require("path");
 var CreateViewClasses_1 = require("./CreateViewClasses");
@@ -158,7 +159,7 @@ var CreateViewStructure = /** @class */ (function () {
                         return [4 /*yield*/, this.createBaseStruct(jsxParams)];
                     case 1:
                         insertionPoint = _a.sent();
-                        this.modelFactory.getPhotoshopModel().getBaseMenuIds(Number(insertionPoint), keys);
+                        this.modelFactory.getPhotoshopModel().setBaseMenuIds(Number(insertionPoint), keys);
                         return [4 /*yield*/, this.insertBaseMetaData(insertionPoint)];
                     case 2:
                         _a.sent();
@@ -200,26 +201,28 @@ var CreateViewStructure = /** @class */ (function () {
     };
     CreateViewStructure.prototype.createElementTree = function (jsxParams, layerType) {
         return __awaiter(this, void 0, void 0, function () {
-            var jsonMap, element;
+            var jsonMap, element, childId;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        jsonMap = this.modelFactory.getMappingModel().getComponentsMap();
+                        jsonMap = JsonComponentsFactory_1.JsonComponentsFactory.makeJsonComponentsMap();
                         element = jsonMap.get(layerType);
                         if (!(element instanceof JsonComponents_1.PhotoshopJsonComponent)) return [3 /*break*/, 2];
                         jsxParams.type = element.getType();
                         jsxParams.subType = element.getSubType();
                         return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
                     case 1:
-                        _a.sent();
+                        childId = _a.sent();
                         _a.label = 2;
                     case 2:
                         if (!(element instanceof JsonComponents_1.QuestJsonComponent)) return [3 /*break*/, 4];
                         return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
                     case 3:
-                        _a.sent();
+                        childId = _a.sent();
                         _a.label = 4;
-                    case 4: return [2 /*return*/];
+                    case 4:
+                        this.modelFactory.getPhotoshopModel().setChildMenuIds(childId, jsxParams.childName);
+                        return [2 /*return*/];
                 }
             });
         });

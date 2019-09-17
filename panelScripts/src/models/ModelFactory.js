@@ -10,6 +10,7 @@ var ModelFactory = /** @class */ (function () {
     function ModelFactory() {
     }
     ModelFactory.prototype.execute = function (params) {
+        this.generator = params.generator;
         this.instantiate();
     };
     ModelFactory.prototype.instantiate = function () {
@@ -20,6 +21,7 @@ var ModelFactory = /** @class */ (function () {
                 languageStruct: languagesStruct
             } });
         this.photoshopModel = FactoryClass_1.inject({ ref: PhotoshopModel_1.PhotoshopModel, dep: [] });
+        FactoryClass_1.execute(this.photoshopModel, { generator: this.generator });
     };
     ModelFactory.prototype.getMappingModel = function () {
         return this.mappingModel;

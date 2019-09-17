@@ -10,8 +10,10 @@ export class ModelFactory implements IFactory {
     private mappingModel: MappingModel;
     private photoshopModel: PhotoshopModel;
     private socketStorageResponse;
-    
+    private generator;
+
     execute(params: IParams) {
+        this.generator = params.generator;
         this.instantiate();
     }
     
@@ -23,6 +25,7 @@ export class ModelFactory implements IFactory {
                 languageStruct: languagesStruct
             }});
         this.photoshopModel = inject({ref: PhotoshopModel, dep: []});
+        execute(this.photoshopModel, {generator: this.generator});
     }
     
     public getMappingModel() {

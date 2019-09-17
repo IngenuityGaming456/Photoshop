@@ -10,7 +10,7 @@
         execute = require("./modules/FactoryClass").execute,
         CreateComponent = require("./modules/CreateComponent").CreateComponent,
         LayerManager = require("./modules/LayerManager").LayerManager,
-        HandleStates = require("./modules/HandleStates").HandleStates,
+        ContainerPanelResponse = require("./modules/ContainerPanelResponse").ContainerPanelResponse,
         Validation = require("./modules/Validation").Validation,
         EventsManager = require("./modules/EventsManager").EventsManager,
         CreateLocalisationStructure = require("./modules/CreateLocalisationStructure").CreateLocalisationStructure,
@@ -21,8 +21,8 @@
         DeletedViewState = require("./states/photoshopMenuStates/DeletedViewsState").DeletedViewState,
         AddedViewState = require("./states/photoshopMenuStates/AddedViewState").AddedViewState,
         DocumentManager = require("../lib/documentmanager"), _modelFactory,
-        path = require('path'), structureMap, _layerManager, _handleStates, _validation,
-        componentsMap, viewsMap, platformsMap, layoutMap, localisationMap, testingMap,
+        path = require('path'), structureMap, _layerManager, _containerResponse, _validation,
+        componentsMap, viewsMap, platformsMap, layoutMap, localisationMap, testingMap, _socket,
         _eventsManager, io = require('socket.io')(8099), fs = require("fs"), _menuManager, _mapFactory;
         
 
@@ -54,7 +54,12 @@
     function activateListeners() {
         _generator.onPhotoshopEvent("generatorMenuChanged", onButtonMenuClicked);
         _generator.onPhotoshopEvent("imageChanged", onImageChanged);
+        _generator.on("UncheckFromContainerPanel", (layerName) => { onUncheckPanel(layerName); });
        // _generator.onPhotoshopEvent("currentDocumentChanged", onDocumentChanged);
+    }
+
+    function onUncheckPanel(layerName) {
+        _socket.emit("UncheckFromContainerPanel", layerName);
     }
     
     function onImageChanged(event) {
@@ -92,7 +97,6 @@
 
     function onButtonMenuClicked(event) {
         const menu = event.generatorMenuChanged;
-        _handleStates.menuClicked = menu.name;
         const elementMap = getElementMap(menu.name);
         const classObj = structureMap.get(elementMap);
         if(classObj) {
@@ -117,7 +121,8 @@
     function createSocket() {
         console.log("making a socket connection");
         io.on("connection", (socket) => {
-            socket.on("getQuestJson", storage => {
+            _socket = socket;
+            _socket.on("getQuestJson", storage => {
                 _modelFactory.handleSocketStorage(storage);
                 setViewMap();
             });
@@ -135,8 +140,8 @@
     function createDependencies() {
         _layerManager = inject({ref: LayerManager, dep: []});
         execute(_layerManager, {generator: _generator, activeDocument: _activeDocument});
-        _handleStates = inject({ref: HandleStates, dep: []});
-        execute(_handleStates, {generator: _generator, activeDocument: _activeDocument});
+        _containerResponse = inject({ref: ContainerPanelResponse, dep: [ModelFactory]});
+        execute(_containerResponse, {generator: _generator, activeDocument: _activeDocument});
         _validation = inject({ref: Validation, dep: [ModelFactory]});
         execute(_validation, {generator: _generator});
         _menuManager = inject({ref: MenuManager, dep: [ModelFactory, NoPlatformState, AddedPlatformState,
@@ -178,7 +183,7 @@
 
     function instantiateModels() {
         _modelFactory = inject({ref: ModelFactory, dep: []});
-        execute(_modelFactory, {});
+        execute(_modelFactory, {generator: _generator});
     }
 
     exports.init = init;

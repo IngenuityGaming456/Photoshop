@@ -83,11 +83,11 @@ var MenuManager = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.generator = params.generator;
-                        this.subscribeListeners();
+                        //this.subscribeListeners();
                         return [4 /*yield*/, this.addMenuItems()];
                     case 1:
+                        //this.subscribeListeners();
                         _a.sent();
-                        this.setStartingState();
                         return [2 /*return*/];
                 }
             });

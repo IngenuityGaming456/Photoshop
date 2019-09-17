@@ -1,16 +1,18 @@
 import {IPhotoshopState} from "../../interfaces/IJsxParam";
 import {UtilsPhotoshopState} from "../../utils/utilsPhotoshopState";
-let menuLabels = require("../../res/menuLables.json");
+let menuLabel = require("../../res/menuLables.json");
 
 export class AddedPlatformState implements IPhotoshopState {
     
-    checkMenuState(generator): void {
-        Object.keys(menuLabels).forEach(menu => {
-            if(!UtilsPhotoshopState.isPlatform(menu)) {
-                generator.toggleMenu(menuLabels[menu].label, true, false,
-                    menuLabels[menu].displayName);
+    private async checkMenuState(generator) {
+        for(let menu in menuLabel) {
+            if(menuLabel.hasOwnProperty(menu)) {
+                if(!UtilsPhotoshopState.isPlatform(menu)) {
+                    await generator.toggleMenu(menuLabel[menu].label, true, false,
+                        menuLabel[menu].displayName);
+                }
             }
-        });         
+        }
     }
 
     onAllPlatformsDeletion(menuManager, menuName: string): void {
@@ -18,9 +20,9 @@ export class AddedPlatformState implements IPhotoshopState {
         menuManager.onAllPlatformsDeletion();
     }
 
-    onPlatformAddition(menuManager, generator, menuName: string): void {
-        this.checkMenuState(generator);
-        generator.toggleMenu(menuName, false, false);
+    public async onPlatformAddition(menuManager, generator, menuName: string) {
+        await this.checkMenuState(generator);
+        await generator.toggleMenu(menuName, false, false);
     }
     
     onViewAddition(menuManager, generator, menuName: string): void {

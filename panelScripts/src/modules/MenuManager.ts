@@ -26,9 +26,9 @@ export class MenuManager implements IFactory {
 
     public async execute(params: IParams) {
         this.generator = params.generator;
-        this.subscribeListeners();
+        //this.subscribeListeners();
         await this.addMenuItems();
-        this.setStartingState();
+        //this.setStartingState();
     }
 
     private subscribeListeners() {

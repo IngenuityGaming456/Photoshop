@@ -1,5 +1,6 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
+import {utlis} from "../utils/utils";
 
 export class Validation implements IFactory {
     private modelFactory: ModelFactory;
@@ -50,19 +51,12 @@ export class Validation implements IFactory {
     private onLayersRename(eventLayers) {
         const baseId = this.modelFactory.getPhotoshopModel().menuIds;
         const childId = this.modelFactory.getPhotoshopModel().childIds;
+        const concatId = baseId.concat(childId);
         let id;
         eventLayers.forEach(item => {
-            id = baseId.find(itemB => {
-                if(itemB.id === item.id) {
-                    return true;
-                }
-            });
-            if(!id) {
-                id = childId.find(itemC => {
-                    if(itemC.id === item.id) {
-                        return true;
-                    }
-                });
+            id = utlis.isIDExists(item.id, concatId);
+            if(id) {
+                return;
             }
         });
         this.validationID(id);

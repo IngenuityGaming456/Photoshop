@@ -3,19 +3,34 @@ import * as fs from "fs";
 import {IModel, IParams} from "../interfaces/IJsxParam";
 
 export class PhotoshopModel implements IModel{
-    private viewObjStorage;
+    private viewObjStorage = [];
     private baseMenuIds = [];
     private childMenuIds = [];
     private elementalMap = new Map();
-    private elementalObj;
+    private elementalObj = [];
+    private generator;
+    private previousContainer = null;
+    private clickedMenus = [];
+    private prevContainerResponse = new Map();
+    private containerResponse = new Map();
     private questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
 
+    private subscribeListeners() {
+        this.generator.onPhotoshopEvent("generatorMenuChanged", (event) => this.onButtonMenuClicked(event));
+    }
+
+    private onButtonMenuClicked(event) {
+        this.clickedMenus.push(event.generatorMenuChanged.name);
+    }
+
     public handleSocketStorage(socketStorage) {
-        ///Thinking what to do.
+        this.prevContainerResponse = this.previousContainer;
+        this.containerResponse = socketStorage;
+        this.previousContainer = this.containerResponse;
     }
 
     private createStorage() {
-        const folderPath = path.join(__dirname, "viewRes");
+        const folderPath = path.join(__dirname, "../viewRes");
         fs.readdirSync(folderPath).forEach(fileName => {
             const jsonObject = require(folderPath + "/" + fileName);
             this.viewObjStorage.push(jsonObject);
@@ -85,7 +100,21 @@ export class PhotoshopModel implements IModel{
         this.elementalMap.get(parent)[type].push(key);
     }
 
+    get clickedMenuNames() {
+        return this.clickedMenus;
+    }
+
+    get currentContainerResponse() {
+        return this.containerResponse;
+    }
+
+    get previousContainerResponse() {
+        return this.prevContainerResponse;
+    }
+
     execute(params: IParams) {
+        this.generator = params.generator;
+        this.subscribeListeners();
         this.createStorage();
         this.makeElementalObject();
         this.createElementalViewStructure();

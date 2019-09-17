@@ -4,4 +4,12 @@ export class utlis {
         return ~searchArray.indexOf(key);
     }
 
+    public static isIDExists(id, idArray) {
+        return idArray.find(item => {
+            if(item.id === id) {
+                return true;
+            }
+        });
+    };
+
 }

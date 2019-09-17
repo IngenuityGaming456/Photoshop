@@ -23,7 +23,15 @@ export class CreateViewStructure implements IFactory {
         this._pluginId = packageJson.name;
         this._generator = params.generator;
         this._element = this.getElementMap().get(params.menuName);
+        this.subscribeListeners();
         this.drawStruct(this._element);
+    }
+
+    private subscribeListeners() {
+        this._generator.on("drawAddedStruct", (parentId, parserObj) => {
+            this.makeStruct(parserObj, parentId);
+        });
+        this._generator.on("deleteStruct", deletionId => { this.onDeletion(deletionId); });
     }
 
     private getElementMap() {
@@ -103,6 +111,10 @@ export class CreateViewStructure implements IFactory {
             childId = await element.setJsx(this._generator, jsxParams);
         }
         this.modelFactory.getPhotoshopModel().setChildMenuIds(childId, jsxParams.childName);
+    }
+
+    private onDeletion(deletionId) {
+        this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), {id: deletionId});
     }
 
 }

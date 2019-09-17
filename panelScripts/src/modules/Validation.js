@@ -11,7 +11,8 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("layersAdded", function () { return _this.onLayersAddition; });
+        this.generator.on("layersAdded", function (eventLayers) { return _this.onLayersAddition(eventLayers); });
+        this.generator.on("layerRenamed", function (eventLayers) { return _this.onLayersRename(eventLayers); });
     };
     Validation.prototype.isInHTML = function (key, questArray) {
         if (~questArray.indexOf(key)) {
@@ -38,6 +39,29 @@ var Validation = /** @class */ (function () {
         });
     };
     Validation.prototype.validateIfAlreadyPresent = function (parent, key) {
+    };
+    Validation.prototype.onLayersRename = function (eventLayers) {
+        var baseId = this.modelFactory.getPhotoshopModel().menuIds;
+        var childId = this.modelFactory.getPhotoshopModel().childIds;
+        var id;
+        eventLayers.forEach(function (item) {
+            id = baseId.find(function (itemB) {
+                if (itemB.id === item.id) {
+                    return true;
+                }
+            });
+            if (!id) {
+                id = childId.find(function (itemC) {
+                    if (itemC.id === item.id) {
+                        return true;
+                    }
+                });
+            }
+        });
+        this.validationID(id);
+    };
+    Validation.prototype.validationID = function (id) {
+        //Call photoshop to change the layer name;
     };
     return Validation;
 }());

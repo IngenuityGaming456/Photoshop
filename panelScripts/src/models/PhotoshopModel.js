@@ -14,16 +14,32 @@ var path = require("path");
 var fs = require("fs");
 var PhotoshopModel = /** @class */ (function () {
     function PhotoshopModel() {
+        this.viewObjStorage = [];
         this.baseMenuIds = [];
+        this.childMenuIds = [];
         this.elementalMap = new Map();
+        this.elementalObj = [];
+        this.previousContainer = null;
+        this.clickedMenus = [];
+        this.prevContainerResponse = new Map();
+        this.containerResponse = new Map();
         this.questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
     }
+    PhotoshopModel.prototype.subscribeListeners = function () {
+        var _this = this;
+        this.generator.onPhotoshopEvent("generatorMenuChanged", function (event) { return _this.onButtonMenuClicked(event); });
+    };
+    PhotoshopModel.prototype.onButtonMenuClicked = function (event) {
+        this.clickedMenus.push(event.generatorMenuChanged.name);
+    };
     PhotoshopModel.prototype.handleSocketStorage = function (socketStorage) {
-        ///Thinking what to do.
+        this.prevContainerResponse = this.previousContainer;
+        this.containerResponse = socketStorage;
+        this.previousContainer = this.containerResponse;
     };
     PhotoshopModel.prototype.createStorage = function () {
         var _this = this;
-        var folderPath = path.join(__dirname, "viewRes");
+        var folderPath = path.join(__dirname, "../viewRes");
         fs.readdirSync(folderPath).forEach(function (fileName) {
             var jsonObject = require(folderPath + "/" + fileName);
             _this.viewObjStorage.push(jsonObject);
@@ -71,7 +87,7 @@ var PhotoshopModel = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    PhotoshopModel.prototype.getBaseMenuIds = function (id, key) {
+    PhotoshopModel.prototype.setBaseMenuIds = function (id, key) {
         this.baseMenuIds.push({
             id: id,
             name: key
@@ -80,6 +96,19 @@ var PhotoshopModel = /** @class */ (function () {
     Object.defineProperty(PhotoshopModel.prototype, "menuIds", {
         get: function () {
             return this.baseMenuIds;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    PhotoshopModel.prototype.setChildMenuIds = function (id, key) {
+        this.childMenuIds.push({
+            id: id,
+            name: key
+        });
+    };
+    Object.defineProperty(PhotoshopModel.prototype, "childIds", {
+        get: function () {
+            return this.childMenuIds;
         },
         enumerable: true,
         configurable: true
@@ -101,7 +130,30 @@ var PhotoshopModel = /** @class */ (function () {
     PhotoshopModel.prototype.setViewElementalMap = function (parent, key, type) {
         this.elementalMap.get(parent)[type].push(key);
     };
+    Object.defineProperty(PhotoshopModel.prototype, "clickedMenuNames", {
+        get: function () {
+            return this.clickedMenus;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModel.prototype, "currentContainerResponse", {
+        get: function () {
+            return this.containerResponse;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModel.prototype, "previousContainerResponse", {
+        get: function () {
+            return this.prevContainerResponse;
+        },
+        enumerable: true,
+        configurable: true
+    });
     PhotoshopModel.prototype.execute = function (params) {
+        this.generator = params.generator;
+        this.subscribeListeners();
         this.createStorage();
         this.makeElementalObject();
         this.createElementalViewStructure();

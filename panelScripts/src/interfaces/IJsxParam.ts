@@ -39,7 +39,6 @@ export interface IParams {
 }
 
 export interface IPhotoshopState {
-    checkMenuState(generator): void;
     onViewAddition(menuManager: MenuManager, generator, menuName: string): void;
     onViewDeletion(menuManager: MenuManager, generator, menuName: string): void;
     onPlatformAddition(menuManager: MenuManager, generator, menuName: string): void;

@@ -4,17 +4,19 @@ let menuLabel = require("../../res/menuLables.json");
 
 export class NoPlatformState implements IPhotoshopState {
 
-    public checkMenuState(generator): void {
-        Object.keys(menuLabel).forEach(menu => {
-            if(!UtilsPhotoshopState.isPlatform(menuLabel[menu].displayName)) {
-                generator.toggleMenu(menuLabel[menu].label, false, false,
-                    menuLabel[menu].displayName);
+    private async checkMenuState(generator) {
+        for(let menu in menuLabel) {
+            if(menuLabel.hasOwnProperty(menu)) {
+                if(!UtilsPhotoshopState.isPlatform(menuLabel[menu].displayName)) {
+                    await generator.toggleMenu(menuLabel[menu].label, false, false,
+                        menuLabel[menu].displayName);
+                }
             }
-        });
+        }
     }
 
-    onAllPlatformsDeletion(menuManager, generator): void {
-        this.checkMenuState(generator);
+    async onAllPlatformsDeletion(menuManager, generator) {
+        await this.checkMenuState(generator);
     }
 
     onPlatformAddition(menuManager, menuName: string): void {
