@@ -14,22 +14,21 @@ export class ContainerPanelResponse implements IFactory {
     {
         this.generator = params.generator;
         this.subscribeListeners();
-        this.getDataForChanges();
     }
 
     private subscribeListeners() {
         this.generator.on("layersDeleted", (eventLayers) => this.onLayersDeleted(eventLayers));
+        this.generator.on("HandleSocketResponse", () => this.getDataForChanges());
     }
 
     private async onLayersDeleted(eventLayers) {
-        const baseId = this.modelFactory.getPhotoshopModel().menuIds;
-        const childId = this.modelFactory.getPhotoshopModel().childIds;
-        const concatId = baseId.concat(childId);
+        const questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         eventLayers.forEach(item => {
-            const element = utlis.isIDExists(item.id, concatId);
-            this.generator.emit("UncheckFromContainerPanel", element.name);
+            const element = utlis.isIDExists(item.id, questArray);
+            if(element) {
+                this.generator.emit("UncheckFromContainerPanel", element.name);
+            }
         });
-
     }
 
     private getDataForChanges() {
@@ -37,14 +36,18 @@ export class ContainerPanelResponse implements IFactory {
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
         const viewMap = this.modelFactory.getMappingModel().getViewMap();
         const clickedMenus = this.modelFactory.getPhotoshopModel().clickedMenuNames;
-        this.getChanges(previousResponse, currentResponse, viewMap, clickedMenus);
+        if(previousResponse) {
+            this.getChanges(previousResponse, currentResponse, viewMap, clickedMenus);
+        }
     }
 
     private getChanges(previousResponseMap, responseMap, viewsMap, clickedMenus) {
         clickedMenus.forEach(item => {
             const viewObj = viewsMap.get(item);
-            const viewKeys = Object.keys(viewObj);
-           this.handleViewKeys(viewKeys, previousResponseMap, responseMap);
+            if(viewObj) {
+                const viewKeys = Object.keys(viewObj);
+                this.handleViewKeys(viewKeys, previousResponseMap, responseMap);
+            }
         });
     }
 
@@ -76,7 +79,7 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private sendAdditionRequest(baseKey: string, currentObj) {
-        this.generator.emit("drawAddedStruct", this.getParentId(baseKey), currentObj);
+        this.generator.emit("drawAddedStruct", this.getParentId(baseKey), currentObj, baseKey);
     }
 
     private sendDeletionRequest(baseKey: string, previousObj) {
@@ -84,9 +87,9 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private getChildId(previousObj) {
-        const childId = this.modelFactory.getPhotoshopModel().childIds;
+        const childId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         const child = childId.find(item => {
-            if(item.id === previousObj.id) {
+            if(item.name === previousObj.id) {
                 return true;
             }
         });
@@ -94,7 +97,7 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private getParentId(baseKey) {
-        const baseId = this.modelFactory.getPhotoshopModel().menuIds;
+        const baseId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         const parent = baseId.find(item => {
             if(item.name === baseKey) {
                 return true;

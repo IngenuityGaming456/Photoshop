@@ -91,9 +91,13 @@ var AddedPlatformState = /** @class */ (function () {
         menuManager.setCurrentState(menuManager.getAddedViewState());
         menuManager.onViewAddition(menuName);
     };
-    AddedPlatformState.prototype.onViewDeletion = function (menuManager, menuName) {
+    AddedPlatformState.prototype.onViewDeletion = function (menuManager, generator, menuName) {
         menuManager.setCurrentState(menuManager.getViewDeletionState());
         menuManager.onViewDeletion(menuName);
+    };
+    AddedPlatformState.prototype.onPlatformDeletion = function (menuManager, generator, menuName) {
+        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
+        menuManager.onPlatformDeletion(menuName);
     };
     return AddedPlatformState;
 }());

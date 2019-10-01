@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var CreateLayoutStructure_1 = require("./CreateLayoutStructure");
+var CreateLayoutStructure_1 = require("./LayoutStructure/CreateLayoutStructure");
 var path = require("path");
 var CreateTestingStructure = /** @class */ (function () {
     function CreateTestingStructure() {

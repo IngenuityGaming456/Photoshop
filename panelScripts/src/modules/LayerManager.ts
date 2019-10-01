@@ -24,8 +24,8 @@ export class LayerManager implements IFactory{
     }
 
     private subscribeListeners() {
-        this._generator.on("handleLayersData", event => {
-            this.handlePhotoshopEvents(event);
+        this._generator.on("layersAdded", eventLayers => {
+            this.onLayersAdded(eventLayers);
         });
         this._generator.on("eventProcessed", eventName => {
             this.eventName = eventName;
@@ -49,10 +49,8 @@ export class LayerManager implements IFactory{
         }
     }
 
-    private handlePhotoshopEvents(event) {
-        if(event.layers) {
-            this.addBufferData(event.layers);
-        }
+    private onLayersAdded(eventLayers) {
+        this.addBufferData(eventLayers);
     }
 
     private async getSelectedLayers() {
@@ -91,7 +89,6 @@ export class LayerManager implements IFactory{
         const addedLayers = this.handleEvent(changedLayers, undefined);
         await this.getImageDataOfEvent(addedLayers, parentLayers);
     }
-
 
     private handleEvent(changedLayers, addedLayers) {
         addedLayers = addedLayers || [];
@@ -137,7 +134,7 @@ export class LayerManager implements IFactory{
                     "pixels": base64Pixmap
                 };
                 return this.setLayerSettings(bufferPayload, layerId);
-            })
+            });
         //bufferPromise.then(() => console.log("Buffer Added to metadata"));
         promiseArray.push(bufferPromise);
     }
@@ -149,9 +146,7 @@ export class LayerManager implements IFactory{
             const copiedLayerRef = this.findLayerRef(this._activeDocument.layers.layers,
                                                      parentLayers[i]);
             if(copiedLayerRef instanceof LayerClass.LayerGroup) {
-                if(this.getGeneratorSettings(copiedLayerRef)) {
-                    await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
-                }
+                await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
                 const pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
                 await this.handleGroupEvent(copiedLayerRef, pastedLayerRef);
             } else {
@@ -213,9 +208,12 @@ export class LayerManager implements IFactory{
     }
 
     private setLayerSettings(bufferPayload, layerId): Promise<any> {
-        const promise = this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
-        LayerManager.promiseArray.push(promise);
-        return promise;
+        if(!Object.keys(bufferPayload).length) {
+            const promise = this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
+            LayerManager.promiseArray.push(promise);
+            return promise;
+        }
+        return Promise.resolve();
     }
 }
 

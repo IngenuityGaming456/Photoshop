@@ -1,10 +1,14 @@
-import {MenuManager} from "../modules/MenuManager";
+import {MenuManager} from "../modules/MenuManagers/MenuManager";
 
 export interface IJsxParam {
     parentId: string,
     childName: string,
     type?: string,
     subType?: string
+}
+
+export interface ILayout extends IFactory {
+    modifyPathNames();
 }
 
 export interface ISequence {
@@ -27,7 +31,8 @@ export interface IFactory {
 
 export interface IClassParams {
     ref,
-    dep
+    dep,
+    isNonSingleton?: boolean
 }
 
 export interface IParams {
@@ -43,8 +48,21 @@ export interface IPhotoshopState {
     onViewDeletion(menuManager: MenuManager, generator, menuName: string): void;
     onPlatformAddition(menuManager: MenuManager, generator, menuName: string): void;
     onAllPlatformsDeletion(menuManager: MenuManager, generator): void;
+    onPlatformDeletion(menuManager: MenuManager, generator, menuName: string): void;
 }
 
 export interface IModel extends IFactory{
+    onPhotoshopClose();
+    onPhotoshopStart();
+}
 
+export interface ISubjectEvent {
+    subscribeListeners();
+    add(observer: IModel);
+    remove(observer: IModel);
+    notify();
+}
+
+export interface IDataSubModel extends IFactory {
+    createElementData();
 }

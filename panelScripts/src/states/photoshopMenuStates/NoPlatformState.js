@@ -52,18 +52,22 @@ var NoPlatformState = /** @class */ (function () {
                         _i = 0;
                         _c.label = 1;
                     case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
+                        if (!(_i < _a.length)) return [3 /*break*/, 6];
                         menu = _a[_i];
-                        if (!menuLabel.hasOwnProperty(menu)) return [3 /*break*/, 3];
+                        if (!menuLabel.hasOwnProperty(menu)) return [3 /*break*/, 5];
                         if (!!utilsPhotoshopState_1.UtilsPhotoshopState.isPlatform(menuLabel[menu].displayName)) return [3 /*break*/, 3];
                         return [4 /*yield*/, generator.toggleMenu(menuLabel[menu].label, false, false, menuLabel[menu].displayName)];
                     case 2:
                         _c.sent();
-                        _c.label = 3;
-                    case 3:
+                        return [3 /*break*/, 5];
+                    case 3: return [4 /*yield*/, generator.toggleMenu(menuLabel[menu].label, true, false, menuLabel[menu].displayName)];
+                    case 4:
+                        _c.sent();
+                        _c.label = 5;
+                    case 5:
                         _i++;
                         return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -80,13 +84,17 @@ var NoPlatformState = /** @class */ (function () {
             });
         });
     };
-    NoPlatformState.prototype.onPlatformAddition = function (menuManager, menuName) {
+    NoPlatformState.prototype.onPlatformAddition = function (menuManager, generator, menuName) {
         menuManager.setCurrentState(menuManager.getPlatformAdditionState());
         menuManager.onPlatformAddition(menuName);
     };
     NoPlatformState.prototype.onViewAddition = function (menuManager, generator, menuName) {
     };
-    NoPlatformState.prototype.onViewDeletion = function (menuManager, menuName) {
+    NoPlatformState.prototype.onViewDeletion = function (menuManager, generator, menuName) {
+    };
+    NoPlatformState.prototype.onPlatformDeletion = function (menuManager, generator, menuName) {
+        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
+        menuManager.onPlatformDeletion(menuName);
     };
     return NoPlatformState;
 }());

@@ -24,7 +24,7 @@ function drawPaylines(paylinesRef) {
     for (var i = 0; i < paylineStructLength; i++) {
         var layerRef = insertLayer(paylineRef, paylineStruct[i], "layerSection");
         if(paylineStruct[i] !== "Static") {
-            var pathName = getPathName(layerRef, "Image.png");
+            var pathName = getPathName(layerRef, "Image.png", paylineName, 0);
             insertLayer(layerRef, pathName, "artLayer", layerConfig);
         }
     }

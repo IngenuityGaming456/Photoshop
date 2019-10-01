@@ -506,7 +506,7 @@
             this._removeOpenDocumentID(id);
         } else {
             this._addOpenDocumentID(id);
-        }
+    }
 
         // ignore changes for document IDs until a client calls getDocument
         if (!this._documentDeferreds.hasOwnProperty(id) && !this._documents.hasOwnProperty(id)) {

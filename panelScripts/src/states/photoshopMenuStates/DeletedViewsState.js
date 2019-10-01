@@ -42,7 +42,7 @@ var DeletedViewState = /** @class */ (function () {
         menuManager.setCurrentState(menuManager.getNoPlatformState());
         menuManager.onAllPlatformsDeletion();
     };
-    DeletedViewState.prototype.onPlatformAddition = function (menuManager, menuName) {
+    DeletedViewState.prototype.onPlatformAddition = function (menuManager, generator, menuName) {
         menuManager.setCurrentState(menuManager.getPlatformAdditionState());
         menuManager.onPlatformAddition(menuName);
     };
@@ -50,7 +50,7 @@ var DeletedViewState = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, generator.toggleMenu(menuName, false, false)];
+                    case 0: return [4 /*yield*/, generator.toggleMenu(menuName, true, false)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -61,6 +61,10 @@ var DeletedViewState = /** @class */ (function () {
     DeletedViewState.prototype.onViewAddition = function (menuManager, generator, menuName) {
         menuManager.setCurrentState(menuManager.getAddedViewState());
         menuManager.onViewAddition(menuName);
+    };
+    DeletedViewState.prototype.onPlatformDeletion = function (menuManager, generator, menuName) {
+        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
+        menuManager.onPlatformDeletion(menuName);
     };
     return DeletedViewState;
 }());

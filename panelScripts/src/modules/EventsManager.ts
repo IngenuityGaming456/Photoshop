@@ -2,12 +2,103 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 
 export class EventsManager implements IFactory{
     private generator;
+    private documentManager;
 
     public execute(params: IParams) {
         this.generator = params.generator;
-        this.isAddedEvent(params.events);
-        this.isDeletionEvent(params.events);
-        this.isRenameEvent(params.events);
+        this.documentManager = params.storage.documentManager;
+        this.subscribeListeners();
+    }
+
+    public onImageChanged(event) {
+        this.removeUnwantedEvents(event);
+        this.isAddedEvent(event);
+        this.isDeletionEvent(event);
+        this.isRenameEvent(event);
+    }
+
+    private subscribeListeners() {
+        this.generator.on("eventProcessed", (event) => {
+            this.onHandleEvents(event);
+        });
+        this.documentManager.on("openDocumentsChanged", (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) => {
+            this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
+        });
+    }
+
+    private handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments) {
+        if(nowOpenDocuments.length) {
+            this.handleOpenDocument(nowOpenDocuments);
+        }
+        if(nowClosedDocuments.length) {
+            this.handleCloseDocument(nowClosedDocuments);
+        }
+    }
+
+    private onHandleEvents(event) {
+        if(event === "save") {
+            this.generator.emit("save");
+        }
+    }
+
+    private handleOpenDocument(nowOpenDocuments) {
+        this.generator.emit("openedDocument", nowOpenDocuments[0])
+    }
+
+    private handleCloseDocument(nowCloseDocuments) {
+        this.generator.emit("closedDocument", nowCloseDocuments[0]);
+    }
+
+    private removeUnwantedEvents(event) {
+        if(event.layers) {
+            this.removeUnwantedLayers(event.layers);
+            this.removeUnwantedProperty(event.layers);
+        }
+    }
+
+    private removeUnwantedLayers(rawChange) {
+        var unwantedLayers = [];
+        rawChange.forEach((item, index) => {
+            if(item.added && item.removed) {
+                unwantedLayers.push(index);
+            }
+        });
+        this.sliceArray(rawChange, unwantedLayers);
+    }
+
+    private removeUnwantedProperty(rawChange) {
+        if(this.checkAddedItem(rawChange)) {
+            this.removeProperty(rawChange);
+        }
+    }
+
+    private checkAddedItem(rawChange) {
+        var addedTypeItem = rawChange.find(item => {
+            if(item.added) {
+                return true;
+            }
+            if(item.layers) {
+                return this.checkAddedItem(item.layers);
+            }
+            return false;
+        });
+        return !!addedTypeItem;
+    }
+
+    private removeProperty(rawChange) {
+        var unwantedLayers = [];
+        rawChange.forEach((item, index) => {
+            if(item.removed) {
+                if(!item.layers) {
+                    unwantedLayers.push(index);
+                } else {
+                    delete item.removed;
+                }
+            } else if(item.layers) {
+                this.removeProperty(item.layers);
+            }
+        });
+        this.sliceArray(rawChange, unwantedLayers);
     }
 
     private isAddedEvent(event) {
@@ -23,7 +114,7 @@ export class EventsManager implements IFactory{
     }
 
     private isRenameEvent(event) {
-        if(event.layers && !event.added && event.layers[0].name) {
+        if(event.layers && !event.layers[0].added && event.layers[0].name) {
             this.generator.emit("layerRenamed", event.layers);
         }
     }
@@ -39,6 +130,7 @@ export class EventsManager implements IFactory{
                 return this.isAdded(subLayer.layers);
             }
         }
+        return false;
     }
 
     private isDeletion(layers): boolean {
@@ -48,6 +140,15 @@ export class EventsManager implements IFactory{
             if(subLayer.hasOwnProperty("removed")) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private sliceArray(rawChange, unwantedLayers) {
+        const unwantedCount = unwantedLayers.length;
+        for(let i=0;i<unwantedCount;i++) {
+            rawChange.splice(unwantedLayers[i], 1);
+            unwantedLayers[i+1] -= (i+1);
         }
     }
 

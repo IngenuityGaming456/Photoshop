@@ -30,9 +30,13 @@ export class AddedPlatformState implements IPhotoshopState {
         menuManager.onViewAddition(menuName);
     }
 
-    onViewDeletion(menuManager, menuName: string): void {
+    onViewDeletion(menuManager, generator, menuName: string): void {
         menuManager.setCurrentState(menuManager.getViewDeletionState());
         menuManager.onViewDeletion(menuName);
     }
-    
+
+    onPlatformDeletion(menuManager, generator, menuName: string) {
+        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
+        menuManager.onPlatformDeletion(menuName);
+    }
 }

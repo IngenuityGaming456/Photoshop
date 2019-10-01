@@ -34,13 +34,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
-var packageJson = require("../../package.json");
+var utils_1 = require("../../utils/utils");
+var packageJson = require("../../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
     function CreateLayoutStructure() {
-        this.artLayers = [];
     }
     CreateLayoutStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -51,12 +61,15 @@ var CreateLayoutStructure = /** @class */ (function () {
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
                         this._activeDocument = params.activeDocument;
+                        this.bufferMap = params.storage.bufferMap;
                         this.unsubscribeEventListener("imageChanged");
-                        this.modifyParentNames();
-                        return [4 /*yield*/, this.requestDocument()];
+                        return [4 /*yield*/, this.modifyPathNames()];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.requestDocument()];
+                    case 2:
                         result = _a.sent();
-                        this.traverseObject(result.layers, this.filterResult.bind(this));
+                        utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
                         this.writeJSON(result, this.getPath());
                         return [2 /*return*/];
                 }
@@ -84,20 +97,27 @@ var CreateLayoutStructure = /** @class */ (function () {
         CreateLayoutStructure.listenerFn = listeners[1];
         this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
     };
-    CreateLayoutStructure.prototype.modifyParentNames = function () {
-        this.traverseObject(this._activeDocument.layers.layers, this.getAllArtLayers.bind(this));
-        this.modifyPaths();
-    };
-    CreateLayoutStructure.prototype.getAllArtLayers = function (artLayerRef) {
-        this.artLayers.push(artLayerRef);
-    };
     CreateLayoutStructure.prototype.filterResult = function (artLayerRef) {
+        artLayerRef.name = this.applySplitter(artLayerRef.name);
         delete artLayerRef["generatorSettings"][this._pluginId];
+    };
+    CreateLayoutStructure.prototype.applySplitter = function (artLayerName) {
+        if (~artLayerName.search(/\.(png|jpg)/)) {
+            var extensionIndex = artLayerName.indexOf(".");
+            var slashIndex = artLayerName.lastIndexOf("/");
+            if (slashIndex > -1) {
+                return artLayerName.substring(slashIndex + 1, extensionIndex);
+            }
+            else {
+                return artLayerName.substring(0, extensionIndex);
+            }
+        }
+        return artLayerName;
     };
     CreateLayoutStructure.prototype.writeJSON = function (result, modifiedPath) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                fs.writeFile(modifiedPath + ".txt", JSON.stringify(result, null, "  "), function (err) {
+                fs.writeFile(modifiedPath + ".json", JSON.stringify(result, null, "  "), function (err) {
                     if (err) {
                         console.log(err);
                     }
@@ -109,71 +129,59 @@ var CreateLayoutStructure = /** @class */ (function () {
             });
         });
     };
-    CreateLayoutStructure.prototype.traverseObject = function (documentLayers, callback) {
-        var noOfLayers = documentLayers.length;
-        for (var i = 0; i < noOfLayers; i++) {
-            if (documentLayers[i].type === "layer") {
-                callback(documentLayers[i]);
-            }
-            if (documentLayers[i].type === "layerSection") {
-                if (documentLayers[i].layers) {
-                    this.traverseObject(documentLayers[i].layers, callback);
+    CreateLayoutStructure.prototype.modifyPathNames = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var bufferKeys, bufferKeys_1, bufferKeys_1_1, key, bufferValue, e_1_1, e_1, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        bufferKeys = this.bufferMap.keys();
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, 7, 8]);
+                        bufferKeys_1 = __values(bufferKeys), bufferKeys_1_1 = bufferKeys_1.next();
+                        _b.label = 2;
+                    case 2:
+                        if (!!bufferKeys_1_1.done) return [3 /*break*/, 5];
+                        key = bufferKeys_1_1.value;
+                        bufferValue = this.bufferMap[key];
+                        return [4 /*yield*/, this.handleBufferValue(bufferValue)];
+                    case 3:
+                        _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        bufferKeys_1_1 = bufferKeys_1.next();
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
+                        e_1_1 = _b.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        try {
+                            if (bufferKeys_1_1 && !bufferKeys_1_1.done && (_a = bufferKeys_1.return)) _a.call(bufferKeys_1);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/];
                 }
-            }
-        }
-    };
-    CreateLayoutStructure.prototype.modifyPaths = function () {
-        var noOfArtLayers = this.artLayers.length;
-        var layerMap = new Map();
-        var bufferMap = new Map();
-        var keyPixmap, generatorJson;
-        for (var i = 0; i < noOfArtLayers; i++) {
-            // if(artLayers[i].hasOwnProperty("generatorSettings")) {
-            generatorJson = this.artLayers[i].generatorSettings[this._pluginId];
-            if (generatorJson) {
-                keyPixmap = JSON.parse(generatorJson.json);
-            }
-            // }
-            var layerObj = {
-                buffer: keyPixmap.pixels,
-                frequency: 1,
-                name: this.artLayers[i].name
-            };
-            layerMap.set(this.artLayers[i].id, layerObj);
-            bufferMap.set(layerObj.buffer, {
-                freq: 0,
-                parentName: ""
             });
-        }
-        //console.log("mapped");
-        this.getBufferFrequency(layerMap, bufferMap);
-    };
-    CreateLayoutStructure.prototype.getBufferFrequency = function (layerMap, bufferMap) {
-        var _this = this;
-        layerMap.forEach(function (value, key) {
-            var bufferObj = bufferMap.get(value.buffer);
-            bufferObj.freq++;
-            value.frequency = bufferObj.freq;
-            _this.modifyPathNames(value, key, bufferObj);
         });
     };
-    CreateLayoutStructure.prototype.modifyPathNames = function (value, key, bufferObj) {
+    CreateLayoutStructure.prototype.handleBufferValue = function (bufferValue) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(value.frequency === 1)) return [3 /*break*/, 2];
-                        bufferObj.parentName = value.name;
-                        CreateLayoutStructure.modifiedIds.push(key);
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: key })];
+                        if (!(bufferValue.frequency === 1)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: bufferValue.id })];
                     case 1:
                         _a.sent();
-                        return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, this.setDuplicateMetaData(bufferObj.parentName, key)];
+                        _a.label = 2;
+                    case 2: return [4 /*yield*/, this.setDuplicateMetaData(this.applySplitter(bufferValue.parentName), bufferValue.id)];
                     case 3:
                         _a.sent();
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        return [2 /*return*/];
                 }
             });
         });

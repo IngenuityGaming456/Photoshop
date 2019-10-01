@@ -12,7 +12,7 @@ var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
 var animationRef = insertLayer(parentRef, animationName, "layerSection");
 for (var i = 0; i < animationTypeCount; i++) {
     var layerRef = insertLayer(animationRef, animationStruct[i], "layerSection");
-    var pathName = getPathName(layerRef, "Image.png");
+    var pathName = getPathName(layerRef, "Image.png", animationName, 0);
     insertLayer(layerRef, pathName, "artLayer", layerConfig);
 }
 

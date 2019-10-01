@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("../utils/utils");
 var ContainerPanelResponse = /** @class */ (function () {
     function ContainerPanelResponse(modelFactory) {
         this.modelFactory = modelFactory;
@@ -42,37 +43,25 @@ var ContainerPanelResponse = /** @class */ (function () {
     ContainerPanelResponse.prototype.execute = function (params) {
         this.generator = params.generator;
         this.subscribeListeners();
-        this.getDataForChanges();
     };
     ContainerPanelResponse.prototype.subscribeListeners = function () {
         var _this = this;
         this.generator.on("layersDeleted", function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
+        this.generator.on("HandleSocketResponse", function () { return _this.getDataForChanges(); });
     };
     ContainerPanelResponse.prototype.onLayersDeleted = function (eventLayers) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _i, item, deletedObj;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _a = [];
-                        for (_b in eventLayers)
-                            _a.push(_b);
-                        _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
-                        item = _a[_i];
-                        if (!eventLayers.hasOwnProperty(item)) return [3 /*break*/, 3];
-                        deletedObj = eventLayers[item];
-                        return [4 /*yield*/, this.generator.evaluateJSXFile("")];
-                    case 2:
-                        _c.sent();
-                        _c.label = 3;
-                    case 3:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
-                }
+            var _this = this;
+            var questArray;
+            return __generator(this, function (_a) {
+                questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
+                eventLayers.forEach(function (item) {
+                    var element = utils_1.utlis.isIDExists(item.id, questArray);
+                    if (element) {
+                        _this.generator.emit("UncheckFromContainerPanel", element.name);
+                    }
+                });
+                return [2 /*return*/];
             });
         });
     };
@@ -81,14 +70,18 @@ var ContainerPanelResponse = /** @class */ (function () {
         var currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
         var viewMap = this.modelFactory.getMappingModel().getViewMap();
         var clickedMenus = this.modelFactory.getPhotoshopModel().clickedMenuNames;
-        this.getChanges(previousResponse, currentResponse, viewMap, clickedMenus);
+        if (previousResponse) {
+            this.getChanges(previousResponse, currentResponse, viewMap, clickedMenus);
+        }
     };
     ContainerPanelResponse.prototype.getChanges = function (previousResponseMap, responseMap, viewsMap, clickedMenus) {
         var _this = this;
         clickedMenus.forEach(function (item) {
             var viewObj = viewsMap.get(item);
-            var viewKeys = Object.keys(viewObj);
-            _this.handleViewKeys(viewKeys, previousResponseMap, responseMap);
+            if (viewObj) {
+                var viewKeys = Object.keys(viewObj);
+                _this.handleViewKeys(viewKeys, previousResponseMap, responseMap);
+            }
         });
     };
     ContainerPanelResponse.prototype.handleViewKeys = function (viewKeys, previousResponseMap, responseMap) {
@@ -116,10 +109,28 @@ var ContainerPanelResponse = /** @class */ (function () {
         }
     };
     ContainerPanelResponse.prototype.sendAdditionRequest = function (baseKey, currentObj) {
-        console.log(baseKey, currentObj);
+        this.generator.emit("drawAddedStruct", this.getParentId(baseKey), currentObj, baseKey);
     };
     ContainerPanelResponse.prototype.sendDeletionRequest = function (baseKey, previousObj) {
-        console.log(baseKey, previousObj);
+        this.generator.emit("deleteStruct", this.getChildId(previousObj));
+    };
+    ContainerPanelResponse.prototype.getChildId = function (previousObj) {
+        var childId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
+        var child = childId.find(function (item) {
+            if (item.name === previousObj.id) {
+                return true;
+            }
+        });
+        return child.id;
+    };
+    ContainerPanelResponse.prototype.getParentId = function (baseKey) {
+        var baseId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
+        var parent = baseId.find(function (item) {
+            if (item.name === baseKey) {
+                return true;
+            }
+        });
+        return parent.id;
     };
     return ContainerPanelResponse;
 }());

@@ -13,12 +13,14 @@ export class FactoryClass {
         return FactoryClass.instance;
     }
     
-    public construct(factoryConstruct: IFactoryConstruct, dependencies: Array<any>): any {
+    public construct(factoryConstruct: IFactoryConstruct, dependencies: Array<any>, isNonSingleton): any {
         if(this.cache.get(factoryConstruct))  {
             return this.cache.get(factoryConstruct);
         }
-        const instance = new factoryConstruct(...dependencies.map(item => this.construct(item, this.getItemDependencies(item))));
-        this.cache.set(factoryConstruct, instance);
+        const instance = new factoryConstruct(...dependencies.map(item => this.construct(item, this.getItemDependencies(item), isNonSingleton)));
+        if (!isNonSingleton) {
+            this.cache.set(factoryConstruct, instance);
+        }
         return instance;
     }
 
@@ -29,12 +31,17 @@ export class FactoryClass {
         return this.dependencyMap.get(item);
     }
 
+    static set factoryInstance(ref) {
+        FactoryClass.instance = ref;
+    }
+
 }
 
 export const inject = function (params: IClassParams): any {
     const factoryClass = FactoryClass.getInstance();
     factoryClass.dependencyMap.set(params.ref, params.dep);
-    return factoryClass.construct(params.ref, params.dep);
+    params.isNonSingleton = params.isNonSingleton ? params.isNonSingleton : false;
+    return factoryClass.construct(params.ref, params.dep, params.isNonSingleton);
 };
 
 export const execute = function(factory: IFactory, params: IParams) {

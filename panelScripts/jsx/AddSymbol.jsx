@@ -24,15 +24,11 @@ function drawSymbols(symbolsRef) {
     var symbolNameRef = insertLayer(symbolsRef, symbolName, "layerSection");
     for (var i = 0; i < symbolStructLength; i++) {
         var layerRef = insertLayer(symbolNameRef, symbolStruct[i], "layerSection");
-        if (layerRef.name !== "Animations" && symbolStruct[i] !== "Static") {
-            var pathName = getPathName(layerRef, "Image.png");
-            insertLayer(layerRef, pathName, "artLayer", layerConfig);
-        }
     }
     var animationRef = getInsertionReference(symbolsRef, "Animations");
     for (var i = 0; i < animationLength; i++) {
         var layerRef = insertLayer(animationRef, animationTypes[i], "layerSection");
-        var pathName = getPathName(layerRef, "Image.png");
+        var pathName = getPathName(layerRef, "Image.png", symbolName, 0);
         insertLayer(layerRef, pathName, "artLayer", layerConfig);
     }
     return symbolNameRef;

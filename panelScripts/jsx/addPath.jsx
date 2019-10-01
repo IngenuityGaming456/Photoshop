@@ -1,3 +1,4 @@
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var ref = new ActionReference();
 ref.putIdentifier(charIDToTypeID('Lyr '), Number(params.id));
 var desc = new ActionDescriptor();
@@ -6,9 +7,10 @@ executeAction(charIDToTypeID("slct"), desc, DialogModes.NO );
 var activeLayer = app.activeDocument.activeLayer;
 var extIndex = activeLayer.name.search(/\.(png|jpg)/);
 if( extIndex === -1) {
-    activeLayer.name += ".png";
+    activeLayer.name = getPathName(activeLayer.parent,activeLayer.name + ".png", "", 1, "static");
 } else {
     if(params.remove) {
-        activeLayer.name = activeLayer.name.substring(0, extIndex);
+        var firstSlashIndex = activeLayer.name.lastIndexOf("/");
+        activeLayer.name = activeLayer.name.substring(firstSlashIndex + 1, extIndex);
     }
 }

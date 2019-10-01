@@ -47,12 +47,30 @@ function getInsertionReferenceById(id) {
     return app.activeDocument.activeLayer;
 }
 
-function getPathName(layerRef, pathName) {
-    if (layerRef === app.activeDocument) {
-        return pathName;
+function getPathName(layerRef, pathName, baseName, level, type) {
+    if(level === 2) {
+        if(layerRef === app.activeDocument) {
+            return pathName;
+        }
+        pathName = layerRef.name + "/" + pathName;
+        return getPathName(layerRef.parent, pathName, baseName, level, type);
+    }
+    if(level === 1) {
+        if(~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin)/))) {
+            if(type && type === "static") {
+                pathName = layerRef.name + "/" + pathName;
+            } else {
+                pathName = layerRef.name + "Animation" +  "/" + pathName;
+            }
+            level = 2;
+        }
+        return getPathName(layerRef.parent, pathName, baseName, level, type);
+    }
+    if(layerRef.name === baseName) {
+        level = 1;
     }
     pathName = layerRef.name + "/" + pathName;
-    return getPathName(layerRef.parent, pathName);
+    return getPathName(layerRef.parent, pathName, baseName, level, type);
 }
 
 /**
@@ -74,18 +92,12 @@ function getParentRef() {
     return parentRef;
 }
 
-/**
- * Display a toast message, which hides after some time. 
- * @param params The message | {message: "custom message", duration: 1000}
- */
-function showToastMessage(params) {
-    var win = new Window("palette");
-    var duration = (params && params.duration) ? params.duration : 1000;
-    var message = (params && params.message) ? params.message : message;
-
-    win.someMessage = win.add("statictext", undefined, message);
-    win.show();
-    $.sleep(duration);
-    // app.refresh();
-    win.close();
-}  
+function duplicateContainer(mappedItemRef, childLayerRef) {
+    var mappedLayers = mappedItemRef.layers;
+    var mappedLength = mappedLayers.length;
+    for(var i=0;i<mappedLength;i++) {
+        const mappedRef = mappedLayers[i];
+        const duplicateLayer = mappedRef.duplicate(childLayerRef);
+        duplicateLayer.name = mappedRef.name;
+    }
+}

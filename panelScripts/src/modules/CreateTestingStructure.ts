@@ -1,5 +1,5 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
-import {CreateLayoutStructure} from "./CreateLayoutStructure";
+import {CreateLayoutStructure} from "./LayoutStructure/CreateLayoutStructure";
 import * as path from "path";
 
 export class CreateTestingStructure implements IFactory {

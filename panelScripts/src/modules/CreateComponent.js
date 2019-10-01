@@ -44,9 +44,9 @@ var CreateComponent = /** @class */ (function () {
     }
     CreateComponent.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var elementValue, sequenceId, id, docLayers, parentRef, controlledArray, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var elementValue, sequenceId, id, controlledArray;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
@@ -54,15 +54,10 @@ var CreateComponent = /** @class */ (function () {
                         sequenceId = Restructure_1.Restructure.sequenceStructure(elementValue);
                         return [4 /*yield*/, this.callComponentJsx(sequenceId, params.menuName)];
                     case 1:
-                        id = _b.sent();
+                        id = _a.sent();
                         return [4 /*yield*/, this.setGeneratorSettings(id, elementValue)];
                     case 2:
-                        _b.sent();
-                        docLayers = params.activeDocument.layers;
-                        parentRef = docLayers.findLayer(id);
-                        parentRef.layer._setGeneratorSettings((_a = {},
-                            _a[this._pluginId] = elementValue.label,
-                            _a));
+                        _a.sent();
                         controlledArray = elementValue.elementArray;
                         controlledArray.push({ id: id, sequence: sequenceId });
                         return [2 /*return*/];

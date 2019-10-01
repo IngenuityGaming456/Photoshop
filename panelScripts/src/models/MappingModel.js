@@ -1,10 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("../utils/utils");
 var MappingModel = /** @class */ (function () {
     function MappingModel() {
+        this.writeData = {};
     }
+    MappingModel.prototype.execute = function (params) {
+        this.params = params;
+        this.generator = params.generator;
+        this.fireEvents();
+        this.makeComponentsMap();
+        this.makePlatformMap();
+        this.makeLayoutMap();
+        this.makePlatformMap();
+        this.makeTestingMap();
+        this.makeLocalisationMap();
+        this.handleOpenDocumentData(params.storage.openDocumentData);
+    };
+    MappingModel.prototype.fireEvents = function () {
+        this.generator.emit("observerAdd", this);
+    };
     MappingModel.prototype.handleSocketStorage = function (socketStorage) {
         this.makeViewMap(socketStorage);
+        this.generator.emit("HandleSocketResponse");
     };
     MappingModel.prototype.makeViewMap = function (responseMap) {
         this.viewMap = new Map();
@@ -77,14 +95,18 @@ var MappingModel = /** @class */ (function () {
     MappingModel.prototype.getLocalisationMap = function () {
         return this.localisationMap;
     };
-    MappingModel.prototype.execute = function (params) {
-        this.params = params;
-        this.makeComponentsMap();
-        this.makePlatformMap();
-        this.makeLayoutMap();
-        this.makePlatformMap();
-        this.makeTestingMap();
-        this.makeLocalisationMap();
+    MappingModel.prototype.onPhotoshopStart = function () {
+    };
+    MappingModel.prototype.onPhotoshopClose = function () {
+        this.writeData = {
+            viewMap: utils_1.utlis.mapToObject(this.viewMap)
+        };
+        this.generator.emit("writeData", this.writeData);
+    };
+    MappingModel.prototype.handleOpenDocumentData = function (data) {
+        if (data) {
+            this.viewMap = utils_1.utlis.objectToMap(data.viewMap);
+        }
     };
     return MappingModel;
 }());

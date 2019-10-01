@@ -10,6 +10,9 @@ export class NoPlatformState implements IPhotoshopState {
                 if(!UtilsPhotoshopState.isPlatform(menuLabel[menu].displayName)) {
                     await generator.toggleMenu(menuLabel[menu].label, false, false,
                         menuLabel[menu].displayName);
+                } else {
+                    await generator.toggleMenu(menuLabel[menu].label, true, false,
+                        menuLabel[menu].displayName);
                 }
             }
         }
@@ -19,7 +22,7 @@ export class NoPlatformState implements IPhotoshopState {
         await this.checkMenuState(generator);
     }
 
-    onPlatformAddition(menuManager, menuName: string): void {
+    onPlatformAddition(menuManager, generator, menuName: string): void {
         menuManager.setCurrentState(menuManager.getPlatformAdditionState());
         menuManager.onPlatformAddition(menuName);
     }
@@ -27,6 +30,11 @@ export class NoPlatformState implements IPhotoshopState {
     onViewAddition(menuManager, generator, menuName: string): void {
     }
 
-    onViewDeletion(menuManager, menuName: string): void {
+    onViewDeletion(menuManager, generator, menuName: string): void {
+    }
+
+    onPlatformDeletion(menuManager, generator, menuName: string) {
+        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
+        menuManager.onPlatformDeletion(menuName);
     }
 }

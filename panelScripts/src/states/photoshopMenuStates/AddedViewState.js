@@ -42,7 +42,7 @@ var AddedViewState = /** @class */ (function () {
         menuManager.setCurrentState(menuManager.getNoPlatformState());
         menuManager.onAllPlatformsDeletion();
     };
-    AddedViewState.prototype.onPlatformAddition = function (menuManager, menuName) {
+    AddedViewState.prototype.onPlatformAddition = function (menuManager, generator, menuName) {
         menuManager.setCurrentState(menuManager.getPlatformAdditionState());
         menuManager.onPlatformAddition(menuName);
     };
@@ -58,9 +58,13 @@ var AddedViewState = /** @class */ (function () {
             });
         });
     };
-    AddedViewState.prototype.onViewDeletion = function (menuManager, menuName) {
+    AddedViewState.prototype.onViewDeletion = function (menuManager, generator, menuName) {
         menuManager.setCurrentState(menuManager.getViewDeletionState());
         menuManager.onViewDeletion(menuName);
+    };
+    AddedViewState.prototype.onPlatformDeletion = function (menuManager, generator, menuName) {
+        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
+        menuManager.onPlatformDeletion(menuName);
     };
     return AddedViewState;
 }());

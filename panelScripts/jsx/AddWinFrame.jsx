@@ -24,7 +24,7 @@ function drawWinFrames(winFramesRef) {
     for (var i = 0; i < winFrameStructLength; i++) {
         var layerRef = insertLayer(winFrameRef, winFrameStruct[i], "layerSection");
         if(winFrameStruct[i] !== "Static") {
-            var pathName = getPathName(layerRef, "Image.png");
+            var pathName = getPathName(layerRef, "Image.png", winFrameName, 0);
             insertLayer(layerRef, pathName, "artLayer", layerConfig);
         }
     }

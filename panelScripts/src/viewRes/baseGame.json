@@ -86,11 +86,13 @@
     },
     "promoMessageContainer": {
       "type": "container",
-      "id": "promoMessageContainer"
+      "id": "promoMessageContainer",
+      "leaf": true
     },
     "5OfAKindContainer": {
       "type": "container",
-      "id": "5OfAKindContainer"
+      "id": "5OfAKindContainer",
+      "leaf": true
     },
     "anticipationAnim": {
       "type": "animation",
@@ -105,11 +107,13 @@
     "reelsBGContainer": {
       "type": "container",
       "id": "reelsBGContainer",
-      "parent": "reelsContainer"
+      "parent": "reelsContainer",
+      "leaf": true
     },
     "gameLogoContainer": {
       "type": "container",
-      "id": "gameLogoContainer"
+      "id": "gameLogoContainer",
+      "leaf": true
     },
     "Symbols": {
       "type": "container",

@@ -730,59 +730,6 @@
         }, this);
     };
 
-    Document.prototype.removeUnwantedLayers = function(rawChange){
-        var unwantedLayers = [];
-        rawChange.forEach((item, index) => {
-            if(item.added && item.removed) {
-                unwantedLayers.push(index);
-            }
-        });
-        this.spliceArray(rawChange, unwantedLayers);
-    };
-
-    Document.prototype.spliceArray = function(rawChange, unwantedLayers) {
-        const unwantedCount = unwantedLayers.length;
-        for(let i=0;i<unwantedCount;i++) {
-            rawChange.splice(unwantedLayers[i], 1);
-            unwantedLayers[i+1] -= (i+1);
-        }
-    };
-
-    Document.prototype.removeUnwantedProperty = function(rawChange) {
-        if(this.checkAddedItem(rawChange)) {
-            this.removeProperty(rawChange);
-        }
-    };
-
-    Document.prototype.checkAddedItem = function(rawChange) {
-        var addedTypeItem = rawChange.find(item => {
-            if(item.added) {
-                return true;
-            }
-            if(item.layers) {
-                return this.checkAddedItem(item.layers);
-            }
-            return false;
-        });
-        return !!addedTypeItem;
-    };
-
-    Document.prototype.removeProperty = function(rawChange) {
-        var unwantedLayers = [];
-        rawChange.forEach((item, index) => {
-            if(item.removed) {
-                if(!item.layers) {
-                    unwantedLayers.push(index);
-                } else {
-                    delete item.removed;
-                }
-            } else if(item.layers) {
-                this.removeProperty(item.layers);
-            }
-        });
-        this.spliceArray(rawChange, unwantedLayers);
-    };
-
     /**
      * Given a raw change description for the Document's layer group, update the
      * Document's layer group and return a set of layer change records, indexed
@@ -792,9 +739,6 @@
      * @return {{number: {index: number, type: string=, layer: Layer=, changes: object}}}
      */
     Document.prototype._updateLayers = function (rawChange) {
-        this.removeUnwantedLayers(rawChange);
-        this.removeUnwantedProperty(rawChange);
-
         var rawLayerChange = {
             id: this.id,
             layers: rawChange

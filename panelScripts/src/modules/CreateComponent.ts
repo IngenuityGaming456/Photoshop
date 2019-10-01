@@ -21,11 +21,11 @@ export class CreateComponent implements IFactory{
         let sequenceId = Restructure.sequenceStructure(elementValue);
         let id = await this.callComponentJsx(sequenceId, params.menuName);
         await this.setGeneratorSettings(id, elementValue);
-        const docLayers: layerClass.LayerGroup = params.activeDocument.layers;
-        const parentRef = docLayers.findLayer(id);
-        parentRef.layer._setGeneratorSettings({
-            [this._pluginId] : elementValue.label
-        });
+        // const docLayers: layerClass.LayerGroup = params.activeDocument.layers;
+        // const parentRef = docLayers.findLayer(id);
+        // parentRef.layer._setGeneratorSettings({
+        //     [this._pluginId] : elementValue.label
+        // });
         let controlledArray = elementValue.elementArray;
         controlledArray.push({id: id, sequence: sequenceId});
     }

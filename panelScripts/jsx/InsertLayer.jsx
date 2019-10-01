@@ -8,4 +8,13 @@ if (params.subType && params.subType === "text") {
     };
 }
 var childLayerRef = insertLayer(parentRef, params.childName, params.type, layerConfig);
+if(params["mappedItem"]) {
+    var mappedItemRef = getInsertionReferenceById(params["mappedItem"].id);
+    if(params.subType && params.subType === "text") {
+        childLayerRef.textItem.contents = mappedItemRef.textItem.contents;
+    } else {
+        duplicateContainer(mappedItemRef, childLayerRef);
+    }
+}
+
 childLayerRef.id;

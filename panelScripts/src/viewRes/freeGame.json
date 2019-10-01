@@ -12,16 +12,12 @@
         },
         "5OfAKindContainer": {
             "type": "container",
-            "id": "5OfAKindContainer"
+            "id": "5OfAKindContainer",
+            "leaf": true
         },
         "buttonsContainer": {
             "type": "container",
             "id": "buttonsContainer"
-        },
-        "Button_Panel_Base": {
-            "type": "image",
-            "id": "Button_Panel_Base",
-            "parent": "buttonsContainer"
         },
         "paidmeter": {
             "type": "meter",
@@ -90,7 +86,8 @@
         },
         "promoMessageContainer": {
             "type": "container",
-            "id": "promoMessageContainer"
+            "id": "promoMessageContainer",
+            "leaf": true
         },
         "reelsContainer": {
             "type": "container",
@@ -99,11 +96,13 @@
         "reelsBGContainer": {
             "type": "container",
             "id": "reelsBGContainer",
-            "parent": "reelsContainer"
+            "parent": "reelsContainer",
+            "leaf": true
         },
         "gameLogoContainer": {
             "type": "container",
-            "id": "gameLogoContainer"
+            "id": "gameLogoContainer",
+            "leaf": true
         }
     }
 }

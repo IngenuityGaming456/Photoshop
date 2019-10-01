@@ -32,13 +32,15 @@ var FactoryClass = /** @class */ (function () {
         FactoryClass.instance = new FactoryClass();
         return FactoryClass.instance;
     };
-    FactoryClass.prototype.construct = function (factoryConstruct, dependencies) {
+    FactoryClass.prototype.construct = function (factoryConstruct, dependencies, isNonSingleton) {
         var _this = this;
         if (this.cache.get(factoryConstruct)) {
             return this.cache.get(factoryConstruct);
         }
-        var instance = new (factoryConstruct.bind.apply(factoryConstruct, __spread([void 0], dependencies.map(function (item) { return _this.construct(item, _this.getItemDependencies(item)); }))))();
-        this.cache.set(factoryConstruct, instance);
+        var instance = new (factoryConstruct.bind.apply(factoryConstruct, __spread([void 0], dependencies.map(function (item) { return _this.construct(item, _this.getItemDependencies(item), isNonSingleton); }))))();
+        if (!isNonSingleton) {
+            this.cache.set(factoryConstruct, instance);
+        }
         return instance;
     };
     FactoryClass.prototype.getItemDependencies = function (item) {
@@ -47,13 +49,21 @@ var FactoryClass = /** @class */ (function () {
         }
         return this.dependencyMap.get(item);
     };
+    Object.defineProperty(FactoryClass, "factoryInstance", {
+        set: function (ref) {
+            FactoryClass.instance = ref;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return FactoryClass;
 }());
 exports.FactoryClass = FactoryClass;
 exports.inject = function (params) {
     var factoryClass = FactoryClass.getInstance();
     factoryClass.dependencyMap.set(params.ref, params.dep);
-    return factoryClass.construct(params.ref, params.dep);
+    params.isNonSingleton = params.isNonSingleton ? params.isNonSingleton : false;
+    return factoryClass.construct(params.ref, params.dep, params.isNonSingleton);
 };
 exports.execute = function (factory, params) {
     factory.execute(params);

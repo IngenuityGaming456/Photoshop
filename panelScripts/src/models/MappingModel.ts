@@ -1,16 +1,38 @@
 import {IFactory, IModel, IParams} from "../interfaces/IJsxParam";
+import {utlis} from "../utils/utils";
 
 export class MappingModel implements IModel {
+    deps?: IFactory[];
     private viewMap;
     private platformMap;
     private layoutMap;
     private testingMap;
     private localisationMap;
     private componentsMap;
+    private generator;
     private params;
+    private writeData = {};
+
+    execute(params: IParams) {
+        this.params = params;
+        this.generator = params.generator;
+        this.fireEvents();
+        this.makeComponentsMap();
+        this.makePlatformMap();
+        this.makeLayoutMap();
+        this.makePlatformMap();
+        this.makeTestingMap();
+        this.makeLocalisationMap();
+        this.handleOpenDocumentData(params.storage.openDocumentData);
+    }
+
+    private fireEvents() {
+        this.generator.emit("observerAdd", this);
+    }
 
     public handleSocketStorage(socketStorage) {
         this.makeViewMap(socketStorage);
+        this.generator.emit("HandleSocketResponse");
     }
 
     private makeViewMap(responseMap) {
@@ -96,14 +118,21 @@ export class MappingModel implements IModel {
         return this.localisationMap;
     }
 
-    execute(params: IParams) {
-        this.params = params;
-        this.makeComponentsMap();
-        this.makePlatformMap();
-        this.makeLayoutMap();
-        this.makePlatformMap();
-        this.makeTestingMap();
-        this.makeLocalisationMap();
+    public onPhotoshopStart() {
+
     }
-    
+
+    public onPhotoshopClose() {
+        this.writeData = {
+            viewMap: utlis.mapToObject(this.viewMap)
+        };
+        this.generator.emit("writeData", this.writeData);
+    }
+
+    private handleOpenDocumentData(data) {
+        if(data) {
+            this.viewMap = utlis.objectToMap(data.viewMap);
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-var eventIds = ["CpTL" , "Dplc", "slct", "copy", "past"];
+var eventIds = ["CpTL" , "Dplc", "slct", "copy", "past", "save"];
 var noOfEvents = eventIds.length;
 var idNS = stringIDToTypeID( "networkEventSubscribe" );
 var desc1 = new ActionDescriptor();
