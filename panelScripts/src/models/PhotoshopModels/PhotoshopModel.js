@@ -5,6 +5,7 @@ var fs = require("fs");
 var utils_1 = require("../../utils/utils");
 var NoDataPhotoshopModel_1 = require("./NoDataPhotoshopModel");
 var FactoryClass_1 = require("../../modules/FactoryClass");
+var menuLabels = require("../../res/menuLables");
 var PhotoshopModel = /** @class */ (function () {
     function PhotoshopModel() {
         this.writeData = {};
@@ -13,37 +14,68 @@ var PhotoshopModel = /** @class */ (function () {
         this.viewObjStorage = [];
         this.clickedMenus = [];
         this.previousContainer = null;
-        this.elementalMap = new Map();
-        this.prevContainerResponse = new Map();
-        this.containerResponse = new Map();
+        this.elementalMap = {};
         this.questViews = [];
         this.mappedPlatform = {};
         this.questPlatforms = ["desktop", "portrait", "landscape"];
         this.layersErrorData = [];
+        this.menuStates = [];
     }
     PhotoshopModel.prototype.execute = function (params) {
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
+        this.docEmitter = params.docEmitter;
         this.subPhotoshopModel = params.storage.subPhotoshopModel;
         this.onPhotoshopStart();
         this.subscribeListeners();
         this.fireEvents();
         this.createStorage();
         this.filterContainers();
-        this.elementalMap = this.createElementData();
-        this.mappedPlatform = this.createPlatformMapping();
+        this.handleData();
     };
     PhotoshopModel.prototype.subscribeListeners = function () {
         var _this = this;
         this.generator.onPhotoshopEvent("generatorMenuChanged", function (event) { return _this.onButtonMenuClicked(event); });
     };
     PhotoshopModel.prototype.fireEvents = function () {
-        this.generator.emit("observerAdd", this);
+        this.docEmitter.emit("observerAdd", this);
+    };
+    PhotoshopModel.prototype.handleData = function () {
+        this.executeSubModels();
+        this.elementalMap = this.createElementData();
+        this.mappedPlatform = this.createPlatformMapping();
+        this.platformDeletion = this.createPlatformDeletion();
+        this.viewDeletionObj = this.createViewDeletionObj();
+        this.menuStates = this.accessMenuState();
+        this.currentState = this.accessCurrentState();
+        this.previousContainer = this.accessContainerResponse();
+        this.drawnQuestItems = this.accessDrawnQuestItems();
+    };
+    PhotoshopModel.prototype.executeSubModels = function () {
+        if (this.subPhotoshopModel instanceof NoDataPhotoshopModel_1.NoDataPhotoshopModel) {
+            FactoryClass_1.execute(this.subPhotoshopModel, this.getNoDataParams());
+        }
     };
     PhotoshopModel.prototype.createElementData = function () {
-        if (this.subPhotoshopModel instanceof NoDataPhotoshopModel_1.NoDataPhotoshopModel)
-            FactoryClass_1.execute(this.subPhotoshopModel, this.getNoDataParams());
         return this.subPhotoshopModel.createElementData();
+    };
+    PhotoshopModel.prototype.createPlatformDeletion = function () {
+        return this.subPhotoshopModel.createPlatformDeletion();
+    };
+    PhotoshopModel.prototype.createViewDeletionObj = function () {
+        return this.subPhotoshopModel.createViewDeletionObj();
+    };
+    PhotoshopModel.prototype.accessMenuState = function () {
+        return this.subPhotoshopModel.accessMenuState();
+    };
+    PhotoshopModel.prototype.accessCurrentState = function () {
+        return this.subPhotoshopModel.accessCurrentState();
+    };
+    PhotoshopModel.prototype.accessContainerResponse = function () {
+        return this.subPhotoshopModel.accessContainerResponse();
+    };
+    PhotoshopModel.prototype.accessDrawnQuestItems = function () {
+        return this.subPhotoshopModel.accessDrawnQuestItems();
     };
     PhotoshopModel.prototype.getNoDataParams = function () {
         return {
@@ -56,13 +88,12 @@ var PhotoshopModel = /** @class */ (function () {
     PhotoshopModel.prototype.onButtonMenuClicked = function (event) {
         this.clickedMenus.push(event.generatorMenuChanged.name);
     };
-    PhotoshopModel.prototype.setToStarterMap = function (data) {
-        this.generator.emit("setToStarterModel", this.activeDocument.id, data);
-    };
     PhotoshopModel.prototype.handleSocketStorage = function (socketStorage) {
         this.prevContainerResponse = this.previousContainer;
         this.containerResponse = socketStorage;
         this.previousContainer = this.containerResponse;
+        console.log(this.prevContainerResponse);
+        console.log(this.prevContainerResponse === this.previousContainer);
     };
     PhotoshopModel.prototype.createStorage = function () {
         var _this = this;
@@ -122,10 +153,12 @@ var PhotoshopModel = /** @class */ (function () {
         var _a;
     };
     PhotoshopModel.prototype.setPlatformMenuIds = function (id, key) {
-        this.elementalMap.get(key) && this.elementalMap.get(key).set("base", id);
+        if (this.elementalMap[key]) {
+            this.elementalMap[key]["base"] = id;
+        }
     };
     PhotoshopModel.prototype.setBaseMenuIds = function (platform, id, key) {
-        var baseKey = this.elementalMap.get(platform).get(key);
+        var baseKey = this.elementalMap[platform][key];
         if (baseKey) {
             baseKey["base"] = {
                 id: id,
@@ -134,7 +167,7 @@ var PhotoshopModel = /** @class */ (function () {
         }
     };
     PhotoshopModel.prototype.setChildMenuIds = function (platform, childId, childName, childType, parentKey) {
-        var baseKey = this.elementalMap.get(platform).get(parentKey);
+        var baseKey = this.elementalMap[platform][parentKey];
         if (baseKey) {
             baseKey[childType].push({
                 id: childId,
@@ -145,16 +178,12 @@ var PhotoshopModel = /** @class */ (function () {
     PhotoshopModel.prototype.setDrawnQuestItems = function (id, key) {
         this.drawnQuestItems.push({ id: id, name: key });
     };
-    Object.defineProperty(PhotoshopModel.prototype, "allQuestViews", {
+    Object.defineProperty(PhotoshopModel.prototype, "menuCurrentState", {
         get: function () {
-            return this.questViews;
+            return this.currentState;
         },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhotoshopModel.prototype, "viewStorage", {
-        get: function () {
-            return this.viewObjStorage;
+        set: function (currentState) {
+            this.currentState = currentState;
         },
         enumerable: true,
         configurable: true
@@ -176,13 +205,6 @@ var PhotoshopModel = /** @class */ (function () {
     Object.defineProperty(PhotoshopModel.prototype, "allQuestItems", {
         get: function () {
             return this.questItems;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhotoshopModel.prototype, "clickedMenuNames", {
-        get: function () {
-            return this.clickedMenus;
         },
         enumerable: true,
         configurable: true
@@ -222,15 +244,53 @@ var PhotoshopModel = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(PhotoshopModel.prototype, "viewDeletion", {
+        get: function () {
+            return this.viewDeletionObj;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModel.prototype, "allPlatformDeletion", {
+        get: function () {
+            return this.platformDeletion;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModel.prototype, "allMenuStates", {
+        get: function () {
+            return this.menuStates;
+        },
+        enumerable: true,
+        configurable: true
+    });
     PhotoshopModel.prototype.onPhotoshopStart = function () {
     };
     PhotoshopModel.prototype.onPhotoshopClose = function () {
         this.writeData = {
-            elementalMap: utils_1.utlis.mapToObject(this.elementalMap),
+            elementalMap: this.elementalMap,
             clickedMenus: this.clickedMenus,
-            containerResponse: utils_1.utlis.mapToObject(this.containerResponse)
+            containerResponse: this.containerResponse,
+            viewDeletion: this.viewDeletionObj,
+            platformDeletion: this.platformDeletion,
+            menuStates: this.getMenuStates(),
+            menuCurrentState: this.currentState,
+            drawnQuestItems: this.drawnQuestItems
         };
         this.generator.emit("writeData", this.writeData);
+    };
+    PhotoshopModel.prototype.getMenuStates = function () {
+        for (var key in menuLabels) {
+            if (!menuLabels.hasOwnProperty(key)) {
+                continue;
+            }
+            var menuResult = this.generator.getMenuState(menuLabels[key].label);
+            if (!menuResult.enabled) {
+                this.menuStates.push(menuLabels[key].label);
+            }
+        }
+        return this.menuStates;
     };
     return PhotoshopModel;
 }());

@@ -1,11 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = require("../../utils/utils");
 var DataPhotoshopModel = /** @class */ (function () {
     function DataPhotoshopModel() {
     }
     DataPhotoshopModel.prototype.createElementData = function () {
-        return utils_1.utlis.objectToMap(this.openDocumentData.elementalMap);
+        return this.openDocumentData.elementalMap;
+    };
+    DataPhotoshopModel.prototype.createPlatformDeletion = function () {
+        return this.openDocumentData.platformDeletion;
+    };
+    DataPhotoshopModel.prototype.createViewDeletionObj = function () {
+        return this.openDocumentData.viewDeletion;
+    };
+    DataPhotoshopModel.prototype.accessMenuState = function () {
+        return this.openDocumentData.menuStates;
+    };
+    DataPhotoshopModel.prototype.accessCurrentState = function () {
+        return this.openDocumentData.menuCurrentState;
+    };
+    DataPhotoshopModel.prototype.accessContainerResponse = function () {
+        return this.openDocumentData.containerResponse;
+    };
+    DataPhotoshopModel.prototype.accessDrawnQuestItems = function () {
+        return this.openDocumentData.drawnQuestItems;
     };
     DataPhotoshopModel.prototype.execute = function (params) {
         this.openDocumentData = params.storage.openDocumentData;

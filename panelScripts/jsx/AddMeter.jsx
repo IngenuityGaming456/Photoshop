@@ -6,6 +6,6 @@ var mappedMeterRef;
 var meterRef = insertLayer(parentRef, meterName, "artLayer", { kind: LayerKind.TEXT });
 if(params["mappedItem"]) {
     mappedMeterRef = getInsertionReferenceById(params["mappedItem"].id);
-    meterRef.textItem.contents = mappedMeterRef.textItem.contents;
+    duplicateTextLayer(mappedMeterRef, meterRef);
 }
 meterRef.id;

@@ -69,6 +69,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
                     case 0:
                         this._generator = params.generator;
                         this._activeDocument = params.activeDocument;
+                        this.docEmitter = params.docEmitter;
                         _a = this.getParents;
                         return [4 /*yield*/, this.findSelectedLayers()];
                     case 1:
@@ -142,7 +143,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
                             values: idsMapValues,
                             langId: langId
                         };
-                        this._generator.emit("localisation", idsMapKeys);
+                        this.docEmitter.emit("localisation", idsMapKeys);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params)];
                     case 1:
                         _a.sent();

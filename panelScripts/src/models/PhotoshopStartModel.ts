@@ -26,10 +26,13 @@ export class PhotoshopStartModel implements IModel {
         this.writeDataAtPath();
     }
 
-    private writeDataAtPath() {
-        fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", JSON.stringify(this.writeObj), err => {
+    private async writeDataAtPath() {
+        const result = JSON.stringify(this.writeObj, null, "  ");
+        this.docIdObj = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,
+            packageJson.name + "Document");
+        fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", result, err => {
             if(err) {
-                console.log("Error occured while writing data storage");
+                console.log(err);
             }
         });
     }

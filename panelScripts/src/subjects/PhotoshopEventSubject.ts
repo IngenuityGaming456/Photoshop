@@ -8,18 +8,20 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
     private generator;
     private activeDocument;
     private isState: Function;
+    private docEmitter;
 
     public execute(params: IParams) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     }
 
     public subscribeListeners() {
-        this.generator.on("observerAdd", observer => this.add(observer));
-        this.generator.on("observerRemove", observer => this.remove(observer));
+        this.docEmitter.on("observerAdd", observer => this.add(observer));
+        this.docEmitter.on("observerRemove", observer => this.remove(observer));
         this.generator.on("save", () => this.onPhotoshopClose());
-        this.generator.on("xyz", () => this.onPhotoshopOpen());
+        this.docEmitter.on("xyz", () => this.onPhotoshopOpen());
     }
 
     private async onPhotoshopClose() {
@@ -37,7 +39,7 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
 
     public createFolder(docId) {
         if(this.activeDocument.directory) {
-            const filteredPath = this.activeDocument.directory + "\\" + docId;
+            const filteredPath = this.activeDocument.directory + "\\" + docId.docId;
             if (!fs.existsSync(filteredPath)) {
                 fs.mkdirSync(filteredPath);
             }

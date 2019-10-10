@@ -59,6 +59,8 @@ var ContainerPanelResponse_1 = require("./ContainerPanelResponse");
 var MenuProxyManager_1 = require("../modules/MenuManagers/MenuProxyManager");
 var DocumentLogger_1 = require("../logger/DocumentLogger");
 var CreateProxyLayout_1 = require("./LayoutStructure/CreateProxyLayout");
+var PhotoshopFactory_1 = require("./PhotoshopFactory");
+var events_1 = require("events");
 var packageJson = require("../../package.json");
 var DocumentStarter = /** @class */ (function () {
     function DocumentStarter() {
@@ -68,37 +70,53 @@ var DocumentStarter = /** @class */ (function () {
         this.generator = params.generator;
         this.documentManager = params.storage.documentManager;
         this.startModel = params.storage.startModel;
-        this.subscribeListeners();
+        this.createDocumentEventListener();
+        this.subscribeListenersBeforeDocument();
         this.createDependenciesBeforeSocket();
         this.createSocket();
+    };
+    DocumentStarter.prototype.createDocumentEventListener = function () {
+        this.docEmitter = new events_1.EventEmitter();
+        this.loggerEmitter = new events_1.EventEmitter();
     };
     DocumentStarter.prototype.createSocket = function () {
         var _this = this;
         console.log("making a socket connection");
         this.io.on("connection", function (socket) {
-            _this.socket = socket;
-            _this.generator.emit("getUpdatedSocket", _this.socket);
-            _this.applySocketListeners();
+            _this.applySocketListeners(socket);
         });
     };
-    DocumentStarter.prototype.applySocketListeners = function () {
+    DocumentStarter.prototype.applySocketListeners = function (socket) {
         var _this = this;
-        this.socket.on("getQuestJson", function (storage) {
-            _this.modelFactory.handleSocketStorage(storage);
-            _this.setViewMap();
+        socket.on("register", function (name) {
+            _this.handleSocketClients(name, socket);
         });
-        this.socket.on('disconnect', function (reason) {
+    };
+    DocumentStarter.prototype.handleSocketClients = function (name, socket) {
+        var _this = this;
+        if (name === "htmlPanel") {
+            this.htmlSocket = socket;
+            socket.on("getQuestJson", function (storage) {
+                _this.docEmitter.emit("getUpdatedHTMLSocket", socket);
+                _this.modelFactory.handleSocketStorage(storage);
+                _this.setViewMap();
+            });
+        }
+        if (name === "validatorPanel") {
+            this.loggerEmitter.emit("getUpdatedValidatorSocket", socket);
+        }
+        socket.on('disconnect', function (reason) {
             console.log(reason);
         });
     };
     DocumentStarter.prototype.setViewMap = function () {
-        var viewsMap = this.modelFactory.getMappingModel().getViewMap();
+        var viewsMap = this.modelFactory.getMappingModel().getViewPlatformMap("desktop");
         this.structureMap.set(viewsMap, {
             ref: CreateViewStructure_1.CreateViewStructure,
-            dep: [CreateViewClasses_1.CreateView, ModelFactory_1.ModelFactory]
+            dep: [CreateViewClasses_1.CreateView, ModelFactory_1.ModelFactory, PhotoshopFactory_1.PhotoshopFactory]
         });
     };
-    DocumentStarter.prototype.subscribeListeners = function () {
+    DocumentStarter.prototype.subscribeListenersBeforeDocument = function () {
         var _this = this;
         this.generator.on("openedDocument", function (openId) {
             _this.onDocumentOpen(openId);
@@ -111,7 +129,7 @@ var DocumentStarter = /** @class */ (function () {
         var classObj = this.structureMap.get(elementMap);
         if (classObj) {
             var factoryObj = FactoryClass_1.inject({ ref: classObj.ref, dep: classObj.dep, isNonSingleton: true });
-            FactoryClass_1.execute(factoryObj, { generator: this.generator, menuName: menu.name, activeDocument: this.activeDocument });
+            FactoryClass_1.execute(factoryObj, { generator: this.generator, docEmitter: this.docEmitter, menuName: menu.name, activeDocument: this.activeDocument });
         }
     };
     DocumentStarter.prototype.getElementMap = function (menuName) {
@@ -139,8 +157,7 @@ var DocumentStarter = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        FactoryClass_1.FactoryClass.factoryInstance = null;
-                        this.startModel.allDocumentsMap.set(openId, {});
+                        this.restorePhotoshop();
                         _a = this;
                         return [4 /*yield*/, this.documentManager.getDocument(openId)];
                     case 1:
@@ -153,6 +170,7 @@ var DocumentStarter = /** @class */ (function () {
                         return [4 /*yield*/, this.setDocumentMetaData()];
                     case 3:
                         _c.sent();
+                        this.sendToHTMLSocket();
                         this.instantiateStateEvent();
                         this.instantiateDocumentModel();
                         this.createObjects();
@@ -160,48 +178,94 @@ var DocumentStarter = /** @class */ (function () {
                         return [4 /*yield*/, this.addMenuItems()];
                     case 4:
                         _c.sent();
+                        this.addDocumentStatus();
                         return [2 /*return*/];
                 }
             });
         });
     };
+    DocumentStarter.prototype.sendToHTMLSocket = function () {
+        //this.htmlSocket.emit("messageRevert");
+        this.htmlSocket.emit("docOpen", this.activeDocument.directory, this.docId);
+    };
+    DocumentStarter.prototype.restorePhotoshop = function () {
+        FactoryClass_1.FactoryClass.factoryInstance = null;
+        this.removeListeners();
+        this.applyDocumentListeners();
+    };
+    DocumentStarter.prototype.removeListeners = function () {
+        this.docEmitter.removeAllListeners();
+        this.generator.removeAllListeners("layersAdded");
+        this.generator.removeAllListeners("layerRenamed");
+        this.generator.removeAllListeners("layersDeleted");
+        this.generator.removeAllListeners("select");
+        this.generator.removeAllListeners("copy");
+        this.generator.removeAllListeners("paste");
+        this.generator.removeAllListeners("save");
+    };
+    DocumentStarter.prototype.applyDocumentListeners = function () {
+        var _this = this;
+        this.docEmitter.on("logWarning", function (key, id, loggerType) {
+            _this.loggerEmitter.emit("logWarning", key, id, loggerType);
+        });
+        this.docEmitter.on("logError", function (key, id, loggerType) {
+            _this.loggerEmitter.emit("logError", key, id, loggerType);
+        });
+        this.docEmitter.on("logStatus", function (message) {
+            _this.loggerEmitter.emit("logStatus", message);
+        });
+        this.docEmitter.on("removeError", function (id) {
+            _this.loggerEmitter.emit("removeError", id);
+        });
+    };
     DocumentStarter.prototype.setDocumentMetaData = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var docId;
+            var docIdObj;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!!this.openDocumentData) return [3 /*break*/, 2];
-                        docId = Math.floor(Math.random() * 5000);
-                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: docId }, packageJson.name + "Document")];
+                        this.docId = Math.floor(Math.random() * 5000);
+                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId }, packageJson.name + "Document")];
                     case 1:
                         _a.sent();
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
+                    case 3:
+                        docIdObj = _a.sent();
+                        this.docId = docIdObj.docId;
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
                 }
             });
         });
     };
     DocumentStarter.prototype.createDependencies = function () {
-        var layerManager = FactoryClass_1.inject({ ref: LayerManager_1.LayerManager, dep: [] });
-        FactoryClass_1.execute(layerManager, { generator: this.generator, activeDocument: this.activeDocument });
-        var containerResponse = FactoryClass_1.inject({ ref: ContainerPanelResponse_1.ContainerPanelResponse, dep: [ModelFactory_1.ModelFactory] });
-        FactoryClass_1.execute(containerResponse, { generator: this.generator, activeDocument: this.activeDocument });
+        var layerManager = FactoryClass_1.inject({ ref: LayerManager_1.LayerManager, dep: [ModelFactory_1.ModelFactory] });
+        FactoryClass_1.execute(layerManager, { generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument });
         var validation = FactoryClass_1.inject({ ref: Validation_1.Validation, dep: [ModelFactory_1.ModelFactory] });
-        FactoryClass_1.execute(validation, { generator: this.generator, activeDocument: this.activeDocument });
+        FactoryClass_1.execute(validation, { generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument });
         this.menuManager = FactoryClass_1.inject({ ref: MenuProxyManager_1.MenuProxyManager, dep: [ModelFactory_1.ModelFactory] });
+        var photoshopFactory = FactoryClass_1.inject({ ref: PhotoshopFactory_1.PhotoshopFactory, dep: [ModelFactory_1.ModelFactory] });
+        FactoryClass_1.execute(photoshopFactory, { generator: this.generator, docEmitter: this.docEmitter });
+        var containerResponse = FactoryClass_1.inject({ ref: ContainerPanelResponse_1.ContainerPanelResponse, dep: [ModelFactory_1.ModelFactory, PhotoshopFactory_1.PhotoshopFactory] });
+        FactoryClass_1.execute(containerResponse, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
     };
     DocumentStarter.prototype.createDependenciesBeforeSocket = function () {
         var documentLogger = FactoryClass_1.inject({ ref: DocumentLogger_1.DocumentLogger, dep: [] });
-        FactoryClass_1.execute(documentLogger, { generator: this.generator });
+        FactoryClass_1.execute(documentLogger, { generator: this.generator, loggerEmitter: this.loggerEmitter });
     };
     DocumentStarter.prototype.addMenuItems = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                FactoryClass_1.execute(this.menuManager, { generator: this.generator });
+                FactoryClass_1.execute(this.menuManager, { generator: this.generator, docEmitter: this.docEmitter });
                 return [2 /*return*/];
             });
         });
+    };
+    DocumentStarter.prototype.addDocumentStatus = function () {
+        this.loggerEmitter.emit("logStatus", "The document is ready to be worked with");
+        this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
     };
     DocumentStarter.prototype.createObjects = function () {
         this.structureMap = new Map();
@@ -213,11 +277,11 @@ var DocumentStarter = /** @class */ (function () {
         })
             .set(this.mapFactory.getPlatformMap(), {
             ref: CreateViewStructure_1.CreateViewStructure,
-            dep: [CreateViewClasses_1.CreatePlatform, ModelFactory_1.ModelFactory],
+            dep: [CreateViewClasses_1.CreatePlatform, ModelFactory_1.ModelFactory, PhotoshopFactory_1.PhotoshopFactory],
         })
             .set(this.mapFactory.getLayoutMap(), {
             ref: CreateProxyLayout_1.CreateProxyLayout,
-            dep: []
+            dep: [ModelFactory_1.ModelFactory]
         })
             .set(this.mapFactory.getLocalisationMap(), {
             ref: CreateLocalisationStructure_1.CreateLocalisationStructure,
@@ -230,12 +294,12 @@ var DocumentStarter = /** @class */ (function () {
     };
     DocumentStarter.prototype.instantiateStateEvent = function () {
         var eventSubject = FactoryClass_1.inject({ ref: PhotoshopEventSubject_1.PhotoshopEventSubject, dep: [] });
-        FactoryClass_1.execute(eventSubject, { generator: this.generator });
+        FactoryClass_1.execute(eventSubject, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
     };
     DocumentStarter.prototype.instantiateDocumentModel = function () {
         this.modelFactory = FactoryClass_1.inject({ ref: ModelFactory_1.ModelFactory, dep: [] });
         FactoryClass_1.execute(this.modelFactory, { generator: this.generator, activeDocument: this.activeDocument,
-            storage: { openDocumentData: this.openDocumentData } });
+            docEmitter: this.docEmitter, storage: { openDocumentData: this.openDocumentData } });
     };
     ;
     return DocumentStarter;

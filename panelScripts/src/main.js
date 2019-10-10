@@ -35,12 +35,13 @@
 
     function activateListeners() {
         _generator.onPhotoshopEvent("imageChanged", onImageChanged);
-        _generator.on("UncheckFromContainerPanel", (layerName) => { onUncheckPanel(layerName); });
-       // _generator.onPhotoshopEvent("currentDocumentChanged", onDocumentChanged);
+        _generator.onPhotoshopEvent("currentDocumentChanged", onDocumentChanged);
     }
 
-    function onUncheckPanel(layerName) {
-        _socket.emit("UncheckFromContainerPanel", layerName);
+    async function onDocumentChanged() {
+        await _generator.evaluateJSXFile(path.join(__dirname, "../jsx/alert.jsx"), {
+            message: "Search is done, Happy Photoshopping"
+        });
     }
     
     function onImageChanged(event) {

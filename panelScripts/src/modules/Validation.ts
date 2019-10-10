@@ -2,12 +2,14 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
 import * as path from "path";
+import * as layerClass from "../../lib/dom/layer";
 
 export class Validation implements IFactory {
     private modelFactory: ModelFactory;
     private generator;
     private activeDocument;
     private layersErrorData;
+    private docEmitter;
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
@@ -16,22 +18,18 @@ export class Validation implements IFactory {
 
     public execute(params: IParams) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     }
 
     private subscribeListeners() {
-        this.generator.on("layersAdded", (eventLayers) => this.onLayersAddition(eventLayers));
         this.generator.on("layerRenamed", (eventLayers) => this.onLayersRename(eventLayers));
     }
 
-    private isInHTML(key, id, questArray) {
-        if(~questArray.indexOf(key)) {
-            this.layersErrorData.push({
-                id: id,
-                name: key
-            });
-            this.generator.emit("logWarning", key, id, "HTMLContainerWarning");
+    private isInHTML(key, id, questArray, drawnQuestItems) {
+        if(~questArray.indexOf(key) && !utlis.isIDExists(id, drawnQuestItems)) {
+            this.docEmitter.emit("logWarning", key, id, "HTMLContainerWarning");
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: id});
         }
     }
@@ -47,42 +45,17 @@ export class Validation implements IFactory {
         this.validationID(id);
     }
 
-    private onLayersAddition(eventLayers) {
-        // const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
-        // const allPresentItems = this.modelFactory.getPhotoshopModel().presentIds;
-        // this.isAlreadyAdded(eventLayers, elementalMap, allPresentItems, undefined);
-    }
-
-    private isAlreadyAdded(eventLayers, elementalMap, allPresentItems, baseParent) {
-        eventLayers.forEach(item => {
-            if(!baseParent) {
-                baseParent = utlis.isIDExists(item.id, allPresentItems);
-            } else {
-                if(item.added) {
-                    this.validateIfAlreadyPresent(baseParent.name, item.name, elementalMap);
-                }
-            }
-            if(item.layers) {
-                this.isAlreadyAdded(item.layers, elementalMap, allPresentItems, baseParent);
-            }
-        });
-    }
-
-    private validateIfAlreadyPresent(parentName, itemName, elementalMap) {
-        const element = elementalMap.get(parentName);
-    }
-
     private onLayersRename(eventLayers) {
         const questArray = this.modelFactory.getPhotoshopModel().allQuestItems;
         const drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         this.startValidationSequence(eventLayers, questArray, drawnQuestItems);
-        //this.isAChangeToHTMLContainer(eventLayers, drawnQuestItems);
+        this.isErrorFree(eventLayers);
     }
 
     private startValidationSequence(eventLayers, questArray, drawnQuestItems) {
         try {
             this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems)
-                .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray);
+                .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems);
         } catch(err) {
             console.log("Validation Stopped");
         }
@@ -95,12 +68,35 @@ export class Validation implements IFactory {
                 }
             });
             if (questItem) {
-                this.generator.emit("logWarning", questItem.name, id, "QuestElementRenamed");
+                this.docEmitter.emit("logWarning", questItem.name, id, "QuestElementRenamed");
                 this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
                     {id: questItem.id, name: questItem.name});
                 throw new Error("Validation Stop");
             }
             return this;
+    }
+
+    private isErrorFree(eventLayers) {
+        const isInErrorData = this.layersErrorData.some(item => {
+            if(item.id === eventLayers[0].id && !~eventLayers[0].name.search(/(Error)/)) {
+                return true;
+            }
+        });
+        if(isInErrorData) {
+            this.removeFromErrorData(eventLayers[0].id);
+            this.docEmitter.emit("removeError", eventLayers[0].id);
+        }
+    }
+
+    private removeFromErrorData(id) {
+        let key;
+        for(let index in this.layersErrorData) {
+            if(this.layersErrorData[index].id === id) {
+                key = index;
+                break;
+            }
+        }
+        this.layersErrorData.splice(key, 1);
     }
 
     private validationID(id) {

@@ -4,14 +4,14 @@ var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
 var layerConfig;
 if (params.subType && params.subType === "text") {
     layerConfig = {
-        kind: LayerKind.TEXT
+        kind: LayerKind.TEXT,
     };
 }
 var childLayerRef = insertLayer(parentRef, params.childName, params.type, layerConfig);
 if(params["mappedItem"]) {
     var mappedItemRef = getInsertionReferenceById(params["mappedItem"].id);
     if(params.subType && params.subType === "text") {
-        childLayerRef.textItem.contents = mappedItemRef.textItem.contents;
+        duplicateTextLayer(mappedItemRef, childLayerRef);
     } else {
         duplicateContainer(mappedItemRef, childLayerRef);
     }

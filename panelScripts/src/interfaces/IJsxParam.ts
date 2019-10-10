@@ -7,17 +7,13 @@ export interface IJsxParam {
     subType?: string
 }
 
-export interface ILayout extends IFactory {
-    modifyPathNames();
-}
-
 export interface ISequence {
     id: number,
     sequence: number
 }
 
 export interface IViewStructure {
-    shouldDrawStruct(generator): Promise<string>;
+    shouldDrawStruct(generator, getPlatform?: Function, viewDeletionObj?, menuName?);
 }
 
 export interface IFactoryConstruct {
@@ -37,6 +33,8 @@ export interface IClassParams {
 
 export interface IParams {
     generator?,
+    docEmitter?,
+    loggerEmitter?,
     menuName?: string,
     activeDocument?,
     storage?,

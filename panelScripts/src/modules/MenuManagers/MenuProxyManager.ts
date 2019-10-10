@@ -13,10 +13,11 @@ export class MenuProxyManager implements IFactory {
     private readonly menuManager;
     private readonly modelFactory;
     private generator;
-    private platformStack = [];
-    private platformDeletion = {desktop: false, portrait: false, landscape: false};
     private viewDeletion = {};
+    private platformDeletion;
     private platformArray = [];
+    private menuStates = [];
+    private docEmitter;
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
@@ -28,15 +29,18 @@ export class MenuProxyManager implements IFactory {
 
     public async execute(params: IParams) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
+        this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
+        this.viewDeletion = this.modelFactory.getPhotoshopModel().viewDeletion;
+        this.platformDeletion = this.modelFactory.getPhotoshopModel().allPlatformDeletion;
+        this.menuStates = this.modelFactory.getPhotoshopModel().allMenuStates;
         this.subscribeListeners();
         await this.addMenuItems();
-        this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
-        this.createViewDeletionObj();
         execute(this.menuManager, {generator: this.generator});
     }
 
     private subscribeListeners() {
-        this.generator.on("validEntryStruct", (currentMenuName, currentPlatform) => {
+        this.docEmitter.on("validEntryStruct", (currentMenuName, currentPlatform) => {
             this.filterAllIncomingResults(currentMenuName, currentPlatform);
         });
         this.generator.on("layersDeleted", deletedLayers => {
@@ -52,22 +56,13 @@ export class MenuProxyManager implements IFactory {
     }
 
     private async drawMenuItems(menu) {
-        await this.generator.addMenuItem(menuLabels[menu].label,
-            menuLabels[menu].displayName, true, false);
-    }
-
-    private createViewDeletionObj() {
-        this.platformArray.forEach(platformKey => {
-            this.viewDeletion[platformKey] = {};
-            for(let menu in menuLabels) {
-                if(!menuLabels.hasOwnProperty(menu)) {
-                    continue;
-                }
-                if(menuLabels[menu].menuGroup === "Menu_View") {
-                    this.viewDeletion[platformKey][menuLabels[menu].label] = false;
-                }
-            }
-        });
+        if(~this.menuStates.indexOf(menuLabels[menu].label)) {
+            await this.generator.addMenuItem(menuLabels[menu].label,
+                menuLabels[menu].displayName, false, false);
+        } else {
+            await this.generator.addMenuItem(menuLabels[menu].label,
+                menuLabels[menu].displayName, true, false);
+        }
     }
 
     private filterAllIncomingResults(currentMenuName: string, currentPlatform: string) {
@@ -89,10 +84,13 @@ export class MenuProxyManager implements IFactory {
 
     private handleViewAddition(currentMenuName, currentPlatform) {
         this.viewDeletion[currentPlatform][currentMenuName] = false;
-        if (!~this.platformStack.indexOf(currentPlatform)) {
-            this.platformStack.push(currentPlatform);
+        let count = 0;
+        for(let key in this.viewDeletion) {
+            if(this.viewDeletion[key][currentMenuName] === false) {
+                count ++;
+            }
         }
-        if (this.platformStack.length === 3) {
+        if(count === 3) {
             this.menuManager.onViewAddition(currentMenuName);
         }
     }
@@ -104,7 +102,7 @@ export class MenuProxyManager implements IFactory {
             this.handlePlatformDeletion(eventLayers, viewElementalMap, callback)
                 .handleViewDeletion(eventLayers, viewElementalMap, callback);
         } catch (err) {
-            console.log(err);
+            console.log("Platform Deletion Detected");
         }
     }
 
@@ -143,7 +141,7 @@ export class MenuProxyManager implements IFactory {
 
     private handlePlatformDeletion(eventLayers, viewElementalMap, callback) {
         this.platformArray.forEach((platformKey) => {
-            const platformId = viewElementalMap.get(platformKey).get("base");
+            const platformId = viewElementalMap[platformKey]["base"];
             if (platformId) {
                 if (callback(platformId, eventLayers)) {
                     this.platformDeletion[platformKey] = true;
@@ -169,25 +167,24 @@ export class MenuProxyManager implements IFactory {
     }
 
     private handleViewDeletion(eventLayers, viewElementalMap, callback) {
-        const viewMap = this.modelFactory.getMappingModel().getViewMap();
-        if(viewMap) {
-            [...viewElementalMap.keys()].forEach(platformKey => {
+        Object.keys(viewElementalMap).forEach(platformKey => {
+            const viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platformKey);
+            if(viewMap) {
                 viewMap.forEach((value, key) => {
                     this.checkElementKey(key, Object.keys(value), platformKey, eventLayers, callback, viewElementalMap);
                 });
-            });
-            this.checkViewDeletion();
-        }
+            }
+        });
+        this.checkViewDeletion();
     }
 
     private checkElementKey(viewKey, valueArray, platformKey, eventLayers, callback, viewElementalMap) {
+        if(this.viewDeletion[platformKey][viewKey]) {
+            return;
+        }
         for(let value of valueArray) {
-            if(this.viewDeletion[platformKey][viewKey]) {
-                continue;
-            }
-            const valueObj = viewElementalMap.get(platformKey).get(value)["base"];
+            const valueObj = viewElementalMap[platformKey][value]["base"];
             if(!valueObj || !callback(valueObj.id, eventLayers)) {
-                this.viewDeletion[platformKey][viewKey] = false;
                 return;
             }
         }
@@ -206,15 +203,11 @@ export class MenuProxyManager implements IFactory {
     }
 
     private checkViewForDeletion(menuName) {
-        const keysLength = Object.keys(this.viewDeletion).length;
-        let count = 0;
         for(let key in this.viewDeletion) {
             if(this.viewDeletion[key][menuName]) {
-                count++;
+                this.menuManager.onViewDeletion(menuName);
+                return;
             }
-        }
-        if(count === keysLength) {
-            this.menuManager.onViewDeletion(menuName);
         }
     }
 

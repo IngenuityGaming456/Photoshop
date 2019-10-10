@@ -44,26 +44,6 @@ var __values = (this && this.__values) || function (o) {
         }
     };
 };
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var FactoryClass_1 = require("../FactoryClass");
 var MenuManager_1 = require("./MenuManager");
@@ -76,10 +56,9 @@ var DeletedPlatformState_1 = require("../../states/photoshopMenuStates/DeletedPl
 var menuLabels = require("../../res/menuLables");
 var MenuProxyManager = /** @class */ (function () {
     function MenuProxyManager(modelFactory) {
-        this.platformStack = [];
-        this.platformDeletion = { desktop: false, portrait: false, landscape: false };
         this.viewDeletion = {};
         this.platformArray = [];
+        this.menuStates = [];
         this.modelFactory = modelFactory;
         this.menuManager = FactoryClass_1.inject({
             ref: MenuManager_1.MenuManager, dep: [ModelFactory_1.ModelFactory, NoPlatformState_1.NoPlatformState,
@@ -92,12 +71,15 @@ var MenuProxyManager = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.generator = params.generator;
+                        this.docEmitter = params.docEmitter;
+                        this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
+                        this.viewDeletion = this.modelFactory.getPhotoshopModel().viewDeletion;
+                        this.platformDeletion = this.modelFactory.getPhotoshopModel().allPlatformDeletion;
+                        this.menuStates = this.modelFactory.getPhotoshopModel().allMenuStates;
                         this.subscribeListeners();
                         return [4 /*yield*/, this.addMenuItems()];
                     case 1:
                         _a.sent();
-                        this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
-                        this.createViewDeletionObj();
                         FactoryClass_1.execute(this.menuManager, { generator: this.generator });
                         return [2 /*return*/];
                 }
@@ -106,7 +88,7 @@ var MenuProxyManager = /** @class */ (function () {
     };
     MenuProxyManager.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("validEntryStruct", function (currentMenuName, currentPlatform) {
+        this.docEmitter.on("validEntryStruct", function (currentMenuName, currentPlatform) {
             _this.filterAllIncomingResults(currentMenuName, currentPlatform);
         });
         this.generator.on("layersDeleted", function (deletedLayers) {
@@ -155,26 +137,19 @@ var MenuProxyManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, true, false)];
+                    case 0:
+                        if (!~this.menuStates.indexOf(menuLabels[menu].label)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, false, false)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, true, false)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
                 }
             });
-        });
-    };
-    MenuProxyManager.prototype.createViewDeletionObj = function () {
-        var _this = this;
-        this.platformArray.forEach(function (platformKey) {
-            _this.viewDeletion[platformKey] = {};
-            for (var menu in menuLabels) {
-                if (!menuLabels.hasOwnProperty(menu)) {
-                    continue;
-                }
-                if (menuLabels[menu].menuGroup === "Menu_View") {
-                    _this.viewDeletion[platformKey][menuLabels[menu].label] = false;
-                }
-            }
         });
     };
     MenuProxyManager.prototype.filterAllIncomingResults = function (currentMenuName, currentPlatform) {
@@ -196,10 +171,13 @@ var MenuProxyManager = /** @class */ (function () {
     };
     MenuProxyManager.prototype.handleViewAddition = function (currentMenuName, currentPlatform) {
         this.viewDeletion[currentPlatform][currentMenuName] = false;
-        if (!~this.platformStack.indexOf(currentPlatform)) {
-            this.platformStack.push(currentPlatform);
+        var count = 0;
+        for (var key in this.viewDeletion) {
+            if (this.viewDeletion[key][currentMenuName] === false) {
+                count++;
+            }
         }
-        if (this.platformStack.length === 3) {
+        if (count === 3) {
             this.menuManager.onViewAddition(currentMenuName);
         }
     };
@@ -211,7 +189,7 @@ var MenuProxyManager = /** @class */ (function () {
                 .handleViewDeletion(eventLayers, viewElementalMap, callback);
         }
         catch (err) {
-            console.log(err);
+            console.log("Platform Deletion Detected");
         }
     };
     MenuProxyManager.prototype.getCallback = function (eventLayers) {
@@ -248,7 +226,7 @@ var MenuProxyManager = /** @class */ (function () {
     MenuProxyManager.prototype.handlePlatformDeletion = function (eventLayers, viewElementalMap, callback) {
         var _this = this;
         this.platformArray.forEach(function (platformKey) {
-            var platformId = viewElementalMap.get(platformKey).get("base");
+            var platformId = viewElementalMap[platformKey]["base"];
             if (platformId) {
                 if (callback(platformId, eventLayers)) {
                     _this.platformDeletion[platformKey] = true;
@@ -274,26 +252,25 @@ var MenuProxyManager = /** @class */ (function () {
     };
     MenuProxyManager.prototype.handleViewDeletion = function (eventLayers, viewElementalMap, callback) {
         var _this = this;
-        var viewMap = this.modelFactory.getMappingModel().getViewMap();
-        if (viewMap) {
-            __spread(viewElementalMap.keys()).forEach(function (platformKey) {
+        Object.keys(viewElementalMap).forEach(function (platformKey) {
+            var viewMap = _this.modelFactory.getMappingModel().getViewPlatformMap(platformKey);
+            if (viewMap) {
                 viewMap.forEach(function (value, key) {
                     _this.checkElementKey(key, Object.keys(value), platformKey, eventLayers, callback, viewElementalMap);
                 });
-            });
-            this.checkViewDeletion();
-        }
+            }
+        });
+        this.checkViewDeletion();
     };
     MenuProxyManager.prototype.checkElementKey = function (viewKey, valueArray, platformKey, eventLayers, callback, viewElementalMap) {
+        if (this.viewDeletion[platformKey][viewKey]) {
+            return;
+        }
         try {
             for (var valueArray_1 = __values(valueArray), valueArray_1_1 = valueArray_1.next(); !valueArray_1_1.done; valueArray_1_1 = valueArray_1.next()) {
                 var value = valueArray_1_1.value;
-                if (this.viewDeletion[platformKey][viewKey]) {
-                    continue;
-                }
-                var valueObj = viewElementalMap.get(platformKey).get(value)["base"];
+                var valueObj = viewElementalMap[platformKey][value]["base"];
                 if (!valueObj || !callback(valueObj.id, eventLayers)) {
-                    this.viewDeletion[platformKey][viewKey] = false;
                     return;
                 }
             }
@@ -319,15 +296,11 @@ var MenuProxyManager = /** @class */ (function () {
         }
     };
     MenuProxyManager.prototype.checkViewForDeletion = function (menuName) {
-        var keysLength = Object.keys(this.viewDeletion).length;
-        var count = 0;
         for (var key in this.viewDeletion) {
             if (this.viewDeletion[key][menuName]) {
-                count++;
+                this.menuManager.onViewDeletion(menuName);
+                return;
             }
-        }
-        if (count === keysLength) {
-            this.menuManager.onViewDeletion(menuName);
         }
     };
     return MenuProxyManager;

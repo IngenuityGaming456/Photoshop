@@ -13,6 +13,7 @@ var ModelFactory = /** @class */ (function () {
     }
     ModelFactory.prototype.execute = function (params) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.openDocumentData = params.storage.openDocumentData;
         this.subPhotoshopModel = this.checkOpenData();
@@ -29,11 +30,11 @@ var ModelFactory = /** @class */ (function () {
     ModelFactory.prototype.instantiate = function () {
         this.mappingModel = FactoryClass_1.inject({ ref: MappingModel_1.MappingModel, dep: [] });
         FactoryClass_1.execute(this.mappingModel, { storage: this.getMappingStorage(),
-            generator: this.generator,
+            generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument });
         this.photoshopModel = FactoryClass_1.inject({ ref: PhotoshopModel_1.PhotoshopModel, dep: [] });
         FactoryClass_1.execute(this.photoshopModel, { storage: this.getPhotoshopStorage(),
-            generator: this.generator,
+            generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument });
     };
     ModelFactory.prototype.getMappingStorage = function () {
@@ -58,7 +59,7 @@ var ModelFactory = /** @class */ (function () {
         return this.photoshopModel;
     };
     ModelFactory.prototype.handleSocketStorage = function (storage) {
-        this.socketStorageResponse = new Map(storage);
+        this.socketStorageResponse = storage;
         this.photoshopModel.handleSocketStorage(this.socketStorageResponse);
         this.mappingModel.handleSocketStorage(this.socketStorageResponse);
     };

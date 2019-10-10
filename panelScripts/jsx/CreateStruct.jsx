@@ -5,13 +5,11 @@ function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConf
     }
     if (layerType === "artLayer") {
         childLayer = parentRef.artLayers.add();
-        if (layerConfig && layerConfig.hasOwnProperty("opacity")) {
-            childLayer.opacity = layerConfig.opacity;
-        }
         if (layerConfig && layerConfig.hasOwnProperty("kind")) {
             childLayer.name = childName;
             childLayer.kind = layerConfig.kind;
-            childLayer.textItem.contents = layerKindConfig ? layerKindConfig.contents : "Default";
+            childLayer.textItem.contents = layerKindConfig ? layerKindConfig.contents : "temp";
+            translate(childLayer);
         }
     }
     childLayer.name = childName;
@@ -52,15 +50,15 @@ function getPathName(layerRef, pathName, baseName, level, type) {
         if(layerRef === app.activeDocument) {
             return pathName;
         }
-        pathName = layerRef.name + "/" + pathName;
+        pathName = setNameToStatic(layerRef, pathName)
         return getPathName(layerRef.parent, pathName, baseName, level, type);
     }
     if(level === 1) {
         if(~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin)/))) {
             if(type && type === "static") {
-                pathName = layerRef.name + "/" + pathName;
+                pathName = setNameToStatic(layerRef, pathName)
             } else {
-                pathName = layerRef.name + "Animation" +  "/" + pathName;
+                pathName = setNameToAnimations(layerRef, pathName)
             }
             level = 2;
         }
@@ -69,8 +67,26 @@ function getPathName(layerRef, pathName, baseName, level, type) {
     if(layerRef.name === baseName) {
         level = 1;
     }
-    pathName = layerRef.name + "/" + pathName;
+    pathName = setNameToStatic(layerRef, pathName)
     return getPathName(layerRef.parent, pathName, baseName, level, type);
+}
+
+function setNameToStatic(layerRef, pathName) {
+    if(!pathName.length) {
+        pathName = layerRef.name;
+    } else {
+        pathName = layerRef.name + "/" + pathName;
+    }
+    return pathName;
+}
+
+function setNameToAnimations(layerRef, pathName) {
+    if(!pathName.length) {
+        pathName = layerRef.name;
+    } else {
+        pathName = layerRef.name + "Animation" +  "/" + pathName;
+    }
+    return pathName;
 }
 
 /**
@@ -93,11 +109,84 @@ function getParentRef() {
 }
 
 function duplicateContainer(mappedItemRef, childLayerRef) {
-    var mappedLayers = mappedItemRef.layers;
-    var mappedLength = mappedLayers.length;
-    for(var i=0;i<mappedLength;i++) {
-        const mappedRef = mappedLayers[i];
-        const duplicateLayer = mappedRef.duplicate(childLayerRef);
-        duplicateLayer.name = mappedRef.name;
+    try{
+        var tempLayer = insertLayer(childLayerRef, "tempName", "layerSection");
+        var mappedLayers = mappedItemRef.layers;
+        var mappedLength = mappedLayers.length;
+        for(var i=0;i<mappedLength;i++) {
+            var mappedRef = mappedLayers[i];
+            var duplicateLayer = mappedRef.duplicate(tempLayer, ElementPlacement.PLACEBEFORE);
+            duplicateLayer.name = mappedRef.name;
+            if(duplicateLayer instanceof LayerSet) {
+                makeNameSame(duplicateLayer.layers);
+            }
+        }
+        tempLayer.remove();
+    } catch(err) {
+        alert(err);
     }
+}
+
+function makeNameSame(duplicateLayers) {
+    var layersCount = duplicateLayers.length;
+    for(var i=0;i<layersCount;i++) {
+        var copyIndex = duplicateLayers[i].name.search(/(copy)/);
+        if(copyIndex > -1) {
+            duplicateLayers[i].name = duplicateLayers[i].name.substring(0, copyIndex-1);
+        }
+        if(duplicateLayers[i] instanceof LayerSet) {
+            makeNameSame(duplicateLayers[i].layers);
+        }
+    }
+}
+
+function duplicateTextLayer(mappedLayerRef, childLayerRef) {
+    childLayerRef.textItem.contents = mappedLayerRef.textItem.contents;
+    childLayerRef.textItem.color = mappedLayerRef.textItem.color;
+    childLayerRef.textItem.font = mappedLayerRef.textItem.font;
+    childLayerRef.textItem.position = mappedLayerRef.textItem.position;
+    childLayerRef.textItem.size = mappedLayerRef.textItem.size;
+}
+
+function quickMaker(type) {
+    var makerWindow = new Window('dialog', 'QuickMaker');
+    var makerPanel = makerWindow.add('panel', undefined, 'Select no of ' + type);
+    makerPanel.orientation = "column";
+    makerPanel.alignChildren = "center";
+    var countBox = makerPanel.add("edittext", [0,0,150,60], "0");
+    var submitButton = makerPanel.add('button', undefined, 'Lock Response');
+    submitButton.addEventListener("click", onSubmitButtonClick);
+    makerWindow.show();
+    return countBox.text;
+}
+
+function onSubmitButtonClick(event) {
+    event.currentTarget.parent.parent.close();
+}
+
+function getStartCount(layerRef) {
+    var layerSets = layerRef.layerSets;
+    var layerSetCount = layerSets.length;
+    var maxCount = 0;
+    for(var i=0; i<layerSetCount; i++) {
+        var layerSetSequence = getLayerSetSequence(layerSets[i]);
+        if(layerSetSequence > 0 && layerSetSequence > maxCount) {
+            maxCount = layerSetSequence;
+        }
+    }
+    return maxCount;
+}
+
+function getLayerSetSequence(layerSet) {
+    var sequence = layerSet.name[layerSet.name.length - 1];
+    if(Number(sequence)) {
+        return sequence;
+    }
+    return 0;
+}
+
+function translate(textLayer) {
+    var x = app.activeDocument.width/2 - textLayer.bounds[0];
+    var y = app.activeDocument.height/2 - textLayer.bounds[1];
+    textLayer.translate(x, y);
 }

@@ -1,18 +1,56 @@
 import {IDataSubModel, IParams} from "../../interfaces/IJsxParam";
+let menuLabels = require("../../res/menuLables");
 
 export class NoDataPhotoshopModel implements IDataSubModel{
     private questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
     private viewObjStorage;
     private questPlatforms;
+    private viewDeletion = {};
+
+
+    execute(params: IParams) {
+        this.viewObjStorage = params.storage.viewObjStorage;
+        this.questPlatforms = params.storage.questPlatforms;
+    }
 
     createElementData() {
         this.makeElementalObject();
         return this.createElementalViewStructure();
     }
 
-    execute(params: IParams) {
-        this.viewObjStorage = params.storage.viewObjStorage;
-        this.questPlatforms = params.storage.questPlatforms;
+    createPlatformDeletion() {
+        return {desktop: false, portrait: false, landscape: false};
+    }
+
+    createViewDeletionObj() {
+        this.questPlatforms.forEach(platformKey => {
+            this.viewDeletion[platformKey] = {};
+            for(let menu in menuLabels) {
+                if(!menuLabels.hasOwnProperty(menu)) {
+                    continue;
+                }
+                if(menuLabels[menu].menuGroup === "Menu_View") {
+                    this.viewDeletion[platformKey][menuLabels[menu].label] = null;
+                }
+            }
+        });
+        return this.viewDeletion;
+    }
+
+    accessMenuState() {
+        return [];
+    }
+
+    accessCurrentState() {
+        return null;
+    }
+
+    accessContainerResponse() {
+        return null;
+    }
+
+    accessDrawnQuestItems() {
+        return [];
     }
 
     private makeElementalObject() {
@@ -24,23 +62,22 @@ export class NoDataPhotoshopModel implements IDataSubModel{
     }
 
     private createElementalViewStructure() {
-        const elementalMap = new Map();
-        const elementalViewMap = new Map();
+        const elementalMap = {};
         this.questPlatforms.forEach(item => {
-            elementalMap.set(item, this.createElementalView());
+            elementalMap[item] = this.createElementalView();
         });
         return elementalMap;
     }
 
     private createElementalView() {
-        const elementalViewMap = new Map();
+        const elementalViewMap = {};
         this.viewObjStorage.forEach(viewObj => {
             for (let key in viewObj) {
                 if (!viewObj.hasOwnProperty(key)) {
                     continue;
                 }
                 if (!viewObj[key].type) {
-                    elementalViewMap.set(key, this.makeElementalObject());
+                    elementalViewMap[key] = this.makeElementalObject();
                 }
             }
         });

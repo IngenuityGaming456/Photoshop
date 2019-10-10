@@ -6,6 +6,5 @@ var spineRef = insertLayer(parentRef, spineName, "layerSection");
 var pathName = getPathName(spineRef, "Image.png");
 insertLayer(spineRef, pathName, "artLayer", {
     kind: LayerKind.TEXT,
-    opacity: 0.3
 });
 spineRef.id;

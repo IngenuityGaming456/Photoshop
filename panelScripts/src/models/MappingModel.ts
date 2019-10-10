@@ -3,7 +3,9 @@ import {utlis} from "../utils/utils";
 
 export class MappingModel implements IModel {
     deps?: IFactory[];
-    private viewMap;
+    private desktopViewMap;
+    private landscapeViewMap;
+    private portraitViewMap;
     private platformMap;
     private layoutMap;
     private testingMap;
@@ -12,10 +14,12 @@ export class MappingModel implements IModel {
     private generator;
     private params;
     private writeData = {};
+    private docEmitter;
 
     execute(params: IParams) {
         this.params = params;
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.fireEvents();
         this.makeComponentsMap();
         this.makePlatformMap();
@@ -27,31 +31,36 @@ export class MappingModel implements IModel {
     }
 
     private fireEvents() {
-        this.generator.emit("observerAdd", this);
+        this.docEmitter.emit("observerAdd", this);
     }
 
     public handleSocketStorage(socketStorage) {
         this.makeViewMap(socketStorage);
-        this.generator.emit("HandleSocketResponse");
+        this.docEmitter.emit("HandleSocketResponse");
     }
 
-    private makeViewMap(responseMap) {
-        this.viewMap = new Map();
-        let backgroundBG = { backgrounds: responseMap.get("backgrounds") },
-            backgroundFG = { backgroundsFg: responseMap.get("fgbackgrounds") };
-        this.viewMap.set("AddMainView", {
-            backgrounds: backgroundBG,
-            bigWinPresentation: responseMap.get("bigWinPresentation"),
-            baseGame: responseMap.get("baseGame")
-        }).set("AddPaytable", {
-            paytable: responseMap.get("paytable")
-        }).set("AddIntroOutro", {
-            IntroOutro: responseMap.get("IntroOutro")
-        }).set("AddFreeGameView", {
-            fgbackgrounds: backgroundFG,
-            freeGame: responseMap.get("freeGame")
-        });
+    private makeViewMap(responseObj) {
+        this.desktopViewMap = this.makeSubViewMap(responseObj["desktop"]);
+        this.landscapeViewMap = this.makeSubViewMap(responseObj["landscape"]);
+        this.portraitViewMap = this.makeSubViewMap(responseObj["portrait"]);
     };
+
+    private makeSubViewMap(responseObj) {
+        const viewMap = new Map();
+        viewMap.set("AddMainView", {
+            backgrounds: responseObj["backgrounds"],
+            bigWin: responseObj["bigWin"],
+            baseGame: responseObj["baseGame"]
+        }).set("AddPaytable", {
+            paytable: responseObj["paytable"]
+        }).set("AddIntroOutro", {
+            IntroOutro: responseObj["IntroOutro"]
+        }).set("AddFreeGameView", {
+            backgroundsFg: responseObj["backgroundsFg"],
+            freeGame: responseObj["freeGame"]
+        });
+        return viewMap;
+    }
     
     private makeComponentsMap() {
         this.componentsMap = new Map();
@@ -94,10 +103,6 @@ export class MappingModel implements IModel {
         this.localisationMap.set("Localise", {});
     }
 
-    public getViewMap() {
-        return this.viewMap;
-    };
-    
     public getComponentsMap() {
         return this.componentsMap;
     }
@@ -118,20 +123,33 @@ export class MappingModel implements IModel {
         return this.localisationMap;
     }
 
+    public getViewPlatformMap(platform) {
+        const viewObj = {
+            desktop: this.desktopViewMap,
+            portrait: this.portraitViewMap,
+            landscape: this.landscapeViewMap
+        };
+        return viewObj[platform];
+    }
+
     public onPhotoshopStart() {
 
     }
 
     public onPhotoshopClose() {
         this.writeData = {
-            viewMap: utlis.mapToObject(this.viewMap)
+            desktopViewMap: utlis.mapToObject(this.desktopViewMap),
+            portraitViewMap: utlis.mapToObject(this.portraitViewMap),
+            landscapeViewMap: utlis.mapToObject(this.landscapeViewMap),
         };
         this.generator.emit("writeData", this.writeData);
     }
 
     private handleOpenDocumentData(data) {
         if(data) {
-            this.viewMap = utlis.objectToMap(data.viewMap);
+            this.desktopViewMap = utlis.objectToMap(data.desktopViewMap);
+            this.portraitViewMap = utlis.objectToMap(data.portraitViewMap);
+            this.landscapeViewMap = utlis.objectToMap(data.landscapeViewMap);
         }
     }
 

@@ -2,6 +2,7 @@ import {Document} from "../../lib/dom/document.js";
 import {Generator} from "../../../generator-core/lib/generator.js";
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
+import {ModelFactory} from "../models/ModelFactory";
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
 
@@ -15,9 +16,16 @@ export class LayerManager implements IFactory{
     private localisedLayers = [];
     private copiedLayers = [];
     private isPasteEvent = false;
+    private docEmitter;
+    private modelFactory;
+
+    public constructor(modelFactory: ModelFactory) {
+        this.modelFactory = modelFactory;
+    }
 
     public execute(params: IParams) {
         this._generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this._activeDocument = params.activeDocument;
         this.pluginId = packageJson.name;
         this.subscribeListeners();
@@ -27,30 +35,52 @@ export class LayerManager implements IFactory{
         this._generator.on("layersAdded", eventLayers => {
             this.onLayersAdded(eventLayers);
         });
-        this._generator.on("eventProcessed", eventName => {
-            this.eventName = eventName;
-            this.handleEvents();
+        this._generator.on("select", async () => {
+            this.eventName = Events.SELECT;
+            this.selectedLayers = await this.getSelectedLayers();
         });
-        this._generator.on("localisation", localisedLayers => {
+        this._generator.on("copy", async () => {
+            this.eventName = Events.COPY;
+            this.copiedLayers = await this.getSelectedLayers();
+        });
+        this._generator.on("paste", () => {
+            this.eventName = Events.PASTE;
+            this.isPasteEvent = true;
+        });
+        this._generator.on("copyToLayer", () => {
+            this.eventName = Events.COPYTOLAYER;
+        });
+        this._generator.on("duplicate", () => {
+            this.eventName = Events.DUPLICATE;
+            this.isPasteEvent = true;
+        });
+        this.docEmitter.on("localisation", localisedLayers => {
             this.localisedLayers = localisedLayers;
         });
     }
 
-    private async handleEvents() {
-        switch(this.eventName) {
-            case Events.SELECT :
-                this.selectedLayers = await this.getSelectedLayers();
-                break;
-            case Events.COPY :
-                this.copiedLayers = await this.getSelectedLayers();
-                break;
-            case Events.PASTE :
-                this.isPasteEvent = true;
-        }
+    private async onLayersAdded(eventLayers) {
+        this.addBufferData(eventLayers);
     }
 
-    private onLayersAdded(eventLayers) {
-        this.addBufferData(eventLayers);
+    private async handleLayersAddition(eventLayers, questItems, deletedLayers) {
+        for(let item of eventLayers) {
+            if(item.added) {
+                const inQuest = questItems.some(key => {
+                    if (key === item.name) {
+                        return true;
+                    }
+                });
+                if(inQuest) {
+                    deletedLayers.push(item.id);
+                    this.docEmitter.emit("logWarning", item.name, item.id, "CopyPasteOfQuestElement");
+                    await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: item.id});
+                    return;
+                }
+            } else if(item.layers){
+                this.handleLayersAddition(item.layers, questItems, deletedLayers);
+            }
+        }
     }
 
     private async getSelectedLayers() {
@@ -61,7 +91,7 @@ export class LayerManager implements IFactory{
     public async addBufferData(changedLayers) {
         switch(this.eventName) {
             case Events.COPYTOLAYER :
-                await this.handleDuplicate(changedLayers, this.selectedLayers);
+                await this.handleDuplicate(changedLayers, this.selectedLayers, []);
                 break;
             case Events.DUPLICATE :
                 await this.handleDuplicateEvent(changedLayers);
@@ -73,21 +103,24 @@ export class LayerManager implements IFactory{
 
     private async handleDuplicateEvent(changedLayers) {
         if(this.isPasteEvent) {
-            await this.handleDuplicate(changedLayers, this.copiedLayers);
+            const questItems = this.modelFactory.getPhotoshopModel().allQuestItems;
+            const deletedLayers = [];
+            await this.handleLayersAddition(changedLayers, questItems, deletedLayers);
+            await this.handleDuplicate(changedLayers, this.copiedLayers, deletedLayers);
             this.isPasteEvent = false;
             return;
         }
         if(this.localisedLayers.length) {
-            await this.handleDuplicate(changedLayers, this.localisedLayers);
+            await this.handleDuplicate(changedLayers, this.localisedLayers, []);
             this.localisedLayers.splice(0, 1);
             return;
         }
-        await this.handleDuplicate(changedLayers, this.selectedLayers);
+        await this.handleDuplicate(changedLayers, this.selectedLayers, []);
     }
 
-    private async handleDuplicate(changedLayers, parentLayers) {
+    private async handleDuplicate(changedLayers, parentLayers, deletedLayers) {
         const addedLayers = this.handleEvent(changedLayers, undefined);
-        await this.getImageDataOfEvent(addedLayers, parentLayers);
+        await this.getImageDataOfEvent(addedLayers, parentLayers, deletedLayers);
     }
 
     private handleEvent(changedLayers, addedLayers) {
@@ -139,7 +172,7 @@ export class LayerManager implements IFactory{
         promiseArray.push(bufferPromise);
     }
 
-    private async getImageDataOfEvent(layersArray, parentLayers) {
+    private async getImageDataOfEvent(layersArray, parentLayers, deletedLayers) {
         //console.log("Paste Image Pixel Data Addition Started");
         const layersCount = layersArray.length;
         for(let i=0;i<layersCount;i++) {
@@ -148,6 +181,9 @@ export class LayerManager implements IFactory{
             if(copiedLayerRef instanceof LayerClass.LayerGroup) {
                 await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
                 const pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
+                if(~deletedLayers.indexOf(pastedLayerRef.id)) {
+                    continue;
+                }
                 await this.handleGroupEvent(copiedLayerRef, pastedLayerRef);
             } else {
                 await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
@@ -208,7 +244,7 @@ export class LayerManager implements IFactory{
     }
 
     private setLayerSettings(bufferPayload, layerId): Promise<any> {
-        if(!Object.keys(bufferPayload).length) {
+        if(Object.keys(bufferPayload).length) {
             const promise = this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
             LayerManager.promiseArray.push(promise);
             return promise;
@@ -222,5 +258,5 @@ enum Events {
     SELECT = "slct",
     COPYTOLAYER = "CpTL",
     COPY = "copy",
-    PASTE = "past"
+    PASTE = "past",
 }

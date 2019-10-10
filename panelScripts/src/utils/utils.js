@@ -9,23 +9,9 @@ var __values = (this && this.__values) || function (o) {
         }
     };
 };
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+var fs = require("fs");
+var path = require("path");
 var utlis = /** @class */ (function () {
     function utlis() {
     }
@@ -57,26 +43,15 @@ var utlis = /** @class */ (function () {
     };
     utlis.mapToObject = function (map) {
         var obj = {};
-        try {
-            for (var map_1 = __values(map), map_1_1 = map_1.next(); !map_1_1.done; map_1_1 = map_1.next()) {
-                var _a = __read(map_1_1.value, 2), key = _a[0], value = _a[1];
-                if (value instanceof Map) {
-                    obj[key] = utlis.mapToObject(value);
-                }
-                else {
-                    obj[key] = value;
-                }
+        map.forEach(function (value, key) {
+            if (value instanceof Map) {
+                obj[key] = utlis.mapToObject(value);
             }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (map_1_1 && !map_1_1.done && (_b = map_1.return)) _b.call(map_1);
+            else {
+                obj[key] = value;
             }
-            finally { if (e_1) throw e_1.error; }
-        }
+        });
         return obj;
-        var e_1, _b;
     };
     utlis.objectToMap = function (obj) {
         var map = new Map();
@@ -91,15 +66,15 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
                 if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
-            finally { if (e_2) throw e_2.error; }
+            finally { if (e_1) throw e_1.error; }
         }
         return map;
-        var e_2, _c;
+        var e_1, _c;
     };
     utlis.traverseObject = function (arrayLayers, callback) {
         var noOfLayers = arrayLayers.length;
@@ -112,6 +87,90 @@ var utlis = /** @class */ (function () {
                     utlis.traverseObject(arrayLayers[i].layers, callback);
                 }
             }
+        }
+    };
+    utlis.removeFile = function (fileName) {
+        var stats = fs.lstatSync(fileName);
+        if (stats.isDirectory()) {
+            fs.readdirSync(fileName).forEach(function (file) {
+                utlis.removeFile(fileName + "/" + file);
+            });
+        }
+        else {
+            if (path.basename(fileName) === "Image.png") {
+                fs.unlink(fileName, function (err) {
+                    if (err) {
+                        console.log("unable to remove file");
+                    }
+                    else {
+                        console.log("done");
+                    }
+                });
+            }
+        }
+    };
+    utlis.handleModelData = function (eventLayers, drawnQuestItems, viewElementalMap) {
+        for (var platform in viewElementalMap) {
+            if (!viewElementalMap.hasOwnProperty(platform)) {
+                continue;
+            }
+            var platformMap = viewElementalMap[platform];
+            for (var view in platformMap) {
+                if (!platformMap.hasOwnProperty(view)) {
+                    continue;
+                }
+                var viewItems = platformMap[view];
+                for (var itemV in viewItems) {
+                    if (!viewItems.hasOwnProperty(itemV)) {
+                        continue;
+                    }
+                    utlis.handleView(viewItems, itemV, eventLayers, drawnQuestItems);
+                }
+            }
+        }
+    };
+    utlis.handleView = function (viewItems, itemV, eventLayers, drawnQuestItems) {
+        var viewItem = viewItems[itemV];
+        if (viewItem instanceof Array) {
+            viewItem.forEach(function (item, index) {
+                var itemRef = utlis.isIDExists(item.id, eventLayers);
+                if (itemRef) {
+                    viewItem.splice(index, 1);
+                    utlis.spliceFrom(item.id, drawnQuestItems);
+                }
+            });
+        }
+        else {
+            var itemRef = utlis.isIDExists(viewItem.id, eventLayers);
+            if (itemRef) {
+                delete viewItems[itemV];
+                utlis.spliceFrom(itemV.id, drawnQuestItems);
+            }
+        }
+    };
+    utlis.spliceFrom = function (id, array) {
+        var ref = utlis.isIDExists(id, array);
+        if (ref) {
+            var indexOf = array.indexOf(ref);
+            if (indexOf > -1) {
+                array.splice(indexOf, 1);
+            }
+        }
+    };
+    utlis.getElementView = function (element, activeDocumentLayers) {
+        var layers = activeDocumentLayers;
+        var elementRef = layers.findLayer(element.id);
+        return utlis.getView(elementRef);
+    };
+    utlis.getView = function (elementRef) {
+        if ((elementRef.layer)) {
+            return utlis.getView(elementRef.layer.group);
+        }
+        if (elementRef.group.name === "common") {
+            return elementRef.name;
+        }
+        else if (elementRef.group) {
+            return utlis.getView(elementRef.group);
         }
     };
     return utlis;

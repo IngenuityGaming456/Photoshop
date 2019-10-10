@@ -13,9 +13,7 @@ export class MenuManager implements IFactory {
     private readonly deletedPlatform: IPhotoshopState;
     private currentState: IPhotoshopState;
     private modelFactory: ModelFactory;
-    private platformStack = [];
-    private platformArray = [];
-    private viewArray = [];
+    private stateObj = {};
 
     public constructor(modelFactory: ModelFactory, noPlatform: IPhotoshopState, addedPlatform: IPhotoshopState, 
                        addedView: IPhotoshopState, deletedView: IPhotoshopState, deletedPlatformState: IPhotoshopState) {
@@ -29,16 +27,47 @@ export class MenuManager implements IFactory {
 
     public async execute(params: IParams) {
         this.generator = params.generator;
+        this.makeStateObj();
         this.setStartingState();
     }
-    
+
+    private makeStateObj() {
+        this.stateObj = {
+            AddedPlatformState: this.addedPlatform,
+            AddedViewState: this.addedView,
+            DeletedPlatformState: this.deletedPlatform,
+            DeletedViewState: this.deletedView,
+            NoPlatformState: this.noPlatform
+        }
+    }
+
     private setStartingState() {
-        this.currentState = this.getNoPlatformState();
-        this.onAllPlatformsDeletion();
+        this.currentState = this.setOpenState();
+        if(!this.currentState) {
+            this.currentState = this.getNoPlatformState();
+            this.onAllPlatformsDeletion();
+        }
+    }
+
+    private setOpenState() {
+        const currentStateName = this.modelFactory.getPhotoshopModel().menuCurrentState;
+        return this.stateObj[currentStateName];
     }
 
     public setCurrentState(state: IPhotoshopState) {
         this.currentState = state;
+        this.modelFactory.getPhotoshopModel().menuCurrentState = this.setModelState();
+    }
+
+    private setModelState() {
+        for(let key in this.stateObj) {
+            if(!this.stateObj.hasOwnProperty(key)) {
+                continue;
+            }
+            if(this.currentState === this.stateObj[key]) {
+                return key;
+            }
+        }
     }
 
     public onViewAddition(viewMenuName: string) {

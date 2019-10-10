@@ -14,6 +14,8 @@ import {ContainerPanelResponse} from "./ContainerPanelResponse";
 import {MenuProxyManager} from "../modules/MenuManagers/MenuProxyManager";
 import {DocumentLogger} from "../logger/DocumentLogger";
 import {CreateProxyLayout} from "./LayoutStructure/CreateProxyLayout";
+import {PhotoshopFactory} from "./PhotoshopFactory";
+import {EventEmitter} from "events";
 let packageJson = require("../../package.json");
 
 export class DocumentStarter implements IFactory {
@@ -25,47 +27,67 @@ export class DocumentStarter implements IFactory {
     private activeDocument;
     private documentManager: DocumentManager;
     private menuManager;
-    private socket;
     private io = require('socket.io')(8099);
     private openDocumentData;
+    private docId;
+    private docEmitter;
+    private loggerEmitter;
+    private htmlSocket;
 
     execute(params: IParams) {
         this.generator = params.generator;
         this.documentManager = params.storage.documentManager;
         this.startModel = params.storage.startModel;
-        this.subscribeListeners();
+        this.createDocumentEventListener();
+        this.subscribeListenersBeforeDocument();
         this.createDependenciesBeforeSocket();
         this.createSocket();
+    }
+
+    private createDocumentEventListener() {
+        this.docEmitter = new EventEmitter();
+        this.loggerEmitter = new EventEmitter();
     }
 
     private createSocket() {
         console.log("making a socket connection");
         this.io.on("connection", (socket) => {
-            this.socket = socket;
-            this.generator.emit("getUpdatedSocket", this.socket);
-            this.applySocketListeners();
+            this.applySocketListeners(socket);
         });
     }
 
-    private applySocketListeners() {
-        this.socket.on("getQuestJson", storage => {
-            this.modelFactory.handleSocketStorage(storage);
-            this.setViewMap();
+    private applySocketListeners(socket) {
+        socket.on("register", (name) => {
+            this.handleSocketClients(name, socket);
         });
-        this.socket.on('disconnect', function(reason) {
+    }
+
+    private handleSocketClients(name, socket) {
+        if(name === "htmlPanel") {
+            this.htmlSocket = socket;
+            socket.on("getQuestJson", storage => {
+                this.docEmitter.emit("getUpdatedHTMLSocket", socket);
+                this.modelFactory.handleSocketStorage(storage);
+                this.setViewMap();
+            });
+        }
+        if(name === "validatorPanel") {
+            this.loggerEmitter.emit("getUpdatedValidatorSocket", socket);
+        }
+        socket.on('disconnect', function(reason) {
             console.log(reason);
         });
     }
 
     private setViewMap() {
-        const viewsMap = this.modelFactory.getMappingModel().getViewMap();
+        const viewsMap = this.modelFactory.getMappingModel().getViewPlatformMap("desktop");
         this.structureMap.set(viewsMap, {
             ref: CreateViewStructure,
-            dep: [CreateView, ModelFactory]
+            dep: [CreateView, ModelFactory, PhotoshopFactory]
         });
     }
 
-    private subscribeListeners() {
+    private subscribeListenersBeforeDocument() {
         this.generator.on("openedDocument", (openId) => {
             this.onDocumentOpen(openId);
         });
@@ -78,7 +100,7 @@ export class DocumentStarter implements IFactory {
         const classObj = this.structureMap.get(elementMap);
         if (classObj) {
             const factoryObj = inject({ref: classObj.ref, dep: classObj.dep, isNonSingleton: true});
-            execute(factoryObj, {generator: this.generator, menuName: menu.name, activeDocument: this.activeDocument});
+            execute(factoryObj, {generator: this.generator, docEmitter: this.docEmitter, menuName: menu.name, activeDocument: this.activeDocument});
         }
     }
 
@@ -92,43 +114,92 @@ export class DocumentStarter implements IFactory {
     }
 
     private async onDocumentOpen(openId) {
-        FactoryClass.factoryInstance = null;
-        this.startModel.allDocumentsMap.set(openId, {});
+        this.restorePhotoshop();
         this.activeDocument = await this.documentManager.getDocument(openId);
         execute(this.startModel, {generator: this.generator, activeDocument: this.activeDocument});
         this.openDocumentData = await this.startModel.onPhotoshopStart();
         await this.setDocumentMetaData();
+        this.sendToHTMLSocket();
         this.instantiateStateEvent();
         this.instantiateDocumentModel();
         this.createObjects();
         this.createDependencies();
         await this.addMenuItems();
+        this.addDocumentStatus();
+    }
+
+    private sendToHTMLSocket() {
+        //this.htmlSocket.emit("messageRevert");
+        this.htmlSocket.emit("docOpen", this.activeDocument.directory, this.docId);
+    }
+
+    private restorePhotoshop() {
+        FactoryClass.factoryInstance = null;
+        this.removeListeners();
+        this.applyDocumentListeners();
+    }
+
+    private removeListeners() {
+        this.docEmitter.removeAllListeners();
+        this.generator.removeAllListeners("layersAdded");
+        this.generator.removeAllListeners("layerRenamed");
+        this.generator.removeAllListeners("layersDeleted");
+        this.generator.removeAllListeners("select");
+        this.generator.removeAllListeners("copy");
+        this.generator.removeAllListeners("paste");
+        this.generator.removeAllListeners("save");
+    }
+
+    private applyDocumentListeners() {
+        this.docEmitter.on("logWarning", (key, id, loggerType) => {
+            this.loggerEmitter.emit("logWarning", key, id, loggerType);
+        });
+        this.docEmitter.on("logError", (key, id, loggerType) => {
+            this.loggerEmitter.emit("logError", key, id, loggerType);
+        });
+        this.docEmitter.on("logStatus", message => {
+            this.loggerEmitter.emit("logStatus", message);
+        });
+        this.docEmitter.on("removeError", id => {
+            this.loggerEmitter.emit("removeError", id);
+        });
     }
 
     private async setDocumentMetaData() {
         if(!this.openDocumentData) {
-            const docId = Math.floor(Math.random() * 5000);
-            await this.generator.setDocumentSettingsForPlugin({docId: docId}, packageJson.name + "Document");
+            this.docId = Math.floor(Math.random() * 5000);
+            await this.generator.setDocumentSettingsForPlugin({docId: this.docId}, packageJson.name + "Document");
+        } else {
+            const docIdObj = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,
+                packageJson.name + "Document");
+            this.docId = docIdObj.docId;
         }
     }
 
     private createDependencies() {
-        const layerManager = inject({ref: LayerManager, dep: []});
-        execute(layerManager, {generator: this.generator, activeDocument: this.activeDocument});
-        const containerResponse = inject({ref: ContainerPanelResponse, dep: [ModelFactory]});
-        execute(containerResponse, {generator: this.generator, activeDocument: this.activeDocument});
+        const layerManager = inject({ref: LayerManager, dep: [ModelFactory]});
+        execute(layerManager, {generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument});
         const validation = inject({ref: Validation, dep: [ModelFactory]});
-        execute(validation, {generator: this.generator, activeDocument: this.activeDocument});
+        execute(validation, {generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument});
         this.menuManager = inject({ref: MenuProxyManager, dep: [ModelFactory]});
+        const photoshopFactory = inject({ref: PhotoshopFactory, dep: [ModelFactory]});
+        execute(photoshopFactory, {generator: this.generator, docEmitter: this.docEmitter});
+        const containerResponse = inject({ref: ContainerPanelResponse, dep: [ModelFactory, PhotoshopFactory]});
+        execute(containerResponse, {generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter});
     }
 
     private createDependenciesBeforeSocket() {
         const documentLogger = inject({ref: DocumentLogger, dep: []});
-        execute(documentLogger, {generator: this.generator});
+        execute(documentLogger, {generator: this.generator, loggerEmitter: this.loggerEmitter});
     }
 
     private async addMenuItems() {
-        execute(this.menuManager, {generator: this.generator});
+        execute(this.menuManager, {generator: this.generator, docEmitter: this.docEmitter});
+    }
+
+    private addDocumentStatus() {
+       this.loggerEmitter.emit("logStatus", "The document is ready to be worked with");
+       this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
     }
 
     private createObjects() {
@@ -141,11 +212,11 @@ export class DocumentStarter implements IFactory {
             })
             .set(this.mapFactory.getPlatformMap(), {
                 ref: CreateViewStructure,
-                dep: [CreatePlatform, ModelFactory],
+                dep: [CreatePlatform, ModelFactory, PhotoshopFactory],
             })
             .set(this.mapFactory.getLayoutMap(), {
                 ref: CreateProxyLayout,
-                dep: []
+                dep: [ModelFactory]
             })
             .set(this.mapFactory.getLocalisationMap(), {
                 ref: CreateLocalisationStructure,
@@ -159,13 +230,13 @@ export class DocumentStarter implements IFactory {
 
     private instantiateStateEvent() {
         const eventSubject = inject({ref: PhotoshopEventSubject, dep: []});
-        execute(eventSubject, {generator: this.generator});
+        execute(eventSubject, {generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter});
     }
 
     private instantiateDocumentModel() {
         this.modelFactory = inject({ref: ModelFactory, dep:[]});
         execute(this.modelFactory, {generator: this.generator, activeDocument: this.activeDocument,
-                                            storage: {openDocumentData: this.openDocumentData}});
+                                           docEmitter: this.docEmitter, storage: {openDocumentData: this.openDocumentData}});
     };
 
 }

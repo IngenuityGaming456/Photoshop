@@ -4,6 +4,7 @@ import {IModel, IParams} from "../../interfaces/IJsxParam";
 import {utlis} from "../../utils/utils";
 import {NoDataPhotoshopModel} from "./NoDataPhotoshopModel";
 import {execute} from "../../modules/FactoryClass";
+let menuLabels = require("../../res/menuLables");
 
 export class PhotoshopModel implements IModel {
 
@@ -15,26 +16,31 @@ export class PhotoshopModel implements IModel {
     private viewObjStorage = [];
     private clickedMenus = [];
     private previousContainer = null;
-    private elementalMap = new Map();
-    private prevContainerResponse = new Map();
-    private containerResponse = new Map();
+    private elementalMap = {};
+    private prevContainerResponse;
+    private containerResponse;
     private questViews = [];
     private mappedPlatform = {};
     private questPlatforms = ["desktop", "portrait", "landscape"];
     private subPhotoshopModel;
     private layersErrorData = [];
+    private viewDeletionObj;
+    private platformDeletion;
+    private menuStates = [];
+    private currentState: string;
+    private docEmitter;
 
     execute(params: IParams) {
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
+        this.docEmitter = params.docEmitter;
         this.subPhotoshopModel = params.storage.subPhotoshopModel;
         this.onPhotoshopStart();
         this.subscribeListeners();
         this.fireEvents();
         this.createStorage();
         this.filterContainers();
-        this.elementalMap = this.createElementData();
-        this.mappedPlatform = this.createPlatformMapping();
+        this.handleData();
     }
 
     private subscribeListeners() {
@@ -42,13 +48,53 @@ export class PhotoshopModel implements IModel {
     }
 
     private fireEvents() {
-        this.generator.emit("observerAdd", this);
+        this.docEmitter.emit("observerAdd", this);
+    }
+
+    private handleData() {
+        this.executeSubModels();
+        this.elementalMap = this.createElementData();
+        this.mappedPlatform = this.createPlatformMapping();
+        this.platformDeletion = this.createPlatformDeletion();
+        this.viewDeletionObj =  this.createViewDeletionObj();
+        this.menuStates = this.accessMenuState();
+        this.currentState = this.accessCurrentState();
+        this.previousContainer = this.accessContainerResponse();
+        this.drawnQuestItems = this.accessDrawnQuestItems();
+    }
+
+    private executeSubModels() {
+        if(this.subPhotoshopModel instanceof NoDataPhotoshopModel) {
+            execute(this.subPhotoshopModel, this.getNoDataParams());
+        }
     }
 
     private createElementData() {
-        if(this.subPhotoshopModel instanceof NoDataPhotoshopModel)
-            execute(this.subPhotoshopModel, this.getNoDataParams());
         return this.subPhotoshopModel.createElementData();
+    }
+
+    private createPlatformDeletion() {
+        return this.subPhotoshopModel.createPlatformDeletion();
+    }
+
+    private createViewDeletionObj() {
+        return this.subPhotoshopModel.createViewDeletionObj();
+    }
+
+    private accessMenuState() {
+        return this.subPhotoshopModel.accessMenuState();
+    }
+
+    private accessCurrentState() {
+        return this.subPhotoshopModel.accessCurrentState();
+    }
+
+    private accessContainerResponse() {
+        return this.subPhotoshopModel.accessContainerResponse();
+    }
+
+    private accessDrawnQuestItems() {
+        return this.subPhotoshopModel.accessDrawnQuestItems();
     }
 
     private getNoDataParams() {
@@ -64,14 +110,12 @@ export class PhotoshopModel implements IModel {
         this.clickedMenus.push(event.generatorMenuChanged.name);
     }
 
-    private setToStarterMap(data) {
-        this.generator.emit("setToStarterModel", this.activeDocument.id, data);
-    }
-
     public handleSocketStorage(socketStorage) {
         this.prevContainerResponse = this.previousContainer;
         this.containerResponse = socketStorage;
         this.previousContainer = this.containerResponse;
+        console.log(this.prevContainerResponse);
+        console.log(this.prevContainerResponse === this.previousContainer);
     }
 
     private createStorage() {
@@ -133,11 +177,13 @@ export class PhotoshopModel implements IModel {
     }
 
     public setPlatformMenuIds(id, key) {
-        this.elementalMap.get(key) && this.elementalMap.get(key).set("base", id);
+        if(this.elementalMap[key]) {
+            this.elementalMap[key]["base"] = id;
+        }
     }
 
     public setBaseMenuIds(platform, id: number, key: string) {
-        const baseKey = this.elementalMap.get(platform).get(key);
+        const baseKey = this.elementalMap[platform][key];
         if (baseKey) {
             baseKey["base"] = {
                 id: id,
@@ -147,7 +193,7 @@ export class PhotoshopModel implements IModel {
     }
 
     public setChildMenuIds(platform: string, childId: number, childName: string, childType: string, parentKey: string) {
-        const baseKey = this.elementalMap.get(platform).get(parentKey);
+        const baseKey = this.elementalMap[platform][parentKey];
         if (baseKey) {
             baseKey[childType].push({
                 id: childId,
@@ -160,12 +206,8 @@ export class PhotoshopModel implements IModel {
         this.drawnQuestItems.push({id: id, name: key});
     }
 
-    get allQuestViews() {
-        return this.questViews;
-    }
-
-    get viewStorage() {
-        return this.viewObjStorage;
+    set menuCurrentState(currentState) {
+        this.currentState = currentState;
     }
 
     get allDrawnQuestItems() {
@@ -178,10 +220,6 @@ export class PhotoshopModel implements IModel {
 
     get allQuestItems() {
         return this.questItems;
-    }
-
-    get clickedMenuNames() {
-        return this.clickedMenus;
     }
 
     get currentContainerResponse() {
@@ -204,16 +242,50 @@ export class PhotoshopModel implements IModel {
         return this.layersErrorData;
     }
 
+    get viewDeletion() {
+        return this.viewDeletionObj;
+    }
+
+    get allPlatformDeletion() {
+        return this.platformDeletion;
+    }
+
+    get allMenuStates() {
+        return this.menuStates;
+    }
+
+    get menuCurrentState() {
+        return this.currentState;
+    }
+
     public onPhotoshopStart() {
     }
 
     public onPhotoshopClose() {
         this.writeData = {
-            elementalMap: utlis.mapToObject(this.elementalMap),
+            elementalMap: this.elementalMap,
             clickedMenus: this.clickedMenus,
-            containerResponse: utlis.mapToObject(this.containerResponse)
+            containerResponse: this.containerResponse,
+            viewDeletion: this.viewDeletionObj,
+            platformDeletion: this.platformDeletion,
+            menuStates: this.getMenuStates(),
+            menuCurrentState: this.currentState,
+            drawnQuestItems: this.drawnQuestItems
         };
         this.generator.emit("writeData", this.writeData);
+    }
+
+    private getMenuStates() {
+        for(let key in menuLabels) {
+            if(!menuLabels.hasOwnProperty(key)) {
+                continue;
+            }
+            const menuResult = this.generator.getMenuState(menuLabels[key].label);
+            if(!menuResult.enabled) {
+                this.menuStates.push(menuLabels[key].label);
+            }
+        }
+        return this.menuStates;
     }
 
 }

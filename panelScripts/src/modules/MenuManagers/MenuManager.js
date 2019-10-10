@@ -37,9 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var MenuManager = /** @class */ (function () {
     function MenuManager(modelFactory, noPlatform, addedPlatform, addedView, deletedView, deletedPlatformState) {
-        this.platformStack = [];
-        this.platformArray = [];
-        this.viewArray = [];
+        this.stateObj = {};
         this.modelFactory = modelFactory;
         this.noPlatform = noPlatform;
         this.addedPlatform = addedPlatform;
@@ -51,17 +49,45 @@ var MenuManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 this.generator = params.generator;
+                this.makeStateObj();
                 this.setStartingState();
                 return [2 /*return*/];
             });
         });
     };
+    MenuManager.prototype.makeStateObj = function () {
+        this.stateObj = {
+            AddedPlatformState: this.addedPlatform,
+            AddedViewState: this.addedView,
+            DeletedPlatformState: this.deletedPlatform,
+            DeletedViewState: this.deletedView,
+            NoPlatformState: this.noPlatform
+        };
+    };
     MenuManager.prototype.setStartingState = function () {
-        this.currentState = this.getNoPlatformState();
-        this.onAllPlatformsDeletion();
+        this.currentState = this.setOpenState();
+        if (!this.currentState) {
+            this.currentState = this.getNoPlatformState();
+            this.onAllPlatformsDeletion();
+        }
+    };
+    MenuManager.prototype.setOpenState = function () {
+        var currentStateName = this.modelFactory.getPhotoshopModel().menuCurrentState;
+        return this.stateObj[currentStateName];
     };
     MenuManager.prototype.setCurrentState = function (state) {
         this.currentState = state;
+        this.modelFactory.getPhotoshopModel().menuCurrentState = this.setModelState();
+    };
+    MenuManager.prototype.setModelState = function () {
+        for (var key in this.stateObj) {
+            if (!this.stateObj.hasOwnProperty(key)) {
+                continue;
+            }
+            if (this.currentState === this.stateObj[key]) {
+                return key;
+            }
+        }
     };
     MenuManager.prototype.onViewAddition = function (viewMenuName) {
         this.currentState.onViewAddition(this, this.generator, viewMenuName);

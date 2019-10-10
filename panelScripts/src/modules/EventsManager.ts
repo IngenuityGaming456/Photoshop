@@ -36,8 +36,24 @@ export class EventsManager implements IFactory{
     }
 
     private onHandleEvents(event) {
-        if(event === "save") {
-            this.generator.emit("save");
+        switch(event) {
+            case Events.SELECT :
+                this.generator.emit("select");
+                break;
+            case Events.COPY :
+                this.generator.emit("copy");
+                break;
+            case Events.PASTE :
+                this.generator.emit("paste");
+                break;
+            case Events.SAVE :
+                this.generator.emit("save");
+                break;
+            case Events.COPYTOLAYER :
+                this.generator.emit("copyToLayer");
+                break;
+            case Events.DUPLICATE :
+                this.generator.emit("duplicate");
         }
     }
 
@@ -154,9 +170,11 @@ export class EventsManager implements IFactory{
 
 }
 
-// if(!event.layers[0].added && (event.layers[0].removed || event.layers[0].name)) {
-//     componentsMap.forEach(item => {
-//         Restructure.searchAndModifyControlledArray(event.layers, item);
-//     });
-// }
-// _layerManager.addBufferData(event.layers);
+enum Events {
+    DUPLICATE = "Dplc",
+    SELECT = "slct",
+    COPYTOLAYER = "CpTL",
+    COPY = "copy",
+    PASTE = "past",
+    SAVE= "save"
+}

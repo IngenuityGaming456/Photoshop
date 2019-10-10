@@ -50,7 +50,8 @@ var path = require("path");
 var utils_1 = require("../../utils/utils");
 var packageJson = require("../../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
-    function CreateLayoutStructure() {
+    function CreateLayoutStructure(modelFactory) {
+        this.modelFactory = modelFactory;
     }
     CreateLayoutStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -61,17 +62,87 @@ var CreateLayoutStructure = /** @class */ (function () {
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
                         this._activeDocument = params.activeDocument;
+                        this.layerMap = params.storage.layerMap;
                         this.bufferMap = params.storage.bufferMap;
                         this.unsubscribeEventListener("imageChanged");
-                        return [4 /*yield*/, this.modifyPathNames()];
+                        return [4 /*yield*/, this.restructureTempLayers()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.requestDocument()];
+                        return [4 /*yield*/, this.modifyPathNames()];
                     case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.requestDocument()];
+                    case 3:
                         result = _a.sent();
                         utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
+                        this.modifyJSON(result.layers);
+                        this.modifyBottomBar(result.layers);
                         this.writeJSON(result, this.getPath());
+                        this.removeUnwantedLayers();
                         return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateLayoutStructure.prototype.restructureTempLayers = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.restructure("Symbols")];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.restructure("WinFrames")];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.restructure("Paylines")];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateLayoutStructure.prototype.restructure = function (layerName) {
+        return __awaiter(this, void 0, void 0, function () {
+            var drawnQuestItems, items, items_1, items_1_1, item, e_1_1, e_1, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
+                        items = drawnQuestItems.map(function (item) {
+                            if (item.name === layerName) {
+                                return item.id;
+                            }
+                            return -1;
+                        });
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, 7, 8]);
+                        items_1 = __values(items), items_1_1 = items_1.next();
+                        _b.label = 2;
+                    case 2:
+                        if (!!items_1_1.done) return [3 /*break*/, 5];
+                        item = items_1_1.value;
+                        if (!(item > -1)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"), { id: item })];
+                    case 3:
+                        _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        items_1_1 = items_1.next();
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
+                        e_1_1 = _b.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        try {
+                            if (items_1_1 && !items_1_1.done && (_a = items_1.return)) _a.call(items_1);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -131,11 +202,11 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.modifyPathNames = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var bufferKeys, bufferKeys_1, bufferKeys_1_1, key, bufferValue, e_1_1, e_1, _a;
+            var bufferKeys, bufferKeys_1, bufferKeys_1_1, key, layerValue, e_2_1, e_2, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        bufferKeys = this.bufferMap.keys();
+                        bufferKeys = this.layerMap.keys();
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 6, 7, 8]);
@@ -144,8 +215,8 @@ var CreateLayoutStructure = /** @class */ (function () {
                     case 2:
                         if (!!bufferKeys_1_1.done) return [3 /*break*/, 5];
                         key = bufferKeys_1_1.value;
-                        bufferValue = this.bufferMap[key];
-                        return [4 /*yield*/, this.handleBufferValue(bufferValue)];
+                        layerValue = this.layerMap.get(key);
+                        return [4 /*yield*/, this.handleBufferValue(layerValue, key)];
                     case 3:
                         _b.sent();
                         _b.label = 4;
@@ -154,31 +225,32 @@ var CreateLayoutStructure = /** @class */ (function () {
                         return [3 /*break*/, 2];
                     case 5: return [3 /*break*/, 8];
                     case 6:
-                        e_1_1 = _b.sent();
-                        e_1 = { error: e_1_1 };
+                        e_2_1 = _b.sent();
+                        e_2 = { error: e_2_1 };
                         return [3 /*break*/, 8];
                     case 7:
                         try {
                             if (bufferKeys_1_1 && !bufferKeys_1_1.done && (_a = bufferKeys_1.return)) _a.call(bufferKeys_1);
                         }
-                        finally { if (e_1) throw e_1.error; }
+                        finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }
             });
         });
     };
-    CreateLayoutStructure.prototype.handleBufferValue = function (bufferValue) {
+    CreateLayoutStructure.prototype.handleBufferValue = function (layerValue, key) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(bufferValue.frequency === 1)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: bufferValue.id })];
+                        if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
+                        CreateLayoutStructure.modifiedIds.push(key);
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [4 /*yield*/, this.setDuplicateMetaData(this.applySplitter(bufferValue.parentName), bufferValue.id)];
+                    case 2: return [4 /*yield*/, this.setDuplicateMetaData(this.applySplitter(this.bufferMap.get(layerValue.buffer).parentName), key)];
                     case 3:
                         _a.sent();
                         return [2 /*return*/];
@@ -198,6 +270,59 @@ var CreateLayoutStructure = /** @class */ (function () {
                         return [2 /*return*/];
                 }
             });
+        });
+    };
+    CreateLayoutStructure.prototype.removeUnwantedLayers = function () {
+        var _this = this;
+        var targetPath = this.getPath() + "-assets";
+        fs.readdirSync(targetPath).forEach(function (fileName) {
+            _this.removeFiles(targetPath + "/" + fileName);
+        });
+    };
+    CreateLayoutStructure.prototype.removeFiles = function (targetPath) {
+        var path = targetPath + "/common";
+        fs.readdirSync(path).forEach(function (fileName) {
+            if (~fileName.search(/(Animation)/)) {
+                utils_1.utlis.removeFile(path + "/" + fileName);
+            }
+        });
+    };
+    CreateLayoutStructure.prototype.modifyJSON = function (resultLayers) {
+        var _this = this;
+        resultLayers.forEach(function (item) {
+            if (item.name === "freeGame") {
+                var freeGameLayers = item.layers;
+                var symbolRef = freeGameLayers.find(function (itemFG) {
+                    if (itemFG.name === "Symbols") {
+                        return true;
+                    }
+                });
+                if (symbolRef) {
+                    symbolRef.name += "FG";
+                }
+            }
+            else if (item.layers) {
+                _this.modifyJSON(item.layers);
+            }
+        });
+    };
+    CreateLayoutStructure.prototype.modifyBottomBar = function (resultLayers) {
+        var _this = this;
+        resultLayers.forEach(function (item) {
+            if (item.name === "baseGame") {
+                var freeGameLayers = item.layers;
+                var symbolRef = freeGameLayers.find(function (itemFG) {
+                    if (itemFG.name === "buttonsContainerBG") {
+                        return true;
+                    }
+                });
+                if (symbolRef) {
+                    symbolRef.name = "buttonsContainer";
+                }
+            }
+            else if (item.layers) {
+                _this.modifyBottomBar(item.layers);
+            }
         });
     };
     CreateLayoutStructure.modifiedIds = [];

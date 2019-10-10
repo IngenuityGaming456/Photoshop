@@ -15,6 +15,8 @@ export class CreateProxyLayout implements IFactory {
     private errorData = [];
     private readonly modelFactory;
     private bufferMap = new Map();
+    private docEmitter;
+    private layerMap;
 
     public constructor(modelFactory: ModelFactory) {
          this.modelFactory = modelFactory;
@@ -23,31 +25,16 @@ export class CreateProxyLayout implements IFactory {
 
     public async execute(params: IParams) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.document = await this.generator.getDocumentInfo(undefined);
-        this.errorData = this.modelFactory;
-        this.subscribeListeners();
         await this.modifyParentNames();
         this.checkIsLayoutSuccessful();
     }
-    
-    private subscribeListeners() {
-        this.generator.on("layerRenamed", (eventLayers) => this.onLayersRenamed(eventLayers));
-    }
-    
-    private onLayersRenamed(eventLayers) {
-        const isInErrorData = this.errorData.some(item => {
-            if(item.id === eventLayers[0].name) {
-                return true;
-            }
-        });
-        if(isInErrorData) {
-            this.generator.emit("removeError", eventLayers[0].id);
-        }
-    }
 
     private async modifyParentNames() {
-        utlis.traverseObject(this.document.layers.layers, this.getAllArtLayers.bind(this));
+        utlis.traverseObject(this.document.layers, this.getAllArtLayers.bind(this));
+        this.artLayers.reverse();
         await this.modifyPaths();
     }
 
@@ -64,19 +51,20 @@ export class CreateProxyLayout implements IFactory {
             const layerObj = {
                 buffer: keyPixmap.pixels,
                 frequency: 1,
-                name: this.artLayers[i].name
+                name: this.artLayers[i].name,
+                parentName: ""
             };
             layerMap.set(this.artLayers[i].id, layerObj);
             this.bufferMap.set(layerObj.buffer, {
                 freq: 0,
                 parentName: "",
-                id: this.artLayers[i].id
             });
         }
         await this.getBufferFrequency(layerMap);
     }
 
     private async getBufferFrequency(layerMap) {
+        this.layerMap = layerMap;
         const layerMapKeys = layerMap.keys();
         for(let key of layerMapKeys) {
             const value = layerMap.get(key);
@@ -99,12 +87,12 @@ export class CreateProxyLayout implements IFactory {
     }
 
     private async setToNameCache(layerName, key) {
-        if(~this.nameCache.indexOf(layerName)) {
+        if(!~this.nameCache.indexOf(layerName)) {
             this.nameCache.push(layerName);
         } else {
             this.errorData.push({id: key, name: layerName});
-            this.generator.emit("logError", layerName, key, "NameError");
-            await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), {id: key});
+            this.docEmitter.emit("logError", layerName, key, "NameError");
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addErrorPath.jsx"), {id: key});
         }
     }
 
@@ -115,8 +103,9 @@ export class CreateProxyLayout implements IFactory {
     }
 
     private initializeLayout() {
-        const layout = inject({ref: CreateLayoutStructure, dep: []});
+        const layout = inject({ref: CreateLayoutStructure, dep: [ModelFactory]});
         execute(layout, {storage: {
+                layerMap: this.layerMap,
                 bufferMap: this.bufferMap
             }, generator: this.generator, activeDocument: this.activeDocument});
     }

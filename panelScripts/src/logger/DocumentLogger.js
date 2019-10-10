@@ -5,18 +5,26 @@ var DocumentLogger = /** @class */ (function () {
     }
     DocumentLogger.prototype.execute = function (params) {
         this.generator = params.generator;
+        this.loggerEmitter = params.loggerEmitter;
         this.subscribeListener();
     };
     DocumentLogger.prototype.subscribeListener = function () {
         var _this = this;
-        this.generator.on("logWarning", function (key, id, loggerType) {
+        this.loggerEmitter.on("logWarning", function (key, id, loggerType) {
             _this.handleDocumentWarning(key, id, loggerType);
         });
-        this.generator.on("getUpdatedSocket", function (socket) {
+        this.loggerEmitter.on("getUpdatedValidatorSocket", function (socket) {
             _this.onSocketUpdate(socket);
+            _this.loggerEmitter.emit("validatorSocketUpdated");
         });
-        this.generator.on("logError", function (key, id, loggerType) {
+        this.loggerEmitter.on("logError", function (key, id, loggerType) {
             _this.handleDocumentError(key, id, loggerType);
+        });
+        this.loggerEmitter.on("logStatus", function (message) {
+            _this.onStatusMessage(message);
+        });
+        this.loggerEmitter.on("removeError", function (id) {
+            _this.handleErrorRemoval(id);
         });
     };
     DocumentLogger.prototype.onSocketUpdate = function (socket) {
@@ -27,6 +35,9 @@ var DocumentLogger = /** @class */ (function () {
     };
     DocumentLogger.prototype.handleDocumentError = function (key, id, loggerType) {
         this.socket.emit(loggerType, key, id);
+    };
+    DocumentLogger.prototype.onStatusMessage = function (message) {
+        this.socket.emit("logStatus", message);
     };
     DocumentLogger.prototype.handleErrorRemoval = function (id) {
         this.socket.emit("removeError", id);

@@ -56,10 +56,24 @@ var PhotoshopStartModel = /** @class */ (function () {
         this.writeDataAtPath();
     };
     PhotoshopStartModel.prototype.writeDataAtPath = function () {
-        fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", JSON.stringify(this.writeObj), function (err) {
-            if (err) {
-                console.log("Error occured while writing data storage");
-            }
+        return __awaiter(this, void 0, void 0, function () {
+            var result, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        result = JSON.stringify(this.writeObj, null, "  ");
+                        _a = this;
+                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
+                    case 1:
+                        _a.docIdObj = _b.sent();
+                        fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", result, function (err) {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                        return [2 /*return*/];
+                }
+            });
         });
     };
     PhotoshopStartModel.prototype.onPhotoshopStart = function () {

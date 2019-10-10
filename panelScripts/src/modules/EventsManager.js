@@ -32,8 +32,24 @@ var EventsManager = /** @class */ (function () {
         }
     };
     EventsManager.prototype.onHandleEvents = function (event) {
-        if (event === "save") {
-            this.generator.emit("save");
+        switch (event) {
+            case Events.SELECT:
+                this.generator.emit("select");
+                break;
+            case Events.COPY:
+                this.generator.emit("copy");
+                break;
+            case Events.PASTE:
+                this.generator.emit("paste");
+                break;
+            case Events.SAVE:
+                this.generator.emit("save");
+                break;
+            case Events.COPYTOLAYER:
+                this.generator.emit("copyToLayer");
+                break;
+            case Events.DUPLICATE:
+                this.generator.emit("duplicate");
         }
     };
     EventsManager.prototype.handleOpenDocument = function (nowOpenDocuments) {
@@ -141,10 +157,13 @@ var EventsManager = /** @class */ (function () {
     return EventsManager;
 }());
 exports.EventsManager = EventsManager;
-// if(!event.layers[0].added && (event.layers[0].removed || event.layers[0].name)) {
-//     componentsMap.forEach(item => {
-//         Restructure.searchAndModifyControlledArray(event.layers, item);
-//     });
-// }
-// _layerManager.addBufferData(event.layers);
+var Events;
+(function (Events) {
+    Events["DUPLICATE"] = "Dplc";
+    Events["SELECT"] = "slct";
+    Events["COPYTOLAYER"] = "CpTL";
+    Events["COPY"] = "copy";
+    Events["PASTE"] = "past";
+    Events["SAVE"] = "save";
+})(Events || (Events = {}));
 //# sourceMappingURL=EventsManager.js.map

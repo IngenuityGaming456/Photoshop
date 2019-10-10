@@ -17,17 +17,24 @@ export class CreateComponent implements IFactory{
     public async execute(params: IParams) {
         this._generator = params.generator;
         this._pluginId = packageJson.name;
+        this.subscribeListeners();
         let elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
         let sequenceId = Restructure.sequenceStructure(elementValue);
         let id = await this.callComponentJsx(sequenceId, params.menuName);
         await this.setGeneratorSettings(id, elementValue);
-        // const docLayers: layerClass.LayerGroup = params.activeDocument.layers;
-        // const parentRef = docLayers.findLayer(id);
-        // parentRef.layer._setGeneratorSettings({
-        //     [this._pluginId] : elementValue.label
-        // });
-        let controlledArray = elementValue.elementArray;
-        controlledArray.push({id: id, sequence: sequenceId});
+        elementValue.elementArray.push({id: id, sequence: sequenceId});
+    }
+
+    private subscribeListeners() {
+        this._generator.on("layersDeleted", (eventLayers) => this.handleChange(eventLayers));
+        this._generator.on("layerRenamed", (eventLayers) => this.handleChange(eventLayers));
+    }
+
+    private handleChange(eventLayers) {
+        const componentsMap = this.modelFactory.getMappingModel().getComponentsMap();
+        componentsMap.forEach(item => {
+            Restructure.searchAndModifyControlledArray(eventLayers, item);
+        });
     }
 
     private async callComponentJsx(sequenceId: number, jsxName: string): Promise<number> {

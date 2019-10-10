@@ -47,6 +47,7 @@ var __values = (this && this.__values) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../../utils/utils");
 var path = require("path");
+var ModelFactory_1 = require("../../models/ModelFactory");
 var FactoryClass_1 = require("../FactoryClass");
 var CreateLayoutStructure_1 = require("./CreateLayoutStructure");
 var packageJson = require("../../../package.json");
@@ -66,13 +67,12 @@ var CreateProxyLayout = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         this.generator = params.generator;
+                        this.docEmitter = params.docEmitter;
                         this.activeDocument = params.activeDocument;
                         _a = this;
                         return [4 /*yield*/, this.generator.getDocumentInfo(undefined)];
                     case 1:
                         _a.document = _b.sent();
-                        this.errorData = this.modelFactory;
-                        this.subscribeListeners();
                         return [4 /*yield*/, this.modifyParentNames()];
                     case 2:
                         _b.sent();
@@ -82,26 +82,13 @@ var CreateProxyLayout = /** @class */ (function () {
             });
         });
     };
-    CreateProxyLayout.prototype.subscribeListeners = function () {
-        var _this = this;
-        this.generator.on("layerRenamed", function (eventLayers) { return _this.onLayersRenamed(eventLayers); });
-    };
-    CreateProxyLayout.prototype.onLayersRenamed = function (eventLayers) {
-        var isInErrorData = this.errorData.some(function (item) {
-            if (item.id === eventLayers[0].name) {
-                return true;
-            }
-        });
-        if (isInErrorData) {
-            this.generator.emit("removeError", eventLayers[0].id);
-        }
-    };
     CreateProxyLayout.prototype.modifyParentNames = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        utils_1.utlis.traverseObject(this.document.layers.layers, this.getAllArtLayers.bind(this));
+                        utils_1.utlis.traverseObject(this.document.layers, this.getAllArtLayers.bind(this));
+                        this.artLayers.reverse();
                         return [4 /*yield*/, this.modifyPaths()];
                     case 1:
                         _a.sent();
@@ -127,13 +114,13 @@ var CreateProxyLayout = /** @class */ (function () {
                             layerObj = {
                                 buffer: keyPixmap.pixels,
                                 frequency: 1,
-                                name: this.artLayers[i].name
+                                name: this.artLayers[i].name,
+                                parentName: ""
                             };
                             layerMap.set(this.artLayers[i].id, layerObj);
                             this.bufferMap.set(layerObj.buffer, {
                                 freq: 0,
                                 parentName: "",
-                                id: this.artLayers[i].id
                             });
                         }
                         return [4 /*yield*/, this.getBufferFrequency(layerMap)];
@@ -150,6 +137,7 @@ var CreateProxyLayout = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        this.layerMap = layerMap;
                         layerMapKeys = layerMap.keys();
                         _b.label = 1;
                     case 1:
@@ -210,13 +198,13 @@ var CreateProxyLayout = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!~this.nameCache.indexOf(layerName)) return [3 /*break*/, 1];
+                        if (!!~this.nameCache.indexOf(layerName)) return [3 /*break*/, 1];
                         this.nameCache.push(layerName);
                         return [3 /*break*/, 3];
                     case 1:
                         this.errorData.push({ id: key, name: layerName });
-                        this.generator.emit("logError", layerName, key, "NameError");
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: key })];
+                        this.docEmitter.emit("logError", layerName, key, "NameError");
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addErrorPath.jsx"), { id: key })];
                     case 2:
                         _a.sent();
                         _a.label = 3;
@@ -231,8 +219,9 @@ var CreateProxyLayout = /** @class */ (function () {
         }
     };
     CreateProxyLayout.prototype.initializeLayout = function () {
-        var layout = FactoryClass_1.inject({ ref: CreateLayoutStructure_1.CreateLayoutStructure, dep: [] });
+        var layout = FactoryClass_1.inject({ ref: CreateLayoutStructure_1.CreateLayoutStructure, dep: [ModelFactory_1.ModelFactory] });
         FactoryClass_1.execute(layout, { storage: {
+                layerMap: this.layerMap,
                 bufferMap: this.bufferMap
             }, generator: this.generator, activeDocument: this.activeDocument });
     };

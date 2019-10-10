@@ -35,51 +35,41 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
-var JsonComponents_1 = require("./JsonComponents");
-var path = require("path");
-var CreateViewClasses_1 = require("./CreateViewClasses");
 var packageJson = require("../../package.json");
 var CreateViewStructure = /** @class */ (function () {
-    function CreateViewStructure(viewClass, modelFactory) {
+    function CreateViewStructure(viewClass, modelFactory, photoshopFactory) {
         this._viewClass = viewClass;
         this.modelFactory = modelFactory;
+        this.viewDeletionObj = this.modelFactory.getPhotoshopModel().viewDeletion;
+        this.photoshopFactory = photoshopFactory;
     }
     CreateViewStructure.prototype.execute = function (params) {
+        this.menuName = params.menuName;
         this._pluginId = packageJson.name;
         this._generator = params.generator;
         this.activeDocument = params.activeDocument;
         this.currentMenu = params.menuName;
+        this.docEmitter = params.docEmitter;
         this.photoshopModel = this.modelFactory.getPhotoshopModel();
-        this._element = this.getElementMap().get(params.menuName);
-        this.subscribeListeners();
-        this.drawStruct(this._element);
-    };
-    CreateViewStructure.prototype.subscribeListeners = function () {
-        var _this = this;
-        this._generator.on("drawAddedStruct", function (parentId, parserObj, baseKey) {
-            _this.makeStruct(parserObj, parentId, baseKey);
-        });
-        this._generator.on("deleteStruct", function (deletionId) { _this.onDeletion(deletionId); });
+        this.drawStruct(params.menuName);
     };
     CreateViewStructure.prototype.getElementMap = function () {
-        if (this._viewClass instanceof CreateViewClasses_1.CreatePlatform) {
+        if (!this.platform) {
             return this.modelFactory.getMappingModel().getPlatformMap();
         }
-        if (this._viewClass instanceof CreateViewClasses_1.CreateView) {
-            return this.modelFactory.getMappingModel().getViewMap();
-        }
+        return this.modelFactory.getMappingModel().getViewPlatformMap(this.platform);
     };
-    CreateViewStructure.prototype.drawStruct = function (params) {
+    CreateViewStructure.prototype.drawStruct = function (menuName) {
         return __awaiter(this, void 0, void 0, function () {
-            var insertionPoint, _a, _b, _i, keys;
+            var insertionObj, params, _a, _b, _i, keys;
             return __generator(this, function (_c) {
                 switch (_c.label) {
-                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator)];
+                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator, this.getPlatform.bind(this), this.viewDeletionObj, this.menuName)];
                     case 1:
-                        insertionPoint = _c.sent();
-                        if (!(insertionPoint !== "invalid")) return [3 /*break*/, 5];
-                        this.platform = this.getPlatform(insertionPoint);
+                        insertionObj = _c.sent();
+                        if (!(insertionObj !== "invalid")) return [3 /*break*/, 5];
+                        this.platform = insertionObj.platform;
+                        params = this.getElementMap().get(menuName);
                         this.emitValidCalls();
                         _a = [];
                         for (_b in params)
@@ -90,7 +80,7 @@ var CreateViewStructure = /** @class */ (function () {
                         if (!(_i < _a.length)) return [3 /*break*/, 5];
                         keys = _a[_i];
                         if (!params.hasOwnProperty(keys)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.makeStruct(params[keys], insertionPoint, null)];
+                        return [4 /*yield*/, this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform)];
                     case 3:
                         _c.sent();
                         _c.label = 4;
@@ -113,211 +103,7 @@ var CreateViewStructure = /** @class */ (function () {
         }
     };
     CreateViewStructure.prototype.emitValidCalls = function () {
-        this._generator.emit("validEntryStruct", this.currentMenu, this.platform);
-    };
-    CreateViewStructure.prototype.makeStruct = function (parserObject, insertionPoint, parentKey) {
-        return __awaiter(this, void 0, void 0, function () {
-            var layerType, _a, _b, _i, keys, jsxParams;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _a = [];
-                        for (_b in parserObject)
-                            _a.push(_b);
-                        _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 7];
-                        keys = _a[_i];
-                        jsxParams = { parentId: "", childName: "", type: "" };
-                        if (!parserObject.hasOwnProperty(keys)) {
-                            return [3 /*break*/, 6];
-                        }
-                        layerType = parserObject[keys].type;
-                        return [4 /*yield*/, this.setParams(jsxParams, parserObject, keys, insertionPoint)];
-                    case 2:
-                        _c.sent();
-                        if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 4];
-                        this.baseView = keys;
-                        return [4 /*yield*/, this.createBaseChild(jsxParams, keys, insertionPoint, parserObject)];
-                    case 3:
-                        _c.sent();
-                        return [3 /*break*/, 6];
-                    case 4:
-                        this.platform && this.modifyJSXParams(jsxParams, this.getMappedKey(), layerType);
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey)];
-                    case 5:
-                        _c.sent();
-                        _c.label = 6;
-                    case 6:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 7: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.getMappedKey = function () {
-        var mappedPlatform = this.photoshopModel.mappedPlatformObj;
-        if (this.platform) {
-            return mappedPlatform[this.platform][this.baseView]["mapping"];
-        }
-        return null;
-    };
-    CreateViewStructure.prototype.setParams = function (jsxParams, parserObject, keys, insertionPoint) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        jsxParams.leaf = parserObject[keys].leaf;
-                        jsxParams.childName = parserObject[keys].id;
-                        _a = jsxParams;
-                        if (!parserObject[keys].parent) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.findParentId(parserObject[keys].parent, insertionPoint)];
-                    case 1:
-                        _b = _c.sent();
-                        return [3 /*break*/, 3];
-                    case 2:
-                        _b = insertionPoint;
-                        _c.label = 3;
-                    case 3:
-                        _a.parentId = _b;
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.createBaseChild = function (jsxParams, keys, insertionPoint, parserObject) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        jsxParams.childName = keys;
-                        jsxParams.type = "layerSection";
-                        return [4 /*yield*/, this.createBaseStruct(jsxParams)];
-                    case 1:
-                        insertionPoint = _a.sent();
-                        this.setBaseIds(keys, insertionPoint);
-                        return [4 /*yield*/, this.insertBaseMetaData(insertionPoint)];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint, keys)];
-                    case 3:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.setBaseIds = function (keys, insertionPoint) {
-        if (!this.platform) {
-            this.photoshopModel.setPlatformMenuIds(Number(insertionPoint), keys);
-        }
-        else {
-            this.photoshopModel.setBaseMenuIds(this.platform, Number(insertionPoint), keys);
-        }
-        this.photoshopModel.setDrawnQuestItems(Number(insertionPoint), keys);
-    };
-    CreateViewStructure.prototype.insertBaseMetaData = function (insertionPoint) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin("view", insertionPoint, this._pluginId)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.findParentId = function (childName, parentId) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/parentId.jsx"), { childName: childName, parentId: parentId })];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.createBaseStruct = function (jsxParams) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), jsxParams)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.createElementTree = function (jsxParams, layerType, parentKey) {
-        return __awaiter(this, void 0, void 0, function () {
-            var jsonMap, element, childId;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        jsonMap = JsonComponentsFactory_1.JsonComponentsFactory.makeJsonComponentsMap();
-                        element = jsonMap.get(layerType);
-                        if (!(element instanceof JsonComponents_1.PhotoshopJsonComponent)) return [3 /*break*/, 2];
-                        jsxParams.type = element.getType();
-                        jsxParams.subType = element.getSubType();
-                        return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
-                    case 1:
-                        childId = _a.sent();
-                        _a.label = 2;
-                    case 2:
-                        if (!(element instanceof JsonComponents_1.QuestJsonComponent)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
-                    case 3:
-                        childId = _a.sent();
-                        _a.label = 4;
-                    case 4:
-                        this.setChildIds(childId, jsxParams, layerType, parentKey);
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    CreateViewStructure.prototype.setChildIds = function (childId, jsxParams, layerType, parentKey) {
-        if (!this.platform) {
-            this.photoshopModel.setPlatformMenuIds(childId, jsxParams.childName);
-        }
-        else {
-            this.photoshopModel.setChildMenuIds(this.platform, childId, jsxParams.childName, layerType, parentKey);
-        }
-        this.photoshopModel.setDrawnQuestItems(childId, jsxParams.childName);
-    };
-    CreateViewStructure.prototype.onDeletion = function (deletionId) {
-        this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: deletionId });
-    };
-    CreateViewStructure.prototype.modifyJSXParams = function (jsxParams, mappedView, layerType) {
-        if (layerType === "container") {
-            if (jsxParams.leaf) {
-                this.setParamsMapping(jsxParams, mappedView, layerType);
-            }
-        }
-        else {
-            this.setParamsMapping(jsxParams, mappedView, layerType);
-        }
-    };
-    CreateViewStructure.prototype.setParamsMapping = function (jsxParams, mappedView, layerType) {
-        var elementalMap = this.photoshopModel.viewElementalMap;
-        for (var key in mappedView) {
-            if (!mappedView.hasOwnProperty(key)) {
-                continue;
-            }
-            var typeArray = elementalMap.get(key).get(mappedView[key])[layerType];
-            var mappedLayer = typeArray.find(function (item) {
-                if (item.name === jsxParams.childName) {
-                    return true;
-                }
-            });
-            if (mappedLayer) {
-                jsxParams["mappedItem"] = mappedLayer;
-                return;
-            }
-        }
+        this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
     };
     return CreateViewStructure;
 }());

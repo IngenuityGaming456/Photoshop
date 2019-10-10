@@ -9,10 +9,12 @@ let languagesStruct = require("../res/languages");
 export class CreateLocalisationStructure implements IFactory {
     private _generator: Generator;
     private _activeDocument: Document;
+    private docEmitter;
 
     public async execute(params: IParams) {
         this._generator = params.generator;
         this._activeDocument = params.activeDocument;
+        this.docEmitter = params.docEmitter;
         this.getParents(await this.findSelectedLayers());
     }
 
@@ -60,7 +62,7 @@ export class CreateLocalisationStructure implements IFactory {
             values: idsMapValues,
             langId: langId
         };
-        this._generator.emit("localisation", idsMapKeys);
+        this.docEmitter.emit("localisation", idsMapKeys);
         await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
     }
 

@@ -43,15 +43,16 @@ var PhotoshopEventSubject = /** @class */ (function () {
     }
     PhotoshopEventSubject.prototype.execute = function (params) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     };
     PhotoshopEventSubject.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("observerAdd", function (observer) { return _this.add(observer); });
-        this.generator.on("observerRemove", function (observer) { return _this.remove(observer); });
+        this.docEmitter.on("observerAdd", function (observer) { return _this.add(observer); });
+        this.docEmitter.on("observerRemove", function (observer) { return _this.remove(observer); });
         this.generator.on("save", function () { return _this.onPhotoshopClose(); });
-        this.generator.on("xyz", function () { return _this.onPhotoshopOpen(); });
+        this.docEmitter.on("xyz", function () { return _this.onPhotoshopOpen(); });
     };
     PhotoshopEventSubject.prototype.onPhotoshopClose = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -75,7 +76,7 @@ var PhotoshopEventSubject = /** @class */ (function () {
     };
     PhotoshopEventSubject.prototype.createFolder = function (docId) {
         if (this.activeDocument.directory) {
-            var filteredPath = this.activeDocument.directory + "\\" + docId;
+            var filteredPath = this.activeDocument.directory + "\\" + docId.docId;
             if (!fs.existsSync(filteredPath)) {
                 fs.mkdirSync(filteredPath);
             }

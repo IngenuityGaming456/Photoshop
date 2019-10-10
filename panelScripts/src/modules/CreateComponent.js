@@ -44,12 +44,13 @@ var CreateComponent = /** @class */ (function () {
     }
     CreateComponent.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var elementValue, sequenceId, id, controlledArray;
+            var elementValue, sequenceId, id;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
+                        this.subscribeListeners();
                         elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
                         sequenceId = Restructure_1.Restructure.sequenceStructure(elementValue);
                         return [4 /*yield*/, this.callComponentJsx(sequenceId, params.menuName)];
@@ -58,11 +59,21 @@ var CreateComponent = /** @class */ (function () {
                         return [4 /*yield*/, this.setGeneratorSettings(id, elementValue)];
                     case 2:
                         _a.sent();
-                        controlledArray = elementValue.elementArray;
-                        controlledArray.push({ id: id, sequence: sequenceId });
+                        elementValue.elementArray.push({ id: id, sequence: sequenceId });
                         return [2 /*return*/];
                 }
             });
+        });
+    };
+    CreateComponent.prototype.subscribeListeners = function () {
+        var _this = this;
+        this._generator.on("layersDeleted", function (eventLayers) { return _this.handleChange(eventLayers); });
+        this._generator.on("layerRenamed", function (eventLayers) { return _this.handleChange(eventLayers); });
+    };
+    CreateComponent.prototype.handleChange = function (eventLayers) {
+        var componentsMap = this.modelFactory.getMappingModel().getComponentsMap();
+        componentsMap.forEach(function (item) {
+            Restructure_1.Restructure.searchAndModifyControlledArray(eventLayers, item);
         });
     };
     CreateComponent.prototype.callComponentJsx = function (sequenceId, jsxName) {

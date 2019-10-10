@@ -69,20 +69,10 @@
             "id": "spinStop",
             "parent": "buttonsContainer"
         },
-        "helpBtn": {
-            "type": "image",
-            "id": "info",
-            "parent": "buttonsContainer"
-        },
         "AutoPlayOnBtnContainer": {
             "type": "container",
             "id": "AutoPlayOnBtnContainer",
             "parent": "buttonsContainer"
-        },
-        "autoPlayOnButton": {
-            "id": "autoPlayOn",
-            "type": "image",
-            "parent": "AutoPlayOnBtnContainer"
         },
         "promoMessageContainer": {
             "type": "container",

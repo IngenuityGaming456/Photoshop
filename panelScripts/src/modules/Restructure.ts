@@ -23,7 +23,6 @@ export class Restructure {
         if(!element.elementArray.length) {
             return;
         }
-
         layersArray.forEach(itemLA => {
             let buttonIdIndex = 0;
             let buttonId = element.elementArray.find( (itemBA, index) => {

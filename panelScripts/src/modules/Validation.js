@@ -10,21 +10,17 @@ var Validation = /** @class */ (function () {
     ;
     Validation.prototype.execute = function (params) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     };
     Validation.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("layersAdded", function (eventLayers) { return _this.onLayersAddition(eventLayers); });
         this.generator.on("layerRenamed", function (eventLayers) { return _this.onLayersRename(eventLayers); });
     };
-    Validation.prototype.isInHTML = function (key, id, questArray) {
-        if (~questArray.indexOf(key)) {
-            this.layersErrorData.push({
-                id: id,
-                name: key
-            });
-            this.generator.emit("logWarning", key, id, "HTMLContainerWarning");
+    Validation.prototype.isInHTML = function (key, id, questArray, drawnQuestItems) {
+        if (~questArray.indexOf(key) && !utils_1.utlis.isIDExists(id, drawnQuestItems)) {
+            this.docEmitter.emit("logWarning", key, id, "HTMLContainerWarning");
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: id });
         }
     };
@@ -38,40 +34,16 @@ var Validation = /** @class */ (function () {
         });
         this.validationID(id);
     };
-    Validation.prototype.onLayersAddition = function (eventLayers) {
-        // const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
-        // const allPresentItems = this.modelFactory.getPhotoshopModel().presentIds;
-        // this.isAlreadyAdded(eventLayers, elementalMap, allPresentItems, undefined);
-    };
-    Validation.prototype.isAlreadyAdded = function (eventLayers, elementalMap, allPresentItems, baseParent) {
-        var _this = this;
-        eventLayers.forEach(function (item) {
-            if (!baseParent) {
-                baseParent = utils_1.utlis.isIDExists(item.id, allPresentItems);
-            }
-            else {
-                if (item.added) {
-                    _this.validateIfAlreadyPresent(baseParent.name, item.name, elementalMap);
-                }
-            }
-            if (item.layers) {
-                _this.isAlreadyAdded(item.layers, elementalMap, allPresentItems, baseParent);
-            }
-        });
-    };
-    Validation.prototype.validateIfAlreadyPresent = function (parentName, itemName, elementalMap) {
-        var element = elementalMap.get(parentName);
-    };
     Validation.prototype.onLayersRename = function (eventLayers) {
         var questArray = this.modelFactory.getPhotoshopModel().allQuestItems;
         var drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         this.startValidationSequence(eventLayers, questArray, drawnQuestItems);
-        //this.isAChangeToHTMLContainer(eventLayers, drawnQuestItems);
+        this.isErrorFree(eventLayers);
     };
     Validation.prototype.startValidationSequence = function (eventLayers, questArray, drawnQuestItems) {
         try {
             this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems)
-                .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray);
+                .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems);
         }
         catch (err) {
             console.log("Validation Stopped");
@@ -84,11 +56,32 @@ var Validation = /** @class */ (function () {
             }
         });
         if (questItem) {
-            this.generator.emit("logWarning", questItem.name, id, "QuestElementRenamed");
+            this.docEmitter.emit("logWarning", questItem.name, id, "QuestElementRenamed");
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: questItem.id, name: questItem.name });
             throw new Error("Validation Stop");
         }
         return this;
+    };
+    Validation.prototype.isErrorFree = function (eventLayers) {
+        var isInErrorData = this.layersErrorData.some(function (item) {
+            if (item.id === eventLayers[0].id && !~eventLayers[0].name.search(/(Error)/)) {
+                return true;
+            }
+        });
+        if (isInErrorData) {
+            this.removeFromErrorData(eventLayers[0].id);
+            this.docEmitter.emit("removeError", eventLayers[0].id);
+        }
+    };
+    Validation.prototype.removeFromErrorData = function (id) {
+        var key;
+        for (var index in this.layersErrorData) {
+            if (this.layersErrorData[index].id === id) {
+                key = index;
+                break;
+            }
+        }
+        this.layersErrorData.splice(key, 1);
     };
     Validation.prototype.validationID = function (id) {
         //Call photoshop to change the layer name;

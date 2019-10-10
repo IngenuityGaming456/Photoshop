@@ -5,6 +5,7 @@ import {PhotoshopModel} from "./PhotoshopModels/PhotoshopModel";
 import {PhotoshopStartModel} from "./PhotoshopStartModel";
 import {DataPhotoshopModel} from "./PhotoshopModels/DataPhotoshopModel";
 import {NoDataPhotoshopModel} from "./PhotoshopModels/NoDataPhotoshopModel";
+import {utlis} from "../utils/utils";
 
 let menuLabels = require("../res/menuLables.json");
 let platformStruct = require("../res/platform.json");
@@ -18,9 +19,11 @@ export class ModelFactory implements IFactory {
     private generator;
     private openDocumentData;
     private subPhotoshopModel: IDataSubModel;
+    private docEmitter;
 
     execute(params: IParams) {
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.openDocumentData = params.storage.openDocumentData;
         this.subPhotoshopModel = this.checkOpenData();
@@ -39,11 +42,11 @@ export class ModelFactory implements IFactory {
     private instantiate() {
         this.mappingModel = inject({ref: MappingModel, dep: []});
         execute(this.mappingModel, { storage: this.getMappingStorage(),
-                                            generator: this.generator,
+                                            generator: this.generator, docEmitter: this.docEmitter,
                                             activeDocument: this.activeDocument});
         this.photoshopModel = inject({ref: PhotoshopModel, dep: []});
         execute(this.photoshopModel, { storage: this.getPhotoshopStorage(),
-                                              generator: this.generator,
+                                              generator: this.generator, docEmitter: this.docEmitter,
                                               activeDocument: this.activeDocument});
     }
 
@@ -73,7 +76,7 @@ export class ModelFactory implements IFactory {
     }
 
     public handleSocketStorage(storage) {
-        this.socketStorageResponse = new Map(storage);
+        this.socketStorageResponse = storage;
         this.photoshopModel.handleSocketStorage(this.socketStorageResponse);
         this.mappingModel.handleSocketStorage(this.socketStorageResponse);
     }

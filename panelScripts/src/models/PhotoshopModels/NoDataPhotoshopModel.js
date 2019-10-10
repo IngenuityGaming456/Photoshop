@@ -10,17 +10,49 @@ var __values = (this && this.__values) || function (o) {
     };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var menuLabels = require("../../res/menuLables");
 var NoDataPhotoshopModel = /** @class */ (function () {
     function NoDataPhotoshopModel() {
         this.questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
+        this.viewDeletion = {};
     }
+    NoDataPhotoshopModel.prototype.execute = function (params) {
+        this.viewObjStorage = params.storage.viewObjStorage;
+        this.questPlatforms = params.storage.questPlatforms;
+    };
     NoDataPhotoshopModel.prototype.createElementData = function () {
         this.makeElementalObject();
         return this.createElementalViewStructure();
     };
-    NoDataPhotoshopModel.prototype.execute = function (params) {
-        this.viewObjStorage = params.storage.viewObjStorage;
-        this.questPlatforms = params.storage.questPlatforms;
+    NoDataPhotoshopModel.prototype.createPlatformDeletion = function () {
+        return { desktop: false, portrait: false, landscape: false };
+    };
+    NoDataPhotoshopModel.prototype.createViewDeletionObj = function () {
+        var _this = this;
+        this.questPlatforms.forEach(function (platformKey) {
+            _this.viewDeletion[platformKey] = {};
+            for (var menu in menuLabels) {
+                if (!menuLabels.hasOwnProperty(menu)) {
+                    continue;
+                }
+                if (menuLabels[menu].menuGroup === "Menu_View") {
+                    _this.viewDeletion[platformKey][menuLabels[menu].label] = null;
+                }
+            }
+        });
+        return this.viewDeletion;
+    };
+    NoDataPhotoshopModel.prototype.accessMenuState = function () {
+        return [];
+    };
+    NoDataPhotoshopModel.prototype.accessCurrentState = function () {
+        return null;
+    };
+    NoDataPhotoshopModel.prototype.accessContainerResponse = function () {
+        return null;
+    };
+    NoDataPhotoshopModel.prototype.accessDrawnQuestItems = function () {
+        return [];
     };
     NoDataPhotoshopModel.prototype.makeElementalObject = function () {
         var elementalObj = {};
@@ -42,23 +74,22 @@ var NoDataPhotoshopModel = /** @class */ (function () {
     };
     NoDataPhotoshopModel.prototype.createElementalViewStructure = function () {
         var _this = this;
-        var elementalMap = new Map();
-        var elementalViewMap = new Map();
+        var elementalMap = {};
         this.questPlatforms.forEach(function (item) {
-            elementalMap.set(item, _this.createElementalView());
+            elementalMap[item] = _this.createElementalView();
         });
         return elementalMap;
     };
     NoDataPhotoshopModel.prototype.createElementalView = function () {
         var _this = this;
-        var elementalViewMap = new Map();
+        var elementalViewMap = {};
         this.viewObjStorage.forEach(function (viewObj) {
             for (var key in viewObj) {
                 if (!viewObj.hasOwnProperty(key)) {
                     continue;
                 }
                 if (!viewObj[key].type) {
-                    elementalViewMap.set(key, _this.makeElementalObject());
+                    elementalViewMap[key] = _this.makeElementalObject();
                 }
             }
         });

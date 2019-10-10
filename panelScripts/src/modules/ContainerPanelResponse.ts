@@ -1,24 +1,49 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
+import * as path from "path";
+let packageJson = require("../../package.json");
 
 export class ContainerPanelResponse implements IFactory {
     private modelFactory: ModelFactory;
     private generator;
+    private platformArray = [];
+    private socket;
+    private photoshopFactory;
+    private docEmitter;
+    private activeDocument;
 
-    public constructor(modelFactory: ModelFactory) {
+    public constructor(modelFactory: ModelFactory, photoshopFactory) {
         this.modelFactory = modelFactory;
+        this.photoshopFactory = photoshopFactory;
     }
 
     public execute(params: IParams)
     {
+        this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
         this.generator = params.generator;
+        this.docEmitter = params.docEmitter;
+        this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     }
 
     private subscribeListeners() {
+        this.generator.on("save", () => this.onSave());
         this.generator.on("layersDeleted", (eventLayers) => this.onLayersDeleted(eventLayers));
-        this.generator.on("HandleSocketResponse", () => this.getDataForChanges());
+        this.docEmitter.on("HandleSocketResponse", () => this.getDataForChanges());
+        this.docEmitter.on("getUpdatedHTMLSocket", socket => this.onSocketUpdate(socket));
+    }
+
+    private async onSave() {
+        if(this.socket) {
+            const docIdObj = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,
+                packageJson.name + "Document");
+            this.socket.emit("activeDocument", this.activeDocument.directory, docIdObj.docId);
+        }
+    }
+
+    private onSocketUpdate(socket) {
+        this.socket = socket;
     }
 
     private async onLayersDeleted(eventLayers) {
@@ -26,45 +51,62 @@ export class ContainerPanelResponse implements IFactory {
         eventLayers.forEach(item => {
             const element = utlis.isIDExists(item.id, questArray);
             if(element) {
-                this.generator.emit("UncheckFromContainerPanel", element.name);
+                const elementView = utlis.getElementView(element, this.activeDocument.layers);
+                this.socket.emit("UncheckFromContainerPanel", elementView, element.name);
             }
         });
+        utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap);
     }
 
     private getDataForChanges() {
         const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse;
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
-        const viewMap = this.modelFactory.getMappingModel().getViewMap();
-        const clickedMenus = this.modelFactory.getPhotoshopModel().clickedMenuNames;
         if(previousResponse) {
-            this.getChanges(previousResponse, currentResponse, viewMap, clickedMenus);
+            this.getChanges(previousResponse, currentResponse);
         }
     }
 
-    private getChanges(previousResponseMap, responseMap, viewsMap, clickedMenus) {
-        clickedMenus.forEach(item => {
-            const viewObj = viewsMap.get(item);
-            if(viewObj) {
-                const viewKeys = Object.keys(viewObj);
-                this.handleViewKeys(viewKeys, previousResponseMap, responseMap);
+    private async getChanges(previousResponseMap, responseMap) {
+        for(let platform of this.platformArray) {
+            await this.getPlatformChanges(platform, previousResponseMap[platform], responseMap[platform]);
+        }
+    }
+
+    private async getPlatformChanges(platform, previousPlatformView, currentPlatformView) {
+        for(let key in previousPlatformView) {
+            if(!previousPlatformView.hasOwnProperty(key)) {
+                continue;
             }
-        });
+            if(this.isViewDeleted(platform, key) === false) {
+                await this.sendJsonChanges(previousPlatformView[key], currentPlatformView[key], platform);
+            }
+        }
+    };
+
+    private isViewDeleted(platform, valueKey) {
+        const viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
+        const viewKeys = viewMap.keys();
+        for(let key of viewKeys) {
+            const value = viewMap.get(key);
+            const isInValue = Object.keys(value).some(item => {
+                if(item === valueKey) {
+                    return true;
+                }
+            });
+            if(isInValue) {
+                return this.modelFactory.getPhotoshopModel().viewDeletion[platform][key];
+            }
+        }
     }
 
-    private handleViewKeys(viewKeys, previousResponseMap, responseMap) {
-        viewKeys.forEach(item => {
-            this.sendJsonChanges(previousResponseMap.get(item), responseMap.get(item));
-        });
-    }
-
-    private sendJsonChanges(previousJson, currentJson) {
+    private async sendJsonChanges(previousJson, currentJson, platform) {
         const previousBaseChild = previousJson[Object.keys(previousJson)[0]];
         const currentBaseChild = currentJson[Object.keys(currentJson)[0]];
 
         for (let key in currentBaseChild) {
             if(currentBaseChild.hasOwnProperty(key)) {
                 if(!previousBaseChild[key]) {
-                    this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[key]);
+                    await this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[key], key,  platform);
                 }
             }
         }
@@ -72,18 +114,19 @@ export class ContainerPanelResponse implements IFactory {
         for(let key in previousBaseChild) {
             if(previousBaseChild.hasOwnProperty(key)) {
                 if(!currentBaseChild[key]) {
-                    this.sendDeletionRequest(Object.keys(previousJson)[0], previousBaseChild[key]);
+                    await this.sendDeletionRequest(Object.keys(previousJson)[0], previousBaseChild[key]);
                 }
             }
         }
     }
 
-    private sendAdditionRequest(baseKey: string, currentObj) {
-        this.generator.emit("drawAddedStruct", this.getParentId(baseKey), currentObj, baseKey);
+    private async sendAdditionRequest(baseKey: string, currentObj, key, platform) {
+        await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey), baseKey, platform);
     }
 
-    private sendDeletionRequest(baseKey: string, previousObj) {
-        this.generator.emit("deleteStruct", this.getChildId(previousObj));
+    private async sendDeletionRequest(baseKey: string, previousObj) {
+        const childId = this.getChildId(previousObj);
+        await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: childId});
     }
 
     private getChildId(previousObj) {
@@ -93,7 +136,9 @@ export class ContainerPanelResponse implements IFactory {
                 return true;
             }
         });
-        return child.id;
+        if(child) {
+            return child.id;
+        }
     }
 
     private getParentId(baseKey) {
@@ -103,7 +148,9 @@ export class ContainerPanelResponse implements IFactory {
                 return true;
             }
         });
-        return parent.id;
+        if(parent) {
+            return parent.id;
+        }
     }
 
 }

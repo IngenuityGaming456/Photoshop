@@ -39,7 +39,7 @@ var path = require("path");
 var CreateView = /** @class */ (function () {
     function CreateView() {
     }
-    CreateView.prototype.shouldDrawStruct = function (generator) {
+    CreateView.prototype.shouldDrawStruct = function (generator, getPlatform, viewDeletionObj, menuName) {
         return __awaiter(this, void 0, void 0, function () {
             var selectedLayers, selectedLayerId, selectedLayersArray, selectedLayersIdArray;
             return __generator(this, function (_a) {
@@ -52,13 +52,22 @@ var CreateView = /** @class */ (function () {
                         selectedLayerId = _a.sent();
                         selectedLayersArray = selectedLayers.split(",");
                         selectedLayersIdArray = selectedLayerId.toString().split(",");
-                        if (~selectedLayersArray.indexOf("common") && selectedLayersArray.length === 1) {
-                            return [2 /*return*/, Promise.resolve(selectedLayersIdArray[0])];
+                        if (~selectedLayersArray.indexOf("common") && selectedLayersArray.length === 1
+                            && this.isAlreadyMade(selectedLayersIdArray[0], getPlatform, menuName, viewDeletionObj)) {
+                            return [2 /*return*/, Promise.resolve({ insertId: selectedLayersIdArray[0], platform: this.platform })];
                         }
                         return [2 /*return*/, Promise.reject("invalid")];
                 }
             });
         });
+    };
+    CreateView.prototype.isAlreadyMade = function (selectedLayerId, getPlatform, menuName, viewDeletionObj) {
+        var platform = getPlatform(Number(selectedLayerId));
+        if (viewDeletionObj[platform][menuName] === null || viewDeletionObj[platform][menuName]) {
+            this.platform = platform;
+            return true;
+        }
+        return false;
     };
     return CreateView;
 }());
@@ -77,7 +86,7 @@ var CreatePlatform = /** @class */ (function () {
                     case 1:
                         selectedLayers = _a.sent();
                         if (!selectedLayers.length) {
-                            return [2 /*return*/, Promise.resolve(null)];
+                            return [2 /*return*/, Promise.resolve({ insertId: null, platform: null })];
                         }
                         return [2 /*return*/, Promise.reject("invalid")];
                 }
