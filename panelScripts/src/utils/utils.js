@@ -42,6 +42,9 @@ var utlis = /** @class */ (function () {
         };
     };
     utlis.mapToObject = function (map) {
+        if (!map) {
+            return null;
+        }
         var obj = {};
         map.forEach(function (value, key) {
             if (value instanceof Map) {
@@ -54,6 +57,9 @@ var utlis = /** @class */ (function () {
         return obj;
     };
     utlis.objectToMap = function (obj) {
+        if (!obj) {
+            return null;
+        }
         var map = new Map();
         try {
             for (var _a = __values(Object.keys(obj)), _b = _a.next(); !_b.done; _b = _a.next()) {
@@ -89,6 +95,17 @@ var utlis = /** @class */ (function () {
             }
         }
     };
+    utlis.traverseBaseFreeGame = function (arrayLayers, callback) {
+        var noOfLayers = arrayLayers.length;
+        for (var i = 0; i < noOfLayers; i++) {
+            if (arrayLayers[i].name === "baseGame" || arrayLayers[i].name === "freeGame") {
+                callback(arrayLayers[i]);
+            }
+            else if (arrayLayers[i].layers) {
+                utlis.traverseBaseFreeGame(arrayLayers[i].layers, callback);
+            }
+        }
+    };
     utlis.removeFile = function (fileName) {
         var stats = fs.lstatSync(fileName);
         if (stats.isDirectory()) {
@@ -109,7 +126,7 @@ var utlis = /** @class */ (function () {
             }
         }
     };
-    utlis.handleModelData = function (eventLayers, drawnQuestItems, viewElementalMap) {
+    utlis.handleModelData = function (eventLayers, drawnQuestItems, viewElementalMap, sessionHandler) {
         for (var platform in viewElementalMap) {
             if (!viewElementalMap.hasOwnProperty(platform)) {
                 continue;
@@ -121,30 +138,47 @@ var utlis = /** @class */ (function () {
                 }
                 var viewItems = platformMap[view];
                 for (var itemV in viewItems) {
+                    var deletionObj = {};
                     if (!viewItems.hasOwnProperty(itemV)) {
                         continue;
                     }
-                    utlis.handleView(viewItems, itemV, eventLayers, drawnQuestItems);
+                    utlis.setDeletionObj(platform, view, deletionObj);
+                    utlis.handleView(viewItems, itemV, eventLayers, drawnQuestItems, deletionObj, sessionHandler);
                 }
             }
         }
     };
-    utlis.handleView = function (viewItems, itemV, eventLayers, drawnQuestItems) {
+    utlis.setDeletionObj = function (platform, baseView, deletionObj) {
+        deletionObj["platform"] = platform;
+        deletionObj["view"] = baseView;
+    };
+    utlis.setSubDeletionObj = function (id, name, type, deletionObj, sessionHandler) {
+        deletionObj[name] = {};
+        deletionObj[name]["name"] = name;
+        deletionObj[name]["id"] = id;
+        deletionObj[name]["type"] = type;
+        sessionHandler.push(deletionObj);
+    };
+    utlis.handleView = function (viewItems, itemV, eventLayers, drawnQuestItems, deletionObj, sessionHandler) {
         var viewItem = viewItems[itemV];
+        var indexes = [];
         if (viewItem instanceof Array) {
             viewItem.forEach(function (item, index) {
                 var itemRef = utlis.isIDExists(item.id, eventLayers);
                 if (itemRef) {
-                    viewItem.splice(index, 1);
+                    indexes.push(index);
                     utlis.spliceFrom(item.id, drawnQuestItems);
+                    utlis.setSubDeletionObj(item.id, item.name, itemV, deletionObj, sessionHandler);
                 }
             });
+            utlis.spliceFromIndexes(viewItem, indexes);
         }
         else {
             var itemRef = utlis.isIDExists(viewItem.id, eventLayers);
             if (itemRef) {
                 delete viewItems[itemV];
                 utlis.spliceFrom(itemV.id, drawnQuestItems);
+                utlis.setSubDeletionObj(itemV.id, itemV.name, itemV, deletionObj, sessionHandler);
             }
         }
     };
@@ -166,12 +200,39 @@ var utlis = /** @class */ (function () {
         if ((elementRef.layer)) {
             return utlis.getView(elementRef.layer.group);
         }
-        if (elementRef.group.name === "common") {
+        if (elementRef.group && elementRef.group.name === "common") {
             return elementRef.name;
         }
         else if (elementRef.group) {
             return utlis.getView(elementRef.group);
         }
+        else {
+            return null;
+        }
+    };
+    utlis.spliceFromIndexes = function (arr, indexArr) {
+        var indexLength = indexArr.length;
+        for (var i = 0; i < indexLength; i++) {
+            arr.splice(indexArr[i], 1);
+            for (var j = i + 1; j < indexLength; j++) {
+                indexArr[j]--;
+            }
+        }
+    };
+    utlis.makeDir = function (path) {
+        if (!fs.existsSync(path)) {
+            fs.mkdirSync(path);
+        }
+    };
+    utlis.traverseAddedLayers = function (addedLayers, callback) {
+        addedLayers.forEach(function (item) {
+            if (item.added) {
+                callback(item);
+            }
+            if (item.layers) {
+                utlis.traverseAddedLayers(item.layers, callback);
+            }
+        });
     };
     return utlis;
 }());

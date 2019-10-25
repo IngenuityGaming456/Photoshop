@@ -35,10 +35,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var CreateLayoutStructure_1 = require("./LayoutStructure/CreateLayoutStructure");
 var path = require("path");
 var CreateTestingStructure = /** @class */ (function () {
-    function CreateTestingStructure() {
+    function CreateTestingStructure(modelFactory) {
+        this.modifiedIds = [];
+        this.modifiedIds = modelFactory.getPhotoshopModel().allModifiedIds;
     }
     CreateTestingStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -46,13 +47,12 @@ var CreateTestingStructure = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        params.generator.onPhotoshopEvent("imageChanged", CreateLayoutStructure_1.CreateLayoutStructure.listenerFn);
-                        modifiedIdsCount = CreateLayoutStructure_1.CreateLayoutStructure.modifiedIds.length;
+                        modifiedIdsCount = this.modifiedIds.length;
                         i = 0;
                         _a.label = 1;
                     case 1:
                         if (!(i < modifiedIdsCount)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, params.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: CreateLayoutStructure_1.CreateLayoutStructure.modifiedIds[i],
+                        return [4 /*yield*/, params.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/addPath.jsx"), { id: this.modifiedIds[i],
                                 remove: true
                             })];
                     case 2:
@@ -62,7 +62,7 @@ var CreateTestingStructure = /** @class */ (function () {
                         i++;
                         return [3 /*break*/, 1];
                     case 4:
-                        CreateLayoutStructure_1.CreateLayoutStructure.modifiedIds = [];
+                        this.modifiedIds.length = 0;
                         return [2 /*return*/];
                 }
             });

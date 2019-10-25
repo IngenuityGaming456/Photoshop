@@ -8,12 +8,12 @@ var layerConfig = {
     kind: LayerKind.TEXT
 };
 
-makeSpecials("Symbols", "Symbol", drawSymbols);
+var callObj = makeSpecials("Symbols", "Symbol", drawSymbols);
 
 function drawSymbols(symbolsRef, symbolName) {
     var symbolNameRef = insertLayer(symbolsRef, symbolName, "layerSection");
     for (var i = 0; i < symbolStructLength; i++) {
-        var layerRef = insertLayer(symbolNameRef, symbolStruct[i], "layerSection");
+        insertLayer(symbolNameRef, symbolStruct[i], "layerSection");
     }
     var animationRef = getInsertionReference(symbolsRef, "Animations");
     for (var i = 0; i < animationLength; i++) {
@@ -23,3 +23,5 @@ function drawSymbols(symbolsRef, symbolName) {
     }
     return symbolNameRef;
 }
+
+callObj;

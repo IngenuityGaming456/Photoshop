@@ -18,7 +18,6 @@ export class MenuProxyManager implements IFactory {
     private platformArray = [];
     private menuStates = [];
     private docEmitter;
-
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
         this.menuManager = inject({
@@ -60,8 +59,13 @@ export class MenuProxyManager implements IFactory {
             await this.generator.addMenuItem(menuLabels[menu].label,
                 menuLabels[menu].displayName, false, false);
         } else {
-            await this.generator.addMenuItem(menuLabels[menu].label,
-                menuLabels[menu].displayName, true, false);
+            if(menuLabels.enabled === false) {
+                await this.generator.addMenuItem(menuLabels[menu].label,
+                    menuLabels[menu].displayName, menuLabels.enabled, false);
+            } else {
+                await this.generator.addMenuItem(menuLabels[menu].label,
+                    menuLabels[menu].displayName, true, false);
+            }
         }
     }
 

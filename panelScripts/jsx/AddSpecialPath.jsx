@@ -1,6 +1,6 @@
 #include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var activeLayer = getInsertionReferenceById(params.id);
-restructurePath(activeLayer);
+app.doForcedProgress(restructurePath(activeLayer));
 
 function restructurePath(layerRef) {
     var layerSets = layerRef.layerSets;

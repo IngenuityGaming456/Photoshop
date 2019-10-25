@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {utlis} from "../../utils/utils";
 import {ModelFactory} from "../../models/ModelFactory";
+
 let packageJson = require("../../../package.json");
 
 export class CreateLayoutStructure implements IFactory {
@@ -13,12 +14,15 @@ export class CreateLayoutStructure implements IFactory {
     private layerMap;
     private bufferMap;
     //dirty hack for test
-    public static listenerFn: Function;
-    public static modifiedIds = [];
+    private modifiedIds = [];
     private modelFactory;
+    private assetsPath;
+    private docEmitter;
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
+        this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modifiedIds.length = 0;
     }
 
     public async execute(params: IParams) {
@@ -27,15 +31,23 @@ export class CreateLayoutStructure implements IFactory {
         this._activeDocument = params.activeDocument;
         this.layerMap = params.storage.layerMap;
         this.bufferMap = params.storage.bufferMap;
-        this.unsubscribeEventListener("imageChanged");
+        this.assetsPath = params.storage.assetsPath;
+        this.docEmitter = params.docEmitter;
+        //this.unsubscribeEventListener("imageChanged");
+        this.emitStartStatus();
         await this.restructureTempLayers();
         await this.modifyPathNames();
         const result = await this.requestDocument();
         utlis.traverseObject(result.layers, this.filterResult.bind(this));
         this.modifyJSON(result.layers);
         this.modifyBottomBar(result.layers);
-        this.writeJSON(result, this.getPath());
-        this.removeUnwantedLayers();
+        this.writeJSON(result);
+        await this.removeUnwantedLayers();
+        this.emitStopStatus();
+    }
+
+    private emitStartStatus() {
+        this.docEmitter.emit("logStatus", "Started generating layout");
     }
 
     private async restructureTempLayers() {
@@ -52,8 +64,8 @@ export class CreateLayoutStructure implements IFactory {
             }
             return -1;
         });
-        for(let item of items) {
-            if(item > -1) {
+        for (let item of items) {
+            if (item > -1) {
                 await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"),
                     {id: item});
             }
@@ -64,18 +76,13 @@ export class CreateLayoutStructure implements IFactory {
         return await this._generator.getDocumentInfo(undefined);
     }
 
-    private getPath() {
-        const path = this._activeDocument.file;
-        const extIndex = path.search(/\.(psd)/);
-        return path.substring(0, extIndex);
-    }
 
-    private unsubscribeEventListener(eventName: string) {
-        const listeners = this._generator.photoshopEventListeners(eventName);
-        // Just a hack, will write a very detailed code in later phase.
-        CreateLayoutStructure.listenerFn = listeners[1];
-        this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
-    }
+    // private unsubscribeEventListener(eventName: string) {
+    //     const listeners = this._generator.photoshopEventListeners(eventName);
+    //     // Just a hack, will write a very detailed code in later phase.
+    //     CreateLayoutStructure.listenerFn = listeners[1];
+    //     this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
+    // }
 
     private filterResult(artLayerRef) {
         artLayerRef.name = this.applySplitter(artLayerRef.name);
@@ -83,10 +90,10 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private applySplitter(artLayerName) {
-        if(~artLayerName.search(/\.(png|jpg)/)) {
+        if (~artLayerName.search(/\.(png|jpg)/)) {
             const extensionIndex = artLayerName.indexOf(".");
             const slashIndex = artLayerName.lastIndexOf("/");
-            if(slashIndex > -1) {
+            if (slashIndex > -1) {
                 return artLayerName.substring(slashIndex + 1, extensionIndex);
             } else {
                 return artLayerName.substring(0, extensionIndex);
@@ -95,11 +102,11 @@ export class CreateLayoutStructure implements IFactory {
         return artLayerName;
     }
 
-    private async writeJSON(result, modifiedPath) {
-        fs.writeFile(modifiedPath + ".json", JSON.stringify(result, null, "  "), (err) => {
-            if(err) {
+    private async writeJSON(result) {
+        fs.writeFile(this.assetsPath + ".json", JSON.stringify(result, null, "  "), (err) => {
+            if (err) {
                 console.log(err);
-            }else {
+            } else {
                 console.log("File successfully written");
             }
         });
@@ -107,15 +114,15 @@ export class CreateLayoutStructure implements IFactory {
 
     private async modifyPathNames() {
         const bufferKeys = this.layerMap.keys();
-        for(let key of bufferKeys) {
+        for (let key of bufferKeys) {
             const layerValue = this.layerMap.get(key);
             await this.handleBufferValue(layerValue, key);
         }
     }
 
     private async handleBufferValue(layerValue, key) {
-        if(layerValue.frequency === 1) {
-            CreateLayoutStructure.modifiedIds.push(key);
+        if (layerValue.frequency === 1) {
+            this.modifiedIds.push(key);
             await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"),
                 {id: key});
         }
@@ -128,17 +135,31 @@ export class CreateLayoutStructure implements IFactory {
         }, key, this._pluginId + "Image");
     }
 
-    private removeUnwantedLayers() {
-        const targetPath = this.getPath() + "-assets";
-        fs.readdirSync(targetPath).forEach(fileName => {
-            this.removeFiles(targetPath + "/" + fileName);
-        });
+    private async removeUnwantedLayers() {
+        await this.upperLevelUnwantedLayers();
+        const targetPath = this.assetsPath + "-assets";
+        if(fs.existsSync(targetPath)) {
+            fs.readdirSync(targetPath).forEach(fileName => {
+                this.removeFiles(targetPath + "/" + fileName);
+            });
+        }
+    }
+
+    private async upperLevelUnwantedLayers() {
+        const str = `var upperLevelLayers = app.activeDocument.layers; 
+                     var layersCount = upperLevelLayers.length;
+                     for(var i=0;i<layersCount;i++) {
+                          if(!~upperLevelLayers[i].name.search(/(desktop|mobile)/)) {
+                               upperLevelLayers[i].remove();
+                          }         
+                     }`;
+        await this._generator.evaluateJSXString(str);
     }
 
     private removeFiles(targetPath) {
         const path = targetPath + "/common";
         fs.readdirSync(path).forEach(fileName => {
-            if(~fileName.search(/(Animation)/)) {
+            if (~fileName.search(/(Animation)/)) {
                 utlis.removeFile(path + "/" + fileName);
             }
         });
@@ -149,14 +170,14 @@ export class CreateLayoutStructure implements IFactory {
             if (item.name === "freeGame") {
                 const freeGameLayers = item.layers;
                 const symbolRef = freeGameLayers.find(itemFG => {
-                    if(itemFG.name === "Symbols") {
+                    if (itemFG.name === "Symbols") {
                         return true;
                     }
                 });
-                if(symbolRef) {
+                if (symbolRef) {
                     symbolRef.name += "FG";
                 }
-            } else if(item.layers) {
+            } else if (item.layers) {
                 this.modifyJSON(item.layers);
             }
         });
@@ -167,16 +188,21 @@ export class CreateLayoutStructure implements IFactory {
             if (item.name === "baseGame") {
                 const freeGameLayers = item.layers;
                 const symbolRef = freeGameLayers.find(itemFG => {
-                    if(itemFG.name === "buttonsContainerBG") {
+                    if (itemFG.name === "buttonsContainerBG") {
                         return true;
                     }
                 });
-                if(symbolRef) {
+                if (symbolRef) {
                     symbolRef.name = "buttonsContainer";
                 }
-            } else if(item.layers) {
+            } else if (item.layers) {
                 this.modifyBottomBar(item.layers);
             }
         });
     }
+
+    private emitStopStatus() {
+        this.docEmitter.emit("logStatus", "Layout Generation done");
+    }
+
 }

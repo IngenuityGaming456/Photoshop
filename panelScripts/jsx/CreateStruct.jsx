@@ -54,7 +54,7 @@ function getPathName(layerRef, pathName, baseName, level, type) {
         return getPathName(layerRef.parent, pathName, baseName, level, type);
     }
     if(level === 1) {
-        if(~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin)/))) {
+        if(~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin|generic)/))) {
             if(type && type === "static") {
                 pathName = setNameToStatic(layerRef, pathName)
             } else {

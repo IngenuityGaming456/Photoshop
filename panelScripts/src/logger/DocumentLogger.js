@@ -10,15 +10,15 @@ var DocumentLogger = /** @class */ (function () {
     };
     DocumentLogger.prototype.subscribeListener = function () {
         var _this = this;
-        this.loggerEmitter.on("logWarning", function (key, id, loggerType) {
-            _this.handleDocumentWarning(key, id, loggerType);
+        this.loggerEmitter.on("logWarning", function (loggerType) {
+            _this.handleDocumentWarning(loggerType);
         });
         this.loggerEmitter.on("getUpdatedValidatorSocket", function (socket) {
             _this.onSocketUpdate(socket);
             _this.loggerEmitter.emit("validatorSocketUpdated");
         });
-        this.loggerEmitter.on("logError", function (key, id, loggerType) {
-            _this.handleDocumentError(key, id, loggerType);
+        this.loggerEmitter.on("logError", function (id, key, loggerType) {
+            _this.handleDocumentError(id, key, loggerType);
         });
         this.loggerEmitter.on("logStatus", function (message) {
             _this.onStatusMessage(message);
@@ -26,15 +26,21 @@ var DocumentLogger = /** @class */ (function () {
         this.loggerEmitter.on("removeError", function (id) {
             _this.handleErrorRemoval(id);
         });
+        this.loggerEmitter.on("activeDocument", function (docId) {
+            _this.onActiveDoc(docId);
+        });
     };
     DocumentLogger.prototype.onSocketUpdate = function (socket) {
         this.socket = socket;
     };
-    DocumentLogger.prototype.handleDocumentWarning = function (key, id, loggerType) {
-        this.socket.emit(loggerType, key, id);
+    DocumentLogger.prototype.onActiveDoc = function (docId) {
+        this.socket.emit("activeDocument", docId);
     };
-    DocumentLogger.prototype.handleDocumentError = function (key, id, loggerType) {
-        this.socket.emit(loggerType, key, id);
+    DocumentLogger.prototype.handleDocumentWarning = function (loggerType) {
+        this.socket.emit("logWarning", loggerType);
+    };
+    DocumentLogger.prototype.handleDocumentError = function (id, key, loggerType) {
+        this.socket.emit("logError", id, key, loggerType);
     };
     DocumentLogger.prototype.onStatusMessage = function (message) {
         this.socket.emit("logStatus", message);

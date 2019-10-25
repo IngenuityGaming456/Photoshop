@@ -60,7 +60,9 @@ var NoPlatformState = /** @class */ (function () {
                     case 2:
                         _c.sent();
                         return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, generator.toggleMenu(menuLabel[menu].label, true, false, menuLabel[menu].displayName)];
+                    case 3:
+                        if (!(menuLabel[menu].enabled !== false)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, generator.toggleMenu(menuLabel[menu].label, true, false, menuLabel[menu].displayName)];
                     case 4:
                         _c.sent();
                         _c.label = 5;

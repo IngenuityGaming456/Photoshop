@@ -12,6 +12,7 @@ export class ContainerPanelResponse implements IFactory {
     private photoshopFactory;
     private docEmitter;
     private activeDocument;
+    private deletionHandler = [];
 
     public constructor(modelFactory: ModelFactory, photoshopFactory) {
         this.modelFactory = modelFactory;
@@ -21,6 +22,7 @@ export class ContainerPanelResponse implements IFactory {
     public execute(params: IParams)
     {
         this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
+        this.deletionHandler = this.modelFactory.getPhotoshopModel().allSessionHandler;
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
@@ -52,10 +54,13 @@ export class ContainerPanelResponse implements IFactory {
             const element = utlis.isIDExists(item.id, questArray);
             if(element) {
                 const elementView = utlis.getElementView(element, this.activeDocument.layers);
-                this.socket.emit("UncheckFromContainerPanel", elementView, element.name);
+                if(elementView) {
+                    this.socket.emit("UncheckFromContainerPanel", elementView, element.name);
+                }
             }
         });
-        utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap);
+        utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap,
+                              this.deletionHandler);
     }
 
     private getDataForChanges() {
@@ -114,31 +119,39 @@ export class ContainerPanelResponse implements IFactory {
         for(let key in previousBaseChild) {
             if(previousBaseChild.hasOwnProperty(key)) {
                 if(!currentBaseChild[key]) {
-                    await this.sendDeletionRequest(Object.keys(previousJson)[0], previousBaseChild[key]);
+                    const keysArray = Object.keys(previousJson);
+                    const firstKey = keysArray[0];
+                    await this.sendDeletionRequest(firstKey, key, platform);
                 }
             }
         }
     }
 
-    private async sendAdditionRequest(baseKey: string, currentObj, key, platform) {
+    private async sendAdditionRequest(baseKey, currentObj, key, platform) {
         await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey), baseKey, platform);
     }
 
-    private async sendDeletionRequest(baseKey: string, previousObj) {
-        const childId = this.getChildId(previousObj);
-        await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: childId});
+    private async sendDeletionRequest(view, key, platform) {
+        const childId = this.getChildId(view, key, platform);
+        if(!childId) {
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: childId});
+        }
     }
 
-    private getChildId(previousObj) {
-        const childId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        const child = childId.find(item => {
-            if(item.name === previousObj.id) {
-                return true;
+    private getChildId(view, element, platform) {
+        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        const viewObj = elementalMap[platform][view];
+        for(let key in viewObj) {
+            if(!viewObj.hasOwnProperty(key)) {
+                continue;
             }
-        });
-        if(child) {
-            return child.id;
+            for(let item of viewObj[key]) {
+                if(item.name === element) {
+                    return item.id;
+                }
+            }
         }
+        return null;
     }
 
     private getParentId(baseKey) {

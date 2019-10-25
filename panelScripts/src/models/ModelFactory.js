@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var FactoryClass_1 = require("../modules/FactoryClass");
 var MappingModel_1 = require("./MappingModel");
-var PhotoshopModel_1 = require("./PhotoshopModels/PhotoshopModel");
 var DataPhotoshopModel_1 = require("./PhotoshopModels/DataPhotoshopModel");
 var NoDataPhotoshopModel_1 = require("./PhotoshopModels/NoDataPhotoshopModel");
+var PhotoshopChildModel_1 = require("./PhotoshopModels/PhotoshopChildModel");
 var menuLabels = require("../res/menuLables.json");
 var platformStruct = require("../res/platform.json");
 var languagesStruct = require("../res/languages.json");
@@ -32,7 +32,7 @@ var ModelFactory = /** @class */ (function () {
         FactoryClass_1.execute(this.mappingModel, { storage: this.getMappingStorage(),
             generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument });
-        this.photoshopModel = FactoryClass_1.inject({ ref: PhotoshopModel_1.PhotoshopModel, dep: [] });
+        this.photoshopModel = FactoryClass_1.inject({ ref: PhotoshopChildModel_1.PhotoshopChildModel, dep: [] });
         FactoryClass_1.execute(this.photoshopModel, { storage: this.getPhotoshopStorage(),
             generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument });

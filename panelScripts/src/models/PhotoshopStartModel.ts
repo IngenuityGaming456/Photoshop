@@ -4,7 +4,6 @@ let packageJson = require("../../package.json");
 
 export class PhotoshopStartModel implements IModel {
 
-    private documentMap = new Map();
     private generator;
     private activeDocument;
     private writeObj = {};
@@ -48,13 +47,8 @@ export class PhotoshopStartModel implements IModel {
         return this.openDocumentData;
     }
 
-    get allDocumentsMap() {
-        return this.documentMap;
-    }
-
     public onPhotoshopClose() {
 
     }
-
 
 }

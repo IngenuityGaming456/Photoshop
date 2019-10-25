@@ -54,6 +54,9 @@ export class EventsManager implements IFactory{
                 break;
             case Events.DUPLICATE :
                 this.generator.emit("duplicate");
+                break;
+            case Events.UNDO :
+                this.generator.emit("undo");
         }
     }
 
@@ -75,11 +78,31 @@ export class EventsManager implements IFactory{
     private removeUnwantedLayers(rawChange) {
         var unwantedLayers = [];
         rawChange.forEach((item, index) => {
-            if(item.added && item.removed) {
+            if((item.added && item.removed) || this.isEntireEmpty(item)) {
                 unwantedLayers.push(index);
             }
         });
         this.sliceArray(rawChange, unwantedLayers);
+    }
+
+    private isEntireEmpty(item) {
+        const levelStat = [];
+        if(item.added || item.removed || item.moved || item.name) {
+            return false;
+        }
+        if(item.layers) {
+            for (let itemN of item.layers) {
+                levelStat.push(this.isEntireEmpty(itemN));
+            }
+            for(let stat of levelStat) {
+                if(!stat) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return true;
+        }
     }
 
     private removeUnwantedProperty(rawChange) {
@@ -130,7 +153,7 @@ export class EventsManager implements IFactory{
     }
 
     private isRenameEvent(event) {
-        if(event.layers && !event.layers[0].added && event.layers[0].name) {
+        if(event.layers && event.layers.length && !event.layers[0].added && event.layers[0].name) {
             this.generator.emit("layerRenamed", event.layers);
         }
     }
@@ -176,5 +199,6 @@ enum Events {
     COPYTOLAYER = "CpTL",
     COPY = "copy",
     PASTE = "past",
-    SAVE= "save"
+    SAVE= "save",
+    UNDO = "undo"
 }

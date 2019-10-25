@@ -12,15 +12,15 @@ export class DocumentLogger implements IFactory {
     }
 
     private subscribeListener() {
-        this.loggerEmitter.on("logWarning", (key, id, loggerType) => {
-            this.handleDocumentWarning(key, id, loggerType);
+        this.loggerEmitter.on("logWarning", loggerType => {
+            this.handleDocumentWarning(loggerType);
         });
         this.loggerEmitter.on("getUpdatedValidatorSocket", socket => {
             this.onSocketUpdate(socket);
             this.loggerEmitter.emit("validatorSocketUpdated");
         });
-        this.loggerEmitter.on("logError", (key, id, loggerType) => {
-            this.handleDocumentError(key, id, loggerType);
+        this.loggerEmitter.on("logError", (id, key, loggerType) => {
+            this.handleDocumentError(id, key, loggerType);
         });
         this.loggerEmitter.on("logStatus", message => {
             this.onStatusMessage(message);
@@ -28,18 +28,25 @@ export class DocumentLogger implements IFactory {
         this.loggerEmitter.on("removeError", id => {
             this.handleErrorRemoval(id);
         });
+        this.loggerEmitter.on("activeDocument", docId => {
+            this.onActiveDoc(docId);
+        });
     }
 
     private onSocketUpdate(socket) {
         this.socket = socket;
     }
 
-    private handleDocumentWarning(key, id, loggerType) {
-        this.socket.emit(loggerType, key, id);
+    private onActiveDoc(docId) {
+        this.socket.emit("activeDocument", docId);
     }
 
-    private handleDocumentError(key, id, loggerType) {
-        this.socket.emit(loggerType, key, id);
+    private handleDocumentWarning(loggerType) {
+        this.socket.emit("logWarning", loggerType);
+}
+
+    private handleDocumentError(id, key, loggerType) {
+        this.socket.emit("logError", id, key, loggerType);
     }
 
     private onStatusMessage(message) {

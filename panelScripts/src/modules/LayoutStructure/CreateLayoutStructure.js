@@ -51,7 +51,11 @@ var utils_1 = require("../../utils/utils");
 var packageJson = require("../../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
     function CreateLayoutStructure(modelFactory) {
+        //dirty hack for test
+        this.modifiedIds = [];
         this.modelFactory = modelFactory;
+        this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modifiedIds.length = 0;
     }
     CreateLayoutStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -64,7 +68,10 @@ var CreateLayoutStructure = /** @class */ (function () {
                         this._activeDocument = params.activeDocument;
                         this.layerMap = params.storage.layerMap;
                         this.bufferMap = params.storage.bufferMap;
-                        this.unsubscribeEventListener("imageChanged");
+                        this.assetsPath = params.storage.assetsPath;
+                        this.docEmitter = params.docEmitter;
+                        //this.unsubscribeEventListener("imageChanged");
+                        this.emitStartStatus();
                         return [4 /*yield*/, this.restructureTempLayers()];
                     case 1:
                         _a.sent();
@@ -77,12 +84,18 @@ var CreateLayoutStructure = /** @class */ (function () {
                         utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
                         this.modifyJSON(result.layers);
                         this.modifyBottomBar(result.layers);
-                        this.writeJSON(result, this.getPath());
-                        this.removeUnwantedLayers();
+                        this.writeJSON(result);
+                        return [4 /*yield*/, this.removeUnwantedLayers()];
+                    case 4:
+                        _a.sent();
+                        this.emitStopStatus();
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    CreateLayoutStructure.prototype.emitStartStatus = function () {
+        this.docEmitter.emit("logStatus", "Started generating layout");
     };
     CreateLayoutStructure.prototype.restructureTempLayers = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -157,17 +170,12 @@ var CreateLayoutStructure = /** @class */ (function () {
             });
         });
     };
-    CreateLayoutStructure.prototype.getPath = function () {
-        var path = this._activeDocument.file;
-        var extIndex = path.search(/\.(psd)/);
-        return path.substring(0, extIndex);
-    };
-    CreateLayoutStructure.prototype.unsubscribeEventListener = function (eventName) {
-        var listeners = this._generator.photoshopEventListeners(eventName);
-        // Just a hack, will write a very detailed code in later phase.
-        CreateLayoutStructure.listenerFn = listeners[1];
-        this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
-    };
+    // private unsubscribeEventListener(eventName: string) {
+    //     const listeners = this._generator.photoshopEventListeners(eventName);
+    //     // Just a hack, will write a very detailed code in later phase.
+    //     CreateLayoutStructure.listenerFn = listeners[1];
+    //     this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
+    // }
     CreateLayoutStructure.prototype.filterResult = function (artLayerRef) {
         artLayerRef.name = this.applySplitter(artLayerRef.name);
         delete artLayerRef["generatorSettings"][this._pluginId];
@@ -185,10 +193,10 @@ var CreateLayoutStructure = /** @class */ (function () {
         }
         return artLayerName;
     };
-    CreateLayoutStructure.prototype.writeJSON = function (result, modifiedPath) {
+    CreateLayoutStructure.prototype.writeJSON = function (result) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                fs.writeFile(modifiedPath + ".json", JSON.stringify(result, null, "  "), function (err) {
+                fs.writeFile(this.assetsPath + ".json", JSON.stringify(result, null, "  "), function (err) {
                     if (err) {
                         console.log(err);
                     }
@@ -245,7 +253,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
-                        CreateLayoutStructure.modifiedIds.push(key);
+                        this.modifiedIds.push(key);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:
                         _a.sent();
@@ -273,10 +281,38 @@ var CreateLayoutStructure = /** @class */ (function () {
         });
     };
     CreateLayoutStructure.prototype.removeUnwantedLayers = function () {
-        var _this = this;
-        var targetPath = this.getPath() + "-assets";
-        fs.readdirSync(targetPath).forEach(function (fileName) {
-            _this.removeFiles(targetPath + "/" + fileName);
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            var targetPath;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.upperLevelUnwantedLayers()];
+                    case 1:
+                        _a.sent();
+                        targetPath = this.assetsPath + "-assets";
+                        if (fs.existsSync(targetPath)) {
+                            fs.readdirSync(targetPath).forEach(function (fileName) {
+                                _this.removeFiles(targetPath + "/" + fileName);
+                            });
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateLayoutStructure.prototype.upperLevelUnwantedLayers = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var str;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        str = "var upperLevelLayers = app.activeDocument.layers; \n                     var layersCount = upperLevelLayers.length;\n                     for(var i=0;i<layersCount;i++) {\n                          if(!~upperLevelLayers[i].name.search(/(desktop|mobile)/)) {\n                               upperLevelLayers[i].remove();\n                          }         \n                     }";
+                        return [4 /*yield*/, this._generator.evaluateJSXString(str)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
         });
     };
     CreateLayoutStructure.prototype.removeFiles = function (targetPath) {
@@ -325,7 +361,9 @@ var CreateLayoutStructure = /** @class */ (function () {
             }
         });
     };
-    CreateLayoutStructure.modifiedIds = [];
+    CreateLayoutStructure.prototype.emitStopStatus = function () {
+        this.docEmitter.emit("logStatus", "Layout Generation done");
+    };
     return CreateLayoutStructure;
 }());
 exports.CreateLayoutStructure = CreateLayoutStructure;

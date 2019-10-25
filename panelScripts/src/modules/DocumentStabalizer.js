@@ -35,71 +35,61 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var utilsPhotoshopState_1 = require("../../utils/utilsPhotoshopState");
-var menuLabel = require("../../res/menuLables.json");
-var AddedPlatformState = /** @class */ (function () {
-    function AddedPlatformState() {
+var path = require("path");
+var utils_1 = require("../utils/utils");
+var DocumentStabalizer = /** @class */ (function () {
+    function DocumentStabalizer() {
     }
-    AddedPlatformState.prototype.checkMenuState = function (generator) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _i, menu;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _a = [];
-                        for (_b in menuLabel)
-                            _a.push(_b);
-                        _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
-                        menu = _a[_i];
-                        if (!menuLabel.hasOwnProperty(menu)) return [3 /*break*/, 3];
-                        if (!(!utilsPhotoshopState_1.UtilsPhotoshopState.isPlatform(menu) && menuLabel[menu].enabled !== false)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, generator.toggleMenu(menuLabel[menu].label, true, false, menuLabel[menu].displayName)];
-                    case 2:
-                        _c.sent();
-                        _c.label = 3;
-                    case 3:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    AddedPlatformState.prototype.onAllPlatformsDeletion = function (menuManager, menuName) {
-        menuManager.setCurrentState(menuManager.getNoPlatformState());
-        menuManager.onAllPlatformsDeletion();
-    };
-    AddedPlatformState.prototype.onPlatformAddition = function (menuManager, generator, menuName) {
+    DocumentStabalizer.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.checkMenuState(generator)];
+                    case 0:
+                        this.openDocumentData = params.storage.openDocumentData;
+                        this.generator = params.generator;
+                        this.docId = params.storage.docId;
+                        if (!!this.openDocumentData) return [3 /*break*/, 2];
+                        utils_1.utlis.makeDir("D:\\PSDFromScripts");
+                        return [4 /*yield*/, this.removeBackgroundLayer()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, generator.toggleMenu(menuName, false, false)];
-                    case 2:
+                        _a.label = 2;
+                    case 2: return [4 /*yield*/, this.forceSave()];
+                    case 3:
                         _a.sent();
                         return [2 /*return*/];
                 }
             });
         });
     };
-    AddedPlatformState.prototype.onViewAddition = function (menuManager, generator, menuName) {
-        menuManager.setCurrentState(menuManager.getAddedViewState());
-        menuManager.onViewAddition(menuName);
+    DocumentStabalizer.prototype.removeBackgroundLayer = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { level: 1 })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
-    AddedPlatformState.prototype.onViewDeletion = function (menuManager, generator, menuName) {
-        menuManager.setCurrentState(menuManager.getViewDeletionState());
-        menuManager.onViewDeletion(menuName);
+    DocumentStabalizer.prototype.forceSave = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var savePath, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        savePath = "D:/PSDFromScripts/" + this.docId + ".psd";
+                        return [4 /*yield*/, this.generator.evaluateJSXString("app.activeDocument.saveAs(File(\"" + savePath + "\"))")];
+                    case 1:
+                        result = _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
-    AddedPlatformState.prototype.onPlatformDeletion = function (menuManager, generator, menuName) {
-        menuManager.setCurrentState(menuManager.getDeletedPlatformState());
-        menuManager.onPlatformDeletion(menuName);
-    };
-    return AddedPlatformState;
+    return DocumentStabalizer;
 }());
-exports.AddedPlatformState = AddedPlatformState;
-//# sourceMappingURL=AddedPlatformState.js.map
+exports.DocumentStabalizer = DocumentStabalizer;
+//# sourceMappingURL=DocumentStabalizer.js.map

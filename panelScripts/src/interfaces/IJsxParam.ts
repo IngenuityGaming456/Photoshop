@@ -13,7 +13,7 @@ export interface ISequence {
 }
 
 export interface IViewStructure {
-    shouldDrawStruct(generator, getPlatform?: Function, viewDeletionObj?, menuName?);
+    shouldDrawStruct(generator,  docEmitter, getPlatform?: Function, viewDeletionObj?, menuName?);
 }
 
 export interface IFactoryConstruct {

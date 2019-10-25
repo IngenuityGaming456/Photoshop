@@ -20,19 +20,9 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.isInHTML = function (key, id, questArray, drawnQuestItems) {
         if (~questArray.indexOf(key) && !utils_1.utlis.isIDExists(id, drawnQuestItems)) {
-            this.docEmitter.emit("logWarning", key, id, "HTMLContainerWarning");
+            this.docEmitter.emit("logWarning", "Not allowed to create HTML Container, " + key + " with id = " + id);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: id });
         }
-    };
-    Validation.prototype.isAChangeToHTMLContainer = function (eventLayers, concatId) {
-        var id;
-        eventLayers.forEach(function (item) {
-            id = utils_1.utlis.isIDExists(item.id, concatId);
-            if (id) {
-                return;
-            }
-        });
-        this.validationID(id);
     };
     Validation.prototype.onLayersRename = function (eventLayers) {
         var questArray = this.modelFactory.getPhotoshopModel().allQuestItems;
@@ -56,7 +46,7 @@ var Validation = /** @class */ (function () {
             }
         });
         if (questItem) {
-            this.docEmitter.emit("logWarning", questItem.name, id, "QuestElementRenamed");
+            this.docEmitter.emit("logWarning", "Not allowed to rename Quest Item, " + questItem.name + " with id = " + id);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: questItem.id, name: questItem.name });
             throw new Error("Validation Stop");
         }
@@ -69,22 +59,9 @@ var Validation = /** @class */ (function () {
             }
         });
         if (isInErrorData) {
-            this.removeFromErrorData(eventLayers[0].id);
+            utils_1.utlis.spliceFrom(eventLayers[0].id, this.layersErrorData);
             this.docEmitter.emit("removeError", eventLayers[0].id);
         }
-    };
-    Validation.prototype.removeFromErrorData = function (id) {
-        var key;
-        for (var index in this.layersErrorData) {
-            if (this.layersErrorData[index].id === id) {
-                key = index;
-                break;
-            }
-        }
-        this.layersErrorData.splice(key, 1);
-    };
-    Validation.prototype.validationID = function (id) {
-        //Call photoshop to change the layer name;
     };
     return Validation;
 }());

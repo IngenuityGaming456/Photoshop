@@ -6,6 +6,7 @@ import {PhotoshopStartModel} from "./PhotoshopStartModel";
 import {DataPhotoshopModel} from "./PhotoshopModels/DataPhotoshopModel";
 import {NoDataPhotoshopModel} from "./PhotoshopModels/NoDataPhotoshopModel";
 import {utlis} from "../utils/utils";
+import {PhotoshopChildModel} from "./PhotoshopModels/PhotoshopChildModel";
 
 let menuLabels = require("../res/menuLables.json");
 let platformStruct = require("../res/platform.json");
@@ -13,7 +14,7 @@ let languagesStruct = require("../res/languages.json");
 
 export class ModelFactory implements IFactory {
     private mappingModel: MappingModel;
-    private photoshopModel: PhotoshopModel;
+    private photoshopModel: PhotoshopChildModel;
     private activeDocument;
     private socketStorageResponse;
     private generator;
@@ -44,7 +45,7 @@ export class ModelFactory implements IFactory {
         execute(this.mappingModel, { storage: this.getMappingStorage(),
                                             generator: this.generator, docEmitter: this.docEmitter,
                                             activeDocument: this.activeDocument});
-        this.photoshopModel = inject({ref: PhotoshopModel, dep: []});
+        this.photoshopModel = inject({ref: PhotoshopChildModel, dep: []});
         execute(this.photoshopModel, { storage: this.getPhotoshopStorage(),
                                               generator: this.generator, docEmitter: this.docEmitter,
                                               activeDocument: this.activeDocument});

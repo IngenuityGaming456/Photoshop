@@ -61,10 +61,16 @@ var DocumentLogger_1 = require("../logger/DocumentLogger");
 var CreateProxyLayout_1 = require("./LayoutStructure/CreateProxyLayout");
 var PhotoshopFactory_1 = require("./PhotoshopFactory");
 var events_1 = require("events");
+var HandleUndo_1 = require("./HandleUndo");
+var DocumentStabalizer_1 = require("./DocumentStabalizer");
 var packageJson = require("../../package.json");
 var DocumentStarter = /** @class */ (function () {
     function DocumentStarter() {
         this.io = require('socket.io')(8099);
+        this.connectedSockets = {};
+        this.imageState = {
+            state: false
+        };
     }
     DocumentStarter.prototype.execute = function (params) {
         this.generator = params.generator;
@@ -90,6 +96,9 @@ var DocumentStarter = /** @class */ (function () {
         var _this = this;
         socket.on("register", function (name) {
             _this.handleSocketClients(name, socket);
+            if (Object.keys(_this.connectedSockets).length === 2) {
+                _this.generator.emit("PanelsConnected");
+            }
         });
     };
     DocumentStarter.prototype.handleSocketClients = function (name, socket) {
@@ -103,11 +112,13 @@ var DocumentStarter = /** @class */ (function () {
             });
         }
         if (name === "validatorPanel") {
+            socket.emit("getStorage", this.docId);
             this.loggerEmitter.emit("getUpdatedValidatorSocket", socket);
         }
         socket.on('disconnect', function (reason) {
             console.log(reason);
         });
+        this.connectedSockets[name] = true;
     };
     DocumentStarter.prototype.setViewMap = function () {
         var viewsMap = this.modelFactory.getMappingModel().getViewPlatformMap("desktop");
@@ -122,14 +133,29 @@ var DocumentStarter = /** @class */ (function () {
             _this.onDocumentOpen(openId);
         });
         this.generator.onPhotoshopEvent("generatorMenuChanged", function (event) { return _this.onButtonMenuClicked(event); });
+        this.documentManager.on("documentResolved", function (document) {
+            console.log("Document Done");
+        });
     };
     DocumentStarter.prototype.onButtonMenuClicked = function (event) {
         var menu = event.generatorMenuChanged;
-        var elementMap = this.getElementMap(menu.name);
-        var classObj = this.structureMap.get(elementMap);
-        if (classObj) {
-            var factoryObj = FactoryClass_1.inject({ ref: classObj.ref, dep: classObj.dep, isNonSingleton: true });
-            FactoryClass_1.execute(factoryObj, { generator: this.generator, docEmitter: this.docEmitter, menuName: menu.name, activeDocument: this.activeDocument });
+        if (menu.name === "generator-assets") {
+            this.imageState.state = this.generator.getMenuState(menu.name).checked;
+        }
+        else {
+            var elementMap = this.getElementMap(menu.name);
+            var classObj = this.structureMap.get(elementMap);
+            if (classObj) {
+                var factoryObj = void 0;
+                if (classObj.ref === CreateComponent_1.CreateComponent) {
+                    factoryObj = FactoryClass_1.inject({ ref: classObj.ref, dep: classObj.dep });
+                }
+                else {
+                    factoryObj = FactoryClass_1.inject({ ref: classObj.ref, dep: classObj.dep, isNonSingleton: true });
+                }
+                FactoryClass_1.execute(factoryObj, { generator: this.generator, docEmitter: this.docEmitter, menuName: menu.name, activeDocument: this.activeDocument,
+                    storage: { factoryMap: elementMap, menuState: this.imageState } });
+            }
         }
     };
     DocumentStarter.prototype.getElementMap = function (menuName) {
@@ -153,6 +179,17 @@ var DocumentStarter = /** @class */ (function () {
     };
     DocumentStarter.prototype.onDocumentOpen = function (openId) {
         return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                this.generator.once("PanelsConnected", function () {
+                    _this.onPanelsConnected(openId);
+                });
+                return [2 /*return*/];
+            });
+        });
+    };
+    DocumentStarter.prototype.onPanelsConnected = function (openId) {
+        return __awaiter(this, void 0, void 0, function () {
             var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -170,26 +207,29 @@ var DocumentStarter = /** @class */ (function () {
                         return [4 /*yield*/, this.setDocumentMetaData()];
                     case 3:
                         _c.sent();
+                        this.stabalizeDocument();
                         this.sendToHTMLSocket();
                         this.instantiateStateEvent();
                         this.instantiateDocumentModel();
                         this.createObjects();
-                        this.createDependencies();
                         return [4 /*yield*/, this.addMenuItems()];
                     case 4:
                         _c.sent();
-                        this.addDocumentStatus();
+                        this.createDependencies();
+                        return [4 /*yield*/, this.addDocumentStatus()];
+                    case 5:
+                        _c.sent();
                         return [2 /*return*/];
                 }
             });
         });
     };
     DocumentStarter.prototype.sendToHTMLSocket = function () {
-        //this.htmlSocket.emit("messageRevert");
         this.htmlSocket.emit("docOpen", this.activeDocument.directory, this.docId);
     };
     DocumentStarter.prototype.restorePhotoshop = function () {
         FactoryClass_1.FactoryClass.factoryInstance = null;
+        this.imageState.state = false;
         this.removeListeners();
         this.applyDocumentListeners();
     };
@@ -202,20 +242,25 @@ var DocumentStarter = /** @class */ (function () {
         this.generator.removeAllListeners("copy");
         this.generator.removeAllListeners("paste");
         this.generator.removeAllListeners("save");
+        this.generator.removeAllListeners("closedDocument");
+        this.generator.removeAllListeners("PanelsConnected");
     };
     DocumentStarter.prototype.applyDocumentListeners = function () {
         var _this = this;
-        this.docEmitter.on("logWarning", function (key, id, loggerType) {
-            _this.loggerEmitter.emit("logWarning", key, id, loggerType);
+        this.docEmitter.on("logWarning", function (loggerType) {
+            _this.loggerEmitter.emit("logWarning", loggerType);
         });
-        this.docEmitter.on("logError", function (key, id, loggerType) {
-            _this.loggerEmitter.emit("logError", key, id, loggerType);
+        this.docEmitter.on("logError", function (id, key, loggerType) {
+            _this.loggerEmitter.emit("logError", id, key, loggerType);
         });
         this.docEmitter.on("logStatus", function (message) {
             _this.loggerEmitter.emit("logStatus", message);
         });
         this.docEmitter.on("removeError", function (id) {
             _this.loggerEmitter.emit("removeError", id);
+        });
+        this.generator.on("closedDocument", function (closeId) {
+            _this.docId = null;
         });
     };
     DocumentStarter.prototype.setDocumentMetaData = function () {
@@ -241,15 +286,21 @@ var DocumentStarter = /** @class */ (function () {
         });
     };
     DocumentStarter.prototype.createDependencies = function () {
+        var undoHandle = FactoryClass_1.inject({ ref: HandleUndo_1.HandleUndo, dep: [ModelFactory_1.ModelFactory] });
+        FactoryClass_1.execute(undoHandle, { generator: this.generator });
         var layerManager = FactoryClass_1.inject({ ref: LayerManager_1.LayerManager, dep: [ModelFactory_1.ModelFactory] });
         FactoryClass_1.execute(layerManager, { generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument });
         var validation = FactoryClass_1.inject({ ref: Validation_1.Validation, dep: [ModelFactory_1.ModelFactory] });
         FactoryClass_1.execute(validation, { generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument });
-        this.menuManager = FactoryClass_1.inject({ ref: MenuProxyManager_1.MenuProxyManager, dep: [ModelFactory_1.ModelFactory] });
         var photoshopFactory = FactoryClass_1.inject({ ref: PhotoshopFactory_1.PhotoshopFactory, dep: [ModelFactory_1.ModelFactory] });
         FactoryClass_1.execute(photoshopFactory, { generator: this.generator, docEmitter: this.docEmitter });
         var containerResponse = FactoryClass_1.inject({ ref: ContainerPanelResponse_1.ContainerPanelResponse, dep: [ModelFactory_1.ModelFactory, PhotoshopFactory_1.PhotoshopFactory] });
         FactoryClass_1.execute(containerResponse, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
+    };
+    DocumentStarter.prototype.stabalizeDocument = function () {
+        var documentStabalizer = FactoryClass_1.inject({ ref: DocumentStabalizer_1.DocumentStabalizer, dep: [] });
+        FactoryClass_1.execute(documentStabalizer, { storage: { openDocumentData: this.openDocumentData,
+                docId: this.docId }, generator: this.generator });
     };
     DocumentStarter.prototype.createDependenciesBeforeSocket = function () {
         var documentLogger = FactoryClass_1.inject({ ref: DocumentLogger_1.DocumentLogger, dep: [] });
@@ -258,14 +309,21 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.addMenuItems = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
+                this.menuManager = FactoryClass_1.inject({ ref: MenuProxyManager_1.MenuProxyManager, dep: [ModelFactory_1.ModelFactory] });
                 FactoryClass_1.execute(this.menuManager, { generator: this.generator, docEmitter: this.docEmitter });
                 return [2 /*return*/];
             });
         });
     };
     DocumentStarter.prototype.addDocumentStatus = function () {
-        this.loggerEmitter.emit("logStatus", "The document is ready to be worked with");
-        this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                this.loggerEmitter.emit("activeDocument", this.docId);
+                this.loggerEmitter.emit("logStatus", "The document is ready to be worked with");
+                this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
+                return [2 /*return*/];
+            });
+        });
     };
     DocumentStarter.prototype.createObjects = function () {
         this.structureMap = new Map();
@@ -289,12 +347,13 @@ var DocumentStarter = /** @class */ (function () {
         })
             .set(this.mapFactory.getTestingMap(), {
             ref: CreateTestingStructure_1.CreateTestingStructure,
-            dep: []
+            dep: [ModelFactory_1.ModelFactory]
         });
     };
     DocumentStarter.prototype.instantiateStateEvent = function () {
         var eventSubject = FactoryClass_1.inject({ ref: PhotoshopEventSubject_1.PhotoshopEventSubject, dep: [] });
-        FactoryClass_1.execute(eventSubject, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
+        FactoryClass_1.execute(eventSubject, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
+            storage: { docId: this.docId } });
     };
     DocumentStarter.prototype.instantiateDocumentModel = function () {
         this.modelFactory = FactoryClass_1.inject({ ref: ModelFactory_1.ModelFactory, dep: [] });

@@ -73,7 +73,7 @@ export class LayerManager implements IFactory{
                 });
                 if(inQuest) {
                     deletedLayers.push(item.id);
-                    this.docEmitter.emit("logWarning", item.name, item.id, "CopyPasteOfQuestElement");
+                    this.docEmitter.emit("logWarning", `Not Allowed to duplicate a quest element, ${item.name} with id = ${item.id}`);
                     await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: item.id});
                     return;
                 }
@@ -139,37 +139,31 @@ export class LayerManager implements IFactory{
         return addedLayers;
     }
 
-    private handleImportEvent(changedLayers, promiseArray: Array<Promise<any>>) {
+    private async handleImportEvent(changedLayers, promiseArray: Array<Promise<any>>) {
         promiseArray = promiseArray || [];
         const layersCount = changedLayers.length;
         for(let i=0;i<layersCount;i++) {
             const change = changedLayers[i];
             if(change.hasOwnProperty("added") && change.type === "layer") {
-                this.getImageData(change.id, promiseArray);
+                await this.getImageData(change.id, promiseArray);
+                console.log("Pixels Added");
             }
             if(change.hasOwnProperty("layers")) {
-                this.handleImportEvent(change.layers, promiseArray);
+                await this.handleImportEvent(change.layers, promiseArray);
             }
         }
     }
 
-    private getImageData(layerId: number, promiseArray: Array<Promise<any>>) {
-        let bufferPayload = {};
-        let pixMapPromise = this._generator.getPixmap(this._activeDocument.id, layerId, {scaleX: 0.5, scaleY: 0.5});
-        let bufferPromise = pixMapPromise
-            .then(pixmap => {
-                //writing layer's pixel data into it.
-                //console.log("Got the pixel map");
-                let pixmapBuffer = Buffer.from(pixmap.pixels);
-                let cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
-                let base64Pixmap = cBuffer.toString('base64');
-                bufferPayload  = {
-                    "pixels": base64Pixmap
-                };
-                return this.setLayerSettings(bufferPayload, layerId);
-            });
-        //bufferPromise.then(() => console.log("Buffer Added to metadata"));
-        promiseArray.push(bufferPromise);
+    private async getImageData(layerId: number, promiseArray: Array<Promise<any>>) {
+        let pixmap = await this._generator.getPixmap(this._activeDocument.id, layerId, {scaleX: 0.5, scaleY: 0.5});
+        let pixmapBuffer = Buffer.from(pixmap.pixels);
+        let cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
+        let base64Pixmap = cBuffer.toString('base64');
+        const bufferPayload  = {
+            "pixels": base64Pixmap
+        };
+        console.log("Pixels started to add");
+        return this.setLayerSettings(bufferPayload, layerId);
     }
 
     private async getImageDataOfEvent(layersArray, parentLayers, deletedLayers) {

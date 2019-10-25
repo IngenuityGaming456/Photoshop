@@ -142,12 +142,18 @@ var MenuProxyManager = /** @class */ (function () {
                         return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, false, false)];
                     case 1:
                         _a.sent();
-                        return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, true, false)];
+                        return [3 /*break*/, 6];
+                    case 2:
+                        if (!(menuLabels.enabled === false)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, menuLabels.enabled, false)];
                     case 3:
                         _a.sent();
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 4: return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, true, false)];
+                    case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });

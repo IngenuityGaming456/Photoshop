@@ -18,24 +18,24 @@
       "type": "container",
       "id": "portrait"
     },
-    "languagesLandscape": {
-      "type": "container",
-      "id": "languages",
-      "parent": "landscape"
-    },
     "commonLandscape": {
       "type": "container",
       "id": "common",
       "parent": "landscape"
     },
-    "languagesPortrait": {
+    "languagesLandscape": {
       "type": "container",
       "id": "languages",
-      "parent": "portrait"
+      "parent": "landscape"
     },
     "commonPortrait": {
       "type": "container",
       "id": "common",
+      "parent": "portrait"
+    },
+    "languagesPortrait": {
+      "type": "container",
+      "id": "languages",
       "parent": "portrait"
     }
   }

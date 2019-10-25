@@ -44,6 +44,10 @@ var MappingModel = /** @class */ (function () {
         }).set("AddFreeGameView", {
             backgroundsFg: responseObj["backgroundsFg"],
             freeGame: responseObj["freeGame"]
+        }).set("AddGenericView", {
+            generic: {
+                generic: {}
+            }
         });
         return viewMap;
     };

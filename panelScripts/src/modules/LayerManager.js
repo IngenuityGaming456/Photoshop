@@ -138,7 +138,7 @@ var LayerManager = /** @class */ (function () {
                                         });
                                         if (!inQuest) return [3 /*break*/, 2];
                                         deletedLayers.push(item.id);
-                                        this_1.docEmitter.emit("logWarning", item.name, item.id, "CopyPasteOfQuestElement");
+                                        this_1.docEmitter.emit("logWarning", "Not Allowed to duplicate a quest element, " + item.name + " with id = " + item.id);
                                         return [4 /*yield*/, this_1._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item.id })];
                                     case 1:
                                         _a.sent();
@@ -293,36 +293,57 @@ var LayerManager = /** @class */ (function () {
         return addedLayers;
     };
     LayerManager.prototype.handleImportEvent = function (changedLayers, promiseArray) {
-        promiseArray = promiseArray || [];
-        var layersCount = changedLayers.length;
-        for (var i = 0; i < layersCount; i++) {
-            var change = changedLayers[i];
-            if (change.hasOwnProperty("added") && change.type === "layer") {
-                this.getImageData(change.id, promiseArray);
-            }
-            if (change.hasOwnProperty("layers")) {
-                this.handleImportEvent(change.layers, promiseArray);
-            }
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            var layersCount, i, change;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        promiseArray = promiseArray || [];
+                        layersCount = changedLayers.length;
+                        i = 0;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < layersCount)) return [3 /*break*/, 6];
+                        change = changedLayers[i];
+                        if (!(change.hasOwnProperty("added") && change.type === "layer")) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.getImageData(change.id, promiseArray)];
+                    case 2:
+                        _a.sent();
+                        console.log("Pixels Added");
+                        _a.label = 3;
+                    case 3:
+                        if (!change.hasOwnProperty("layers")) return [3 /*break*/, 5];
+                        return [4 /*yield*/, this.handleImportEvent(change.layers, promiseArray)];
+                    case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
     };
     LayerManager.prototype.getImageData = function (layerId, promiseArray) {
-        var _this = this;
-        var bufferPayload = {};
-        var pixMapPromise = this._generator.getPixmap(this._activeDocument.id, layerId, { scaleX: 0.5, scaleY: 0.5 });
-        var bufferPromise = pixMapPromise
-            .then(function (pixmap) {
-            //writing layer's pixel data into it.
-            //console.log("Got the pixel map");
-            var pixmapBuffer = Buffer.from(pixmap.pixels);
-            var cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
-            var base64Pixmap = cBuffer.toString('base64');
-            bufferPayload = {
-                "pixels": base64Pixmap
-            };
-            return _this.setLayerSettings(bufferPayload, layerId);
+        return __awaiter(this, void 0, void 0, function () {
+            var pixmap, pixmapBuffer, cBuffer, base64Pixmap, bufferPayload;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.getPixmap(this._activeDocument.id, layerId, { scaleX: 0.5, scaleY: 0.5 })];
+                    case 1:
+                        pixmap = _a.sent();
+                        pixmapBuffer = Buffer.from(pixmap.pixels);
+                        cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
+                        base64Pixmap = cBuffer.toString('base64');
+                        bufferPayload = {
+                            "pixels": base64Pixmap
+                        };
+                        console.log("Pixels started to add");
+                        return [2 /*return*/, this.setLayerSettings(bufferPayload, layerId)];
+                }
+            });
         });
-        //bufferPromise.then(() => console.log("Buffer Added to metadata"));
-        promiseArray.push(bufferPromise);
     };
     LayerManager.prototype.getImageDataOfEvent = function (layersArray, parentLayers, deletedLayers) {
         return __awaiter(this, void 0, void 0, function () {

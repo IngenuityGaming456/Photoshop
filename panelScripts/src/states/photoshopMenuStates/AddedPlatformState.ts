@@ -3,11 +3,11 @@ import {UtilsPhotoshopState} from "../../utils/utilsPhotoshopState";
 let menuLabel = require("../../res/menuLables.json");
 
 export class AddedPlatformState implements IPhotoshopState {
-    
+
     private async checkMenuState(generator) {
         for(let menu in menuLabel) {
             if(menuLabel.hasOwnProperty(menu)) {
-                if(!UtilsPhotoshopState.isPlatform(menu)) {
+                if(!UtilsPhotoshopState.isPlatform(menu) && menuLabel[menu].enabled !== false) {
                     await generator.toggleMenu(menuLabel[menu].label, true, false,
                         menuLabel[menu].displayName);
                 }

@@ -295,6 +295,7 @@
 
         if (changes.length === 0) {
             deferred.resolve(document);
+            this.emit("documentResolved", document);
             delete this._documentDeferreds[id];
             return;
         }

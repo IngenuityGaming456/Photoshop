@@ -286,7 +286,7 @@ var PhotoshopModel = /** @class */ (function () {
                 continue;
             }
             var menuResult = this.generator.getMenuState(menuLabels[key].label);
-            if (!menuResult.enabled) {
+            if (menuResult && !menuResult.enabled) {
                 this.menuStates.push(menuLabels[key].label);
             }
         }

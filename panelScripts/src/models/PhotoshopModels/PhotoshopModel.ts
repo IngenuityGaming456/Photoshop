@@ -281,7 +281,7 @@ export class PhotoshopModel implements IModel {
                 continue;
             }
             const menuResult = this.generator.getMenuState(menuLabels[key].label);
-            if(!menuResult.enabled) {
+            if(menuResult && !menuResult.enabled) {
                 this.menuStates.push(menuLabels[key].label);
             }
         }

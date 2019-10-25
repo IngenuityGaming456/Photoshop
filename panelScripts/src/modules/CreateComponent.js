@@ -34,43 +34,145 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var Restructure_1 = require("./Restructure");
 var path = require("path");
+var utils_1 = require("../utils/utils");
 var packageJson = require("../../package.json");
 var CreateComponent = /** @class */ (function () {
     function CreateComponent(modelFactory) {
+        this.isPaste = false;
+        this.executeCalls = 1;
         this.modelFactory = modelFactory;
     }
     CreateComponent.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var elementValue, sequenceId, id;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         this._generator = params.generator;
                         this._pluginId = packageJson.name;
-                        this.subscribeListeners();
-                        elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
-                        sequenceId = Restructure_1.Restructure.sequenceStructure(elementValue);
-                        return [4 /*yield*/, this.callComponentJsx(sequenceId, params.menuName)];
+                        this.docEmitter = params.docEmitter;
+                        this.componentsMap = params.storage.factoryMap;
+                        this.activeDocument = params.activeDocument;
+                        return [4 /*yield*/, this.validate(params)];
                     case 1:
-                        id = _a.sent();
-                        return [4 /*yield*/, this.setGeneratorSettings(id, elementValue)];
-                    case 2:
                         _a.sent();
-                        elementValue.elementArray.push({ id: id, sequence: sequenceId });
                         return [2 /*return*/];
                 }
             });
         });
     };
-    CreateComponent.prototype.subscribeListeners = function () {
+    CreateComponent.prototype.validate = function (params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var isValid, sequenceId, id;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.isValid()];
+                    case 1:
+                        isValid = _a.sent();
+                        if (!isValid) {
+                            this.docEmitter.emit("logWarning", "A component should always be made inside a view");
+                            return [2 /*return*/, Promise.resolve()];
+                        }
+                        this.subscribeListeners(this.executeCalls++);
+                        this.searchDocument();
+                        this.elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
+                        sequenceId = Restructure_1.Restructure.sequenceStructure(this.elementValue);
+                        return [4 /*yield*/, this.callComponentJsx(sequenceId, params.menuName)];
+                    case 2:
+                        id = _a.sent();
+                        return [4 /*yield*/, this.controlJSXReturn(id, this.elementValue)];
+                    case 3:
+                        _a.sent();
+                        this.elementValue.elementArray.push({ id: id, sequence: sequenceId });
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateComponent.prototype.isValid = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var selectedLayerId, selectedLayersIdArray, layers, selectedRef;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
+                    case 1:
+                        selectedLayerId = _a.sent();
+                        selectedLayersIdArray = selectedLayerId.toString().split(",");
+                        if (selectedLayersIdArray.length !== 1) {
+                        }
+                        layers = this.activeDocument.layers;
+                        selectedRef = layers.findLayer(Number(selectedLayersIdArray[0]));
+                        return [2 /*return*/, this.isCorrectSelection(selectedRef)];
+                }
+            });
+        });
+    };
+    CreateComponent.prototype.isCorrectSelection = function (selectedRef) {
+        if (!selectedRef) {
+            return false;
+        }
+        var layerRef;
+        if (selectedRef.layer) {
+            layerRef = selectedRef.layer;
+        }
+        if (selectedRef.name) {
+            layerRef = selectedRef;
+        }
+        if (!layerRef) {
+            return false;
+        }
+        if (~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin|generic)/))) {
+            return true;
+        }
+        return this.isCorrectSelection(layerRef.group);
+    };
+    CreateComponent.prototype.subscribeListeners = function (executeCalls) {
         var _this = this;
-        this._generator.on("layersDeleted", function (eventLayers) { return _this.handleChange(eventLayers); });
-        this._generator.on("layerRenamed", function (eventLayers) { return _this.handleChange(eventLayers); });
+        if (executeCalls === 1) {
+            this._generator.on("layersDeleted", function (eventLayers) { return _this.handleChange(eventLayers); });
+            this._generator.on("layerRenamed", function (eventLayers) { return _this.handleChange(eventLayers); });
+            this._generator.on("paste", function () { return _this.onPaste(); });
+            this._generator.on("layersAdded", function (eventLayers) { return _this.onLayersAddition(eventLayers); });
+        }
+    };
+    CreateComponent.prototype.controlJSXReturn = function (id, elementValue) {
+        return __awaiter(this, void 0, void 0, function () {
+            var returnArray;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!Number(id)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.setGeneratorSettings(id, elementValue)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                    case 2:
+                        returnArray = id.split(",");
+                        if (returnArray[0] === "false") {
+                            this.docEmitter.emit("logWarning", "Need to select " + returnArray[1] + " from the document tree");
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     CreateComponent.prototype.handleChange = function (eventLayers) {
+        if (this.isPaste) {
+            this.isPaste = false;
+            return;
+        }
         var componentsMap = this.modelFactory.getMappingModel().getComponentsMap();
         componentsMap.forEach(function (item) {
             Restructure_1.Restructure.searchAndModifyControlledArray(eventLayers, item);
@@ -93,13 +195,107 @@ var CreateComponent = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(elementValue.label, id, this._pluginId)];
+                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin((elementValue.label).toLowerCase(), id, this._pluginId)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    CreateComponent.prototype.onPaste = function () {
+        this.isPaste = true;
+    };
+    CreateComponent.prototype.onLayersAddition = function (eventLayers) {
+        if (this.isPaste) {
+            utils_1.utlis.traverseAddedLayers(eventLayers, this.onAddition.bind(this));
+        }
+    };
+    CreateComponent.prototype.onAddition = function (addedLayer) {
+        var component = this.isComponent(addedLayer.name);
+        if (component) {
+            var sequenceId = Restructure_1.Restructure.sequenceStructure(this.elementValue);
+            this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/RenameErrorLayer.jsx"), {
+                id: addedLayer.id,
+                level: 1,
+                index: component.index,
+                sequence: sequenceId
+            });
+            this.elementValue.elementArray.push({ id: addedLayer.id, sequence: sequenceId });
+        }
+    };
+    CreateComponent.prototype.isComponent = function (layerName) {
+        var componentValues = this.componentsMap.values();
+        try {
+            for (var componentValues_1 = __values(componentValues), componentValues_1_1 = componentValues_1.next(); !componentValues_1_1.done; componentValues_1_1 = componentValues_1.next()) {
+                var key = componentValues_1_1.value;
+                var labelName = key.label;
+                var labelIndex = layerName.search(labelName);
+                if (labelIndex === 0) {
+                    var sequence = layerName.substring(labelName.length);
+                    if (Number(sequence)) {
+                        return {
+                            sequence: Number(sequence),
+                            index: labelName.length
+                        };
+                    }
+                }
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (componentValues_1_1 && !componentValues_1_1.done && (_a = componentValues_1.return)) _a.call(componentValues_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return null;
+        var e_1, _a;
+    };
+    CreateComponent.prototype.searchDocument = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var componentValues, componentValues_2, componentValues_2_1, value, e_2, _a;
+            return __generator(this, function (_b) {
+                if (this.executeCalls !== 2) {
+                    return [2 /*return*/];
+                }
+                componentValues = this.componentsMap.values();
+                try {
+                    for (componentValues_2 = __values(componentValues), componentValues_2_1 = componentValues_2.next(); !componentValues_2_1.done; componentValues_2_1 = componentValues_2.next()) {
+                        value = componentValues_2_1.value;
+                        this.searchInDocument(value, this.activeDocument.layers.layers);
+                    }
+                }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (componentValues_2_1 && !componentValues_2_1.done && (_a = componentValues_2.return)) _a.call(componentValues_2);
+                    }
+                    finally { if (e_2) throw e_2.error; }
+                }
+                return [2 /*return*/];
+            });
+        });
+    };
+    CreateComponent.prototype.searchInDocument = function (value, activeLayers) {
+        var layersCount = activeLayers.length;
+        for (var i = 0; i < layersCount; i++) {
+            var layerRef = activeLayers[i];
+            var layerName = layerRef.name;
+            var position = layerName.search(value.label);
+            if (position === 0) {
+                var sequenceId = layerName.slice(value.label.length);
+                if (Number(sequenceId)) {
+                    value.elementArray.push({
+                        id: layerRef.id,
+                        sequence: Number(sequenceId)
+                    });
+                }
+            }
+            if (layerRef.layers) {
+                this.searchInDocument(value, layerRef.layers);
+            }
+        }
     };
     return CreateComponent;
 }());

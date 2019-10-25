@@ -51,11 +51,13 @@ var packageJson = require("../../package.json");
 var ContainerPanelResponse = /** @class */ (function () {
     function ContainerPanelResponse(modelFactory, photoshopFactory) {
         this.platformArray = [];
+        this.deletionHandler = [];
         this.modelFactory = modelFactory;
         this.photoshopFactory = photoshopFactory;
     }
     ContainerPanelResponse.prototype.execute = function (params) {
         this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
+        this.deletionHandler = this.modelFactory.getPhotoshopModel().allSessionHandler;
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
@@ -98,10 +100,12 @@ var ContainerPanelResponse = /** @class */ (function () {
                     var element = utils_1.utlis.isIDExists(item.id, questArray);
                     if (element) {
                         var elementView = utils_1.utlis.getElementView(element, _this.activeDocument.layers);
-                        _this.socket.emit("UncheckFromContainerPanel", elementView, element.name);
+                        if (elementView) {
+                            _this.socket.emit("UncheckFromContainerPanel", elementView, element.name);
+                        }
                     }
                 });
-                utils_1.utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap);
+                utils_1.utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap, this.deletionHandler);
                 return [2 /*return*/];
             });
         });
@@ -207,7 +211,7 @@ var ContainerPanelResponse = /** @class */ (function () {
     };
     ContainerPanelResponse.prototype.sendJsonChanges = function (previousJson, currentJson, platform) {
         return __awaiter(this, void 0, void 0, function () {
-            var previousBaseChild, currentBaseChild, _a, _b, _i, key, _c, _d, _e, key;
+            var previousBaseChild, currentBaseChild, _a, _b, _i, key, _c, _d, _e, key, keysArray, firstKey;
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
@@ -241,7 +245,9 @@ var ContainerPanelResponse = /** @class */ (function () {
                         key = _c[_e];
                         if (!previousBaseChild.hasOwnProperty(key)) return [3 /*break*/, 7];
                         if (!!currentBaseChild[key]) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this.sendDeletionRequest(Object.keys(previousJson)[0], previousBaseChild[key])];
+                        keysArray = Object.keys(previousJson);
+                        firstKey = keysArray[0];
+                        return [4 /*yield*/, this.sendDeletionRequest(firstKey, key, platform)];
                     case 6:
                         _f.sent();
                         _f.label = 7;
@@ -266,31 +272,48 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.sendDeletionRequest = function (baseKey, previousObj) {
+    ContainerPanelResponse.prototype.sendDeletionRequest = function (view, key, platform) {
         return __awaiter(this, void 0, void 0, function () {
             var childId;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        childId = this.getChildId(previousObj);
+                        childId = this.getChildId(view, key, platform);
+                        if (!!childId) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: childId })];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
                 }
             });
         });
     };
-    ContainerPanelResponse.prototype.getChildId = function (previousObj) {
-        var childId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        var child = childId.find(function (item) {
-            if (item.name === previousObj.id) {
-                return true;
+    ContainerPanelResponse.prototype.getChildId = function (view, element, platform) {
+        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        var viewObj = elementalMap[platform][view];
+        for (var key in viewObj) {
+            if (!viewObj.hasOwnProperty(key)) {
+                continue;
             }
-        });
-        if (child) {
-            return child.id;
+            try {
+                for (var _a = __values(viewObj[key]), _b = _a.next(); !_b.done; _b = _a.next()) {
+                    var item = _b.value;
+                    if (item.name === element) {
+                        return item.id;
+                    }
+                }
+            }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            finally {
+                try {
+                    if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                }
+                finally { if (e_3) throw e_3.error; }
+            }
         }
+        return null;
+        var e_3, _c;
     };
     ContainerPanelResponse.prototype.getParentId = function (baseKey) {
         var baseId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;

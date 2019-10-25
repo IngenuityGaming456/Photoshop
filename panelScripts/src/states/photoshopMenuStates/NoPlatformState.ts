@@ -10,7 +10,7 @@ export class NoPlatformState implements IPhotoshopState {
                 if(!UtilsPhotoshopState.isPlatform(menuLabel[menu].displayName)) {
                     await generator.toggleMenu(menuLabel[menu].label, false, false,
                         menuLabel[menu].displayName);
-                } else {
+                } else if(menuLabel[menu].enabled !== false) {
                     await generator.toggleMenu(menuLabel[menu].label, true, false,
                         menuLabel[menu].displayName);
                 }

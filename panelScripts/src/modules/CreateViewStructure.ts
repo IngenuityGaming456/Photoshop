@@ -50,16 +50,18 @@ export class CreateViewStructure implements IFactory {
     }
     
     private async drawStruct(menuName) {
-        let insertionObj = await this._viewClass.shouldDrawStruct(this._generator, this.getPlatform.bind(this),
+        let insertionObj = await this._viewClass.shouldDrawStruct(this._generator, this.docEmitter, this.getPlatform.bind(this),
                                                                    this.viewDeletionObj, this.menuName);
         if(insertionObj !== "invalid") {
             this.platform = insertionObj.platform;
             const params = this.getElementMap().get(menuName);
-            this.emitValidCalls();
+            this.emitValidCalls(menuName);
             for (let keys in params) {
+                this.applyStartingLogs(keys);
                 if (params.hasOwnProperty(keys)) {
                     await this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform);
                 }
+                this.applyEndingLogs(keys);
             }
         }
     }
@@ -74,8 +76,28 @@ export class CreateViewStructure implements IFactory {
         }
     }
 
-    private emitValidCalls() {
-        this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
+    private emitValidCalls(menuName) {
+        if(menuName != "AddGenericView") {
+            this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
+        }
+    }
+
+    private applyStartingLogs(keys) {
+        if(keys === "baseGame") {
+            this.docEmitter.emit("logStatus", "Started making BaseGame");
+        }
+        if(keys === "freeGame") {
+            this.docEmitter.emit("logStatus", "Started making FreeGame");
+        }
+    }
+
+    private applyEndingLogs(keys) {
+        if(keys === "baseGame") {
+            this.docEmitter.emit("logStatus", "BaseGame done");
+        }
+        if(keys === "freeGame") {
+            this.docEmitter.emit("logStatus", "FreeGame done");
+        }
     }
 
 }

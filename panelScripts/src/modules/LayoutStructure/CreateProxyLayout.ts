@@ -17,6 +17,8 @@ export class CreateProxyLayout implements IFactory {
     private bufferMap = new Map();
     private docEmitter;
     private layerMap;
+    private assetsPath;
+    private imageState;
 
     public constructor(modelFactory: ModelFactory) {
          this.modelFactory = modelFactory;
@@ -27,8 +29,11 @@ export class CreateProxyLayout implements IFactory {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
+        this.imageState = params.storage.menuState;
         this.document = await this.generator.getDocumentInfo(undefined);
         await this.modifyParentNames();
+        this.checkSymbols();
+        this.checkImageFolder();
         this.checkIsLayoutSuccessful();
     }
 
@@ -90,10 +95,50 @@ export class CreateProxyLayout implements IFactory {
         if(!~this.nameCache.indexOf(layerName)) {
             this.nameCache.push(layerName);
         } else {
-            this.errorData.push({id: key, name: layerName});
-            this.docEmitter.emit("logError", layerName, key, "NameError");
+            this.logError(key, layerName, `Error in name of ${layerName} with id ${key}`);
             await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addErrorPath.jsx"), {id: key});
         }
+    }
+
+    private checkSymbols() {
+        utlis.traverseBaseFreeGame(this.document.layers, this.inspectSymbols.bind(this));
+    }
+
+    private inspectSymbols(viewLayer) {
+        for(let item of viewLayer.layers) {
+            if(item.name === "Symbols") {
+                item.layers.forEach(itemS => {
+                    this.checkIfStaticEmpty(itemS);
+                });
+            }
+        }
+    }
+
+    private checkIfStaticEmpty(item) {
+        if(item.type === "layerSection") {
+            item.layers.forEach(itemS => {
+                if(itemS.name === "Static") {
+                    if (!itemS.layers) {
+                        this.logError(itemS.id, itemS.name, `Symbol with name ${item.name} has empty Static folder`);
+                    } else {
+                        this.removeError(itemS.id);
+                    }
+                }
+            });
+        }
+    }
+
+    private checkImageFolder() {
+        this.assetsPath = this.getPath();
+        if(!this.isPluginEnabled()) {
+            this.logError(1001, "", "Image Assets plugin is not on.");
+        } else {
+            this.removeError(1001);
+        }
+    }
+
+    private isPluginEnabled() {
+        return this.imageState.state;
     }
 
     private checkIsLayoutSuccessful() {
@@ -102,12 +147,35 @@ export class CreateProxyLayout implements IFactory {
         }
     }
 
+    private getPath() {
+        const path = this.activeDocument.file;
+        const extIndex = path.search(/\.(psd)/);
+        return path.substring(0, extIndex);
+    }
+
     private initializeLayout() {
-        const layout = inject({ref: CreateLayoutStructure, dep: [ModelFactory]});
+        const layout = inject({ref: CreateLayoutStructure, dep: [ModelFactory], isNonSingleton: true});
         execute(layout, {storage: {
                 layerMap: this.layerMap,
-                bufferMap: this.bufferMap
-            }, generator: this.generator, activeDocument: this.activeDocument});
+                bufferMap: this.bufferMap,
+                assetsPath: this.assetsPath,
+            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter});
+    }
+
+    private logError(id, name, errorType) {
+        if(!utlis.isIDExists(id, this.errorData)) {
+            this.errorData.push({id: id, name: name});
+            this.docEmitter.emit("logError", id, name, errorType);
+        }
+    }
+
+    private removeError(id) {
+        const beforeLength = this.errorData.length;
+        utlis.spliceFrom(id, this.errorData);
+        const afterLength = this.errorData.length;
+        if (beforeLength > afterLength) {
+            this.docEmitter.emit("removeError", id);
+        }
     }
 
 }

@@ -35,13 +35,6 @@
 
     function activateListeners() {
         _generator.onPhotoshopEvent("imageChanged", onImageChanged);
-        _generator.onPhotoshopEvent("currentDocumentChanged", onDocumentChanged);
-    }
-
-    async function onDocumentChanged() {
-        await _generator.evaluateJSXFile(path.join(__dirname, "../jsx/alert.jsx"), {
-            message: "Search is done, Happy Photoshopping"
-        });
     }
     
     function onImageChanged(event) {
@@ -57,25 +50,7 @@
     //             }));
     // }
     //
-    // function handleChange(itemMap) {
-    //     let jsxPromise = _generator.evaluateJSXFile(path.join(__dirname, "../jsx/searchDocument.jsx"),
-    //         { type: itemMap.label });
-    //     documentPromise.push(jsxPromise);
-    //     jsxPromise.then(controlledString => {
-    //         if (!controlledString.length) {
-    //             return;
-    //         }
-    //         let controlledArrays = controlledString.split(",");
-    //         controlledArrays.forEach(item => {
-    //             let colonPos = item.search(":");
-    //             let typeObj = {
-    //                 id: Number(item.slice(0, colonPos)),
-    //                 sequence: Number(item.slice(colonPos + 1))
-    //             };
-    //             itemMap.elementArray.push(typeObj);
-    //         });
-    //     });
-    // }
+
 
 
     function initializeModelFactory() {

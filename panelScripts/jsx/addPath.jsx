@@ -11,6 +11,8 @@ if( extIndex === -1) {
 } else {
     if(params.remove) {
         var firstSlashIndex = activeLayer.name.lastIndexOf("/");
-        activeLayer.name = activeLayer.name.substring(firstSlashIndex + 1, extIndex);
+        if(firstSlashIndex > -1) {
+            activeLayer.name = activeLayer.name.substring(firstSlashIndex + 1, extIndex);
+        }
     }
 }

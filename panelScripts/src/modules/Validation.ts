@@ -2,7 +2,6 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
 import * as path from "path";
-import * as layerClass from "../../lib/dom/layer";
 
 export class Validation implements IFactory {
     private modelFactory: ModelFactory;
@@ -29,20 +28,9 @@ export class Validation implements IFactory {
 
     private isInHTML(key, id, questArray, drawnQuestItems) {
         if(~questArray.indexOf(key) && !utlis.isIDExists(id, drawnQuestItems)) {
-            this.docEmitter.emit("logWarning", key, id, "HTMLContainerWarning");
+            this.docEmitter.emit("logWarning", `Not allowed to create HTML Container, ${key} with id = ${id}`);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: id});
         }
-    }
-
-    private isAChangeToHTMLContainer(eventLayers, concatId) {
-        let id;
-        eventLayers.forEach(item => {
-            id = utlis.isIDExists(item.id, concatId);
-            if(id) {
-                return;
-            }
-        });
-        this.validationID(id);
     }
 
     private onLayersRename(eventLayers) {
@@ -68,7 +56,7 @@ export class Validation implements IFactory {
                 }
             });
             if (questItem) {
-                this.docEmitter.emit("logWarning", questItem.name, id, "QuestElementRenamed");
+                this.docEmitter.emit("logWarning", `Not allowed to rename Quest Item, ${questItem.name} with id = ${id}`);
                 this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
                     {id: questItem.id, name: questItem.name});
                 throw new Error("Validation Stop");
@@ -83,24 +71,9 @@ export class Validation implements IFactory {
             }
         });
         if(isInErrorData) {
-            this.removeFromErrorData(eventLayers[0].id);
+            utlis.spliceFrom(eventLayers[0].id, this.layersErrorData);
             this.docEmitter.emit("removeError", eventLayers[0].id);
         }
-    }
-
-    private removeFromErrorData(id) {
-        let key;
-        for(let index in this.layersErrorData) {
-            if(this.layersErrorData[index].id === id) {
-                key = index;
-                break;
-            }
-        }
-        this.layersErrorData.splice(key, 1);
-    }
-
-    private validationID(id) {
-        //Call photoshop to change the layer name;
     }
 
 }

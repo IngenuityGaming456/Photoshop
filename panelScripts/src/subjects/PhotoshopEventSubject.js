@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
+var fsExtra = require("fs-extra/lib/empty/index.js");
 var packageJson = require("../../package.json");
 var PhotoshopEventSubject = /** @class */ (function () {
     function PhotoshopEventSubject() {
@@ -45,6 +46,8 @@ var PhotoshopEventSubject = /** @class */ (function () {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
+        this.docId = params.storage.docId;
+        this.activeId = this.activeDocument.id;
         this.subscribeListeners();
     };
     PhotoshopEventSubject.prototype.subscribeListeners = function () {
@@ -52,7 +55,15 @@ var PhotoshopEventSubject = /** @class */ (function () {
         this.docEmitter.on("observerAdd", function (observer) { return _this.add(observer); });
         this.docEmitter.on("observerRemove", function (observer) { return _this.remove(observer); });
         this.generator.on("save", function () { return _this.onPhotoshopClose(); });
-        this.docEmitter.on("xyz", function () { return _this.onPhotoshopOpen(); });
+        this.generator.on("closedDocument", function (closeId) { return _this.onDocumentClose(closeId); });
+    };
+    PhotoshopEventSubject.prototype.onDocumentClose = function (closeId) {
+        if (closeId === this.activeId) {
+            fsExtra.emptyDirSync(require('os').homedir() + "/" + this.docId);
+            fs.rmdir(require('os').homedir() + "/" + this.docId, function (err) {
+                console.log(err);
+            });
+        }
     };
     PhotoshopEventSubject.prototype.onPhotoshopClose = function () {
         return __awaiter(this, void 0, void 0, function () {

@@ -64,30 +64,34 @@ var CreateViewStructure = /** @class */ (function () {
             var insertionObj, params, _a, _b, _i, keys;
             return __generator(this, function (_c) {
                 switch (_c.label) {
-                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator, this.getPlatform.bind(this), this.viewDeletionObj, this.menuName)];
+                    case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator, this.docEmitter, this.getPlatform.bind(this), this.viewDeletionObj, this.menuName)];
                     case 1:
                         insertionObj = _c.sent();
-                        if (!(insertionObj !== "invalid")) return [3 /*break*/, 5];
+                        if (!(insertionObj !== "invalid")) return [3 /*break*/, 6];
                         this.platform = insertionObj.platform;
                         params = this.getElementMap().get(menuName);
-                        this.emitValidCalls();
+                        this.emitValidCalls(menuName);
                         _a = [];
                         for (_b in params)
                             _a.push(_b);
                         _i = 0;
                         _c.label = 2;
                     case 2:
-                        if (!(_i < _a.length)) return [3 /*break*/, 5];
+                        if (!(_i < _a.length)) return [3 /*break*/, 6];
                         keys = _a[_i];
+                        this.applyStartingLogs(keys);
                         if (!params.hasOwnProperty(keys)) return [3 /*break*/, 4];
                         return [4 /*yield*/, this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform)];
                     case 3:
                         _c.sent();
                         _c.label = 4;
                     case 4:
+                        this.applyEndingLogs(keys);
+                        _c.label = 5;
+                    case 5:
                         _i++;
                         return [3 /*break*/, 2];
-                    case 5: return [2 /*return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -102,8 +106,26 @@ var CreateViewStructure = /** @class */ (function () {
             return insertionRef.layer.group.name;
         }
     };
-    CreateViewStructure.prototype.emitValidCalls = function () {
-        this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
+    CreateViewStructure.prototype.emitValidCalls = function (menuName) {
+        if (menuName != "AddGenericView") {
+            this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
+        }
+    };
+    CreateViewStructure.prototype.applyStartingLogs = function (keys) {
+        if (keys === "baseGame") {
+            this.docEmitter.emit("logStatus", "Started making BaseGame");
+        }
+        if (keys === "freeGame") {
+            this.docEmitter.emit("logStatus", "Started making FreeGame");
+        }
+    };
+    CreateViewStructure.prototype.applyEndingLogs = function (keys) {
+        if (keys === "baseGame") {
+            this.docEmitter.emit("logStatus", "BaseGame done");
+        }
+        if (keys === "freeGame") {
+            this.docEmitter.emit("logStatus", "FreeGame done");
+        }
     };
     return CreateViewStructure;
 }());

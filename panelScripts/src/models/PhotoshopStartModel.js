@@ -39,7 +39,6 @@ var fs = require("fs");
 var packageJson = require("../../package.json");
 var PhotoshopStartModel = /** @class */ (function () {
     function PhotoshopStartModel() {
-        this.documentMap = new Map();
         this.writeObj = {};
     }
     PhotoshopStartModel.prototype.execute = function (params) {
@@ -96,13 +95,6 @@ var PhotoshopStartModel = /** @class */ (function () {
             });
         });
     };
-    Object.defineProperty(PhotoshopStartModel.prototype, "allDocumentsMap", {
-        get: function () {
-            return this.documentMap;
-        },
-        enumerable: true,
-        configurable: true
-    });
     PhotoshopStartModel.prototype.onPhotoshopClose = function () {
     };
     return PhotoshopStartModel;

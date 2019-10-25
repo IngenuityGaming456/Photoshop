@@ -11,9 +11,9 @@ var childLayerRef = insertLayer(parentRef, params.childName, params.type, layerC
 if(params["mappedItem"]) {
     var mappedItemRef = getInsertionReferenceById(params["mappedItem"].id);
     if(params.subType && params.subType === "text") {
-        duplicateTextLayer(mappedItemRef, childLayerRef);
+        app.doForcedProgress("Duplicating Text", "duplicateTextLayer(mappedItemRef, childLayerRef)");
     } else {
-        duplicateContainer(mappedItemRef, childLayerRef);
+        app.doForcedProgress("Duplicating Container", "duplicateContainer(mappedItemRef, childLayerRef)");
     }
 }
 

@@ -69,6 +69,7 @@ var CreateProxyLayout = /** @class */ (function () {
                         this.generator = params.generator;
                         this.docEmitter = params.docEmitter;
                         this.activeDocument = params.activeDocument;
+                        this.imageState = params.storage.menuState;
                         _a = this;
                         return [4 /*yield*/, this.generator.getDocumentInfo(undefined)];
                     case 1:
@@ -76,6 +77,8 @@ var CreateProxyLayout = /** @class */ (function () {
                         return [4 /*yield*/, this.modifyParentNames()];
                     case 2:
                         _b.sent();
+                        this.checkSymbols();
+                        this.checkImageFolder();
                         this.checkIsLayoutSuccessful();
                         return [2 /*return*/];
                 }
@@ -202,8 +205,7 @@ var CreateProxyLayout = /** @class */ (function () {
                         this.nameCache.push(layerName);
                         return [3 /*break*/, 3];
                     case 1:
-                        this.errorData.push({ id: key, name: layerName });
-                        this.docEmitter.emit("logError", layerName, key, "NameError");
+                        this.logError(key, layerName, "Error in name of " + layerName + " with id " + key);
                         return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addErrorPath.jsx"), { id: key })];
                     case 2:
                         _a.sent();
@@ -213,17 +215,88 @@ var CreateProxyLayout = /** @class */ (function () {
             });
         });
     };
+    CreateProxyLayout.prototype.checkSymbols = function () {
+        utils_1.utlis.traverseBaseFreeGame(this.document.layers, this.inspectSymbols.bind(this));
+    };
+    CreateProxyLayout.prototype.inspectSymbols = function (viewLayer) {
+        var _this = this;
+        try {
+            for (var _a = __values(viewLayer.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var item = _b.value;
+                if (item.name === "Symbols") {
+                    item.layers.forEach(function (itemS) {
+                        _this.checkIfStaticEmpty(itemS);
+                    });
+                }
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+        var e_2, _c;
+    };
+    CreateProxyLayout.prototype.checkIfStaticEmpty = function (item) {
+        var _this = this;
+        if (item.type === "layerSection") {
+            item.layers.forEach(function (itemS) {
+                if (itemS.name === "Static") {
+                    if (!itemS.layers) {
+                        _this.logError(itemS.id, itemS.name, "Symbol with name " + item.name + " has empty Static folder");
+                    }
+                    else {
+                        _this.removeError(itemS.id);
+                    }
+                }
+            });
+        }
+    };
+    CreateProxyLayout.prototype.checkImageFolder = function () {
+        this.assetsPath = this.getPath();
+        if (!this.isPluginEnabled()) {
+            this.logError(1001, "", "Image Assets plugin is not on.");
+        }
+        else {
+            this.removeError(1001);
+        }
+    };
+    CreateProxyLayout.prototype.isPluginEnabled = function () {
+        return this.imageState.state;
+    };
     CreateProxyLayout.prototype.checkIsLayoutSuccessful = function () {
         if (!this.errorData.length) {
             this.initializeLayout();
         }
     };
+    CreateProxyLayout.prototype.getPath = function () {
+        var path = this.activeDocument.file;
+        var extIndex = path.search(/\.(psd)/);
+        return path.substring(0, extIndex);
+    };
     CreateProxyLayout.prototype.initializeLayout = function () {
-        var layout = FactoryClass_1.inject({ ref: CreateLayoutStructure_1.CreateLayoutStructure, dep: [ModelFactory_1.ModelFactory] });
+        var layout = FactoryClass_1.inject({ ref: CreateLayoutStructure_1.CreateLayoutStructure, dep: [ModelFactory_1.ModelFactory], isNonSingleton: true });
         FactoryClass_1.execute(layout, { storage: {
                 layerMap: this.layerMap,
-                bufferMap: this.bufferMap
-            }, generator: this.generator, activeDocument: this.activeDocument });
+                bufferMap: this.bufferMap,
+                assetsPath: this.assetsPath,
+            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
+    };
+    CreateProxyLayout.prototype.logError = function (id, name, errorType) {
+        if (!utils_1.utlis.isIDExists(id, this.errorData)) {
+            this.errorData.push({ id: id, name: name });
+            this.docEmitter.emit("logError", id, name, errorType);
+        }
+    };
+    CreateProxyLayout.prototype.removeError = function (id) {
+        var beforeLength = this.errorData.length;
+        utils_1.utlis.spliceFrom(id, this.errorData);
+        var afterLength = this.errorData.length;
+        if (beforeLength > afterLength) {
+            this.docEmitter.emit("removeError", id);
+        }
     };
     return CreateProxyLayout;
 }());

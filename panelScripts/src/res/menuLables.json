@@ -9,6 +9,15 @@
     "displayName": "Mobile",
     "menuGroup": "Menu_Platform"
   },
+  "Divider1": {
+    "label": "Divider1",
+    "displayName": "",
+    "enabled": false
+  },
+  "GenericView": {
+    "label": "AddGenericView",
+    "displayName": "NewView"
+  },
   "FreeGameView": {
     "label": "AddFreeGameView",
     "displayName": "FreeGameView",
@@ -28,6 +37,11 @@
     "label": "AddMainView",
     "displayName": "MainView",
     "menuGroup": "Menu_View"
+  },
+  "Divider2": {
+    "label": "Divider2",
+    "displayName": "",
+    "enabled": false
   },
   "EmptyContainer": {
     "label": "AddEmptyCont",
@@ -77,13 +91,18 @@
     "type": "comp",
     "menuGroup": "Menu_Special_UI"
   },
-  "LayoutEnabled": {
-    "label": "LayoutEnabled",
-    "displayName": "GetLayout"
-  },
   "Localisation": {
     "label": "Localise",
     "displayName": "Localise"
+  },
+  "Divider3": {
+    "label": "Divider3",
+    "displayName": "",
+    "enabled": false
+  },
+  "LayoutEnabled": {
+    "label": "LayoutEnabled",
+    "displayName": "GetLayout"
   },
   "Testing": {
     "label": "Testing",
