@@ -84,10 +84,10 @@ var CreateLayoutStructure = /** @class */ (function () {
                         utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
                         this.modifyJSON(result.layers);
                         this.modifyBottomBar(result.layers);
-                        this.writeJSON(result);
                         return [4 /*yield*/, this.removeUnwantedLayers()];
                     case 4:
                         _a.sent();
+                        this.writeJSON(result);
                         this.emitStopStatus();
                         return [2 /*return*/];
                 }

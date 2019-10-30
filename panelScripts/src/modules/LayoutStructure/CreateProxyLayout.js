@@ -223,7 +223,7 @@ var CreateProxyLayout = /** @class */ (function () {
         try {
             for (var _a = __values(viewLayer.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
                 var item = _b.value;
-                if (item.name === "Symbols") {
+                if (item.name === "Symbols" && item.layers) {
                     item.layers.forEach(function (itemS) {
                         _this.checkIfStaticEmpty(itemS);
                     });
@@ -256,12 +256,11 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.checkImageFolder = function () {
         this.assetsPath = this.getPath();
-        if (!this.isPluginEnabled()) {
-            this.logError(1001, "", "Image Assets plugin is not on.");
-        }
-        else {
-            this.removeError(1001);
-        }
+        // if(!this.isPluginEnabled()) {
+        //     this.logError(1001, "", "Image Assets plugin is not on.");
+        // } else {
+        //     this.removeError(1001);
+        // }
     };
     CreateProxyLayout.prototype.isPluginEnabled = function () {
         return this.imageState.state;

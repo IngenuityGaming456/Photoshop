@@ -1,5 +1,5 @@
 {
-  "desktop" : {
+  "desktop": {
     "common": {
       "type": "container",
       "id": "common"
@@ -9,34 +9,24 @@
       "id": "languages"
     }
   },
-  "mobile" : {
-    "landscape": {
+  "portrait": {
+    "common": {
       "type": "container",
-      "id": "landscape"
+      "id": "common"
     },
-    "portrait": {
+    "languages": {
       "type": "container",
-      "id": "portrait"
+      "id": "languages"
+    }
+  },
+  "landscape": {
+    "common": {
+      "type": "container",
+      "id": "common"
     },
-    "commonLandscape": {
+    "languages": {
       "type": "container",
-      "id": "common",
-      "parent": "landscape"
-    },
-    "languagesLandscape": {
-      "type": "container",
-      "id": "languages",
-      "parent": "landscape"
-    },
-    "commonPortrait": {
-      "type": "container",
-      "id": "common",
-      "parent": "portrait"
-    },
-    "languagesPortrait": {
-      "type": "container",
-      "id": "languages",
-      "parent": "portrait"
+      "id": "languages"
     }
   }
 }

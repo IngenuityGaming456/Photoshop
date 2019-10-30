@@ -106,7 +106,7 @@ export class CreateProxyLayout implements IFactory {
 
     private inspectSymbols(viewLayer) {
         for(let item of viewLayer.layers) {
-            if(item.name === "Symbols") {
+            if(item.name === "Symbols" && item.layers) {
                 item.layers.forEach(itemS => {
                     this.checkIfStaticEmpty(itemS);
                 });
@@ -130,11 +130,11 @@ export class CreateProxyLayout implements IFactory {
 
     private checkImageFolder() {
         this.assetsPath = this.getPath();
-        if(!this.isPluginEnabled()) {
-            this.logError(1001, "", "Image Assets plugin is not on.");
-        } else {
-            this.removeError(1001);
-        }
+        // if(!this.isPluginEnabled()) {
+        //     this.logError(1001, "", "Image Assets plugin is not on.");
+        // } else {
+        //     this.removeError(1001);
+        // }
     }
 
     private isPluginEnabled() {

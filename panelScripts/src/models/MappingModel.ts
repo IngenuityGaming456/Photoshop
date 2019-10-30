@@ -3,6 +3,7 @@ import {utlis} from "../utils/utils";
 
 export class MappingModel implements IModel {
     deps?: IFactory[];
+    private genericViewMap;
     private desktopViewMap;
     private landscapeViewMap;
     private portraitViewMap;
@@ -21,6 +22,7 @@ export class MappingModel implements IModel {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.fireEvents();
+        this.makeGenericViewMap();
         this.makeComponentsMap();
         this.makePlatformMap();
         this.makeLayoutMap();
@@ -47,23 +49,22 @@ export class MappingModel implements IModel {
 
     private makeSubViewMap(responseObj) {
         const viewMap = new Map();
-        viewMap.set("AddMainView", {
-            backgrounds: responseObj["backgrounds"],
-            bigWin: responseObj["bigWin"],
-            baseGame: responseObj["baseGame"]
-        }).set("AddPaytable", {
-            paytable: responseObj["paytable"]
-        }).set("AddIntroOutro", {
-            IntroOutro: responseObj["IntroOutro"]
-        }).set("AddFreeGameView", {
-            backgroundsFg: responseObj["backgroundsFg"],
-            freeGame: responseObj["freeGame"]
-        }).set("AddGenericView", {
+        viewMap.set("baseGame", responseObj["baseGame"])
+               .set("paytable", responseObj["paytable"])
+               .set("IntroOutro", responseObj["IntroOutro"])
+               .set("freeGame", responseObj["freeGame"])
+               .set("backgrounds", responseObj["backgrounds"])
+               .set("backgroundsFg", responseObj["backgroundsFg"])
+               .set("bigWin", responseObj["bigWin"]);
+        return viewMap;
+    }
+
+    private makeGenericViewMap(){
+        this.genericViewMap = new Map();
+        this.genericViewMap.set("AddGenericView", {
             generic: {
                 generic: {}
-            }
-        });
-        return viewMap;
+            }});
     }
     
     private makeComponentsMap() {
@@ -83,13 +84,12 @@ export class MappingModel implements IModel {
 
     private makePlatformMap() {
         let desktopPlatform = { desktop: this.params.storage.platformStruct.desktop },
-            mobilePlatform = { mobile: this.params.storage.platformStruct.mobile };
+            portraitPlatform = { portrait: this.params.storage.platformStruct.portrait },
+            landscapePlatform = { landscape: this.params.storage.platformStruct.landscape };
         this.platformMap = new Map();
-        this.platformMap.set("DesktopView", {
-            desktop: desktopPlatform
-        }).set("MobileView", {
-            mobile: mobilePlatform
-        });
+        this.platformMap.set("desktop", desktopPlatform)
+                        .set("portrait", portraitPlatform)
+                        .set("landscape", landscapePlatform);
     }
 
     private makeLayoutMap() {
@@ -134,6 +134,10 @@ export class MappingModel implements IModel {
             landscape: this.landscapeViewMap
         };
         return viewObj[platform];
+    }
+
+    public getGenericViewMap() {
+        return this.genericViewMap;
     }
 
     public onPhotoshopStart() {

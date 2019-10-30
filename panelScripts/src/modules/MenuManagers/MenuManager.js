@@ -48,9 +48,6 @@ var MenuManager = /** @class */ (function () {
     MenuManager.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                this.generator = params.generator;
-                this.makeStateObj();
-                this.setStartingState();
                 return [2 /*return*/];
             });
         });

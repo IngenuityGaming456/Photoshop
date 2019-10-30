@@ -138,9 +138,13 @@ export class DocumentStarter implements IFactory {
     }
 
     private async onDocumentOpen(openId) {
-        this.generator.once("PanelsConnected", () => {
+        if(Object.keys(this.connectedSockets).length === 2) {
             this.onPanelsConnected(openId);
-        });
+        } else {
+            this.generator.once("PanelsConnected", () => {
+                this.onPanelsConnected(openId);
+            });
+        }
     }
 
     private async onPanelsConnected(openId) {
@@ -166,6 +170,7 @@ export class DocumentStarter implements IFactory {
     private restorePhotoshop() {
         FactoryClass.factoryInstance = null;
         this.imageState.state = false;
+        this.connectedSockets = {};
         this.removeListeners();
         this.applyDocumentListeners();
     }
@@ -222,7 +227,8 @@ export class DocumentStarter implements IFactory {
         const photoshopFactory = inject({ref: PhotoshopFactory, dep: [ModelFactory]});
         execute(photoshopFactory, {generator: this.generator, docEmitter: this.docEmitter});
         const containerResponse = inject({ref: ContainerPanelResponse, dep: [ModelFactory, PhotoshopFactory]});
-        execute(containerResponse, {generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter});
+        execute(containerResponse, {generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
+                                            storage: {documentManager: this.documentManager}});
     }
 
     private stabalizeDocument() {
@@ -251,6 +257,10 @@ export class DocumentStarter implements IFactory {
         this.structureMap = new Map();
         this.mapFactory = this.modelFactory.getMappingModel();
         this.structureMap
+            .set(this.mapFactory.getGenericViewMap(), {
+                ref: CreateViewStructure,
+                dep: [CreateView, ModelFactory, PhotoshopFactory]
+            })
             .set(this.mapFactory.getComponentsMap(), {
                 ref: CreateComponent,
                 dep: [ModelFactory]

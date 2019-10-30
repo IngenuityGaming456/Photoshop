@@ -13,8 +13,7 @@ export class CreateView implements IViewStructure {
             && (!this.isAlreadyMade(selectedLayersIdArray[0], getPlatform, menuName, viewDeletionObj))) {
             return Promise.resolve({insertId: selectedLayersIdArray[0], platform: this.platform});
         }
-        docEmitter.emit("logWarning", `Need to select only common to make ${menuName}, 
-                                       if common selected, the view already exists`);
+        docEmitter.emit("logWarning", `Need to select only common to make ${menuName}`);
         return Promise.reject("invalid");
     }
 

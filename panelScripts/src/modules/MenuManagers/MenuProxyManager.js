@@ -138,22 +138,16 @@ var MenuProxyManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!~this.menuStates.indexOf(menuLabels[menu].label)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, false, false)];
+                        if (!(menuLabels.enabled === false)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, menuLabels.enabled, false)];
                     case 1:
                         _a.sent();
-                        return [3 /*break*/, 6];
-                    case 2:
-                        if (!(menuLabels.enabled === false)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, menuLabels.enabled, false)];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, true, false)];
                     case 3:
                         _a.sent();
-                        return [3 /*break*/, 6];
-                    case 4: return [4 /*yield*/, this.generator.addMenuItem(menuLabels[menu].label, menuLabels[menu].displayName, true, false)];
-                    case 5:
-                        _a.sent();
-                        _a.label = 6;
-                    case 6: return [2 /*return*/];
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
                 }
             });
         });

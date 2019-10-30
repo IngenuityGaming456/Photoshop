@@ -63,7 +63,7 @@ var PhotoshopFactory = /** @class */ (function () {
                         if (!(_i < _a.length)) return [3 /*break*/, 7];
                         keys = _a[_i];
                         jsxParams = { parentId: "", childName: "", type: "" };
-                        if (!parserObject.hasOwnProperty(keys)) {
+                        if (!parserObject.hasOwnProperty(keys) || keys === "base") {
                             return [3 /*break*/, 6];
                         }
                         layerType = parserObject[keys].type;

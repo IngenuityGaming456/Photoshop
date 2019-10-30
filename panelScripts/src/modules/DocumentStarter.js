@@ -181,9 +181,14 @@ var DocumentStarter = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                this.generator.once("PanelsConnected", function () {
-                    _this.onPanelsConnected(openId);
-                });
+                if (Object.keys(this.connectedSockets).length === 2) {
+                    this.onPanelsConnected(openId);
+                }
+                else {
+                    this.generator.once("PanelsConnected", function () {
+                        _this.onPanelsConnected(openId);
+                    });
+                }
                 return [2 /*return*/];
             });
         });
@@ -230,6 +235,7 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.restorePhotoshop = function () {
         FactoryClass_1.FactoryClass.factoryInstance = null;
         this.imageState.state = false;
+        this.connectedSockets = {};
         this.removeListeners();
         this.applyDocumentListeners();
     };
@@ -295,7 +301,8 @@ var DocumentStarter = /** @class */ (function () {
         var photoshopFactory = FactoryClass_1.inject({ ref: PhotoshopFactory_1.PhotoshopFactory, dep: [ModelFactory_1.ModelFactory] });
         FactoryClass_1.execute(photoshopFactory, { generator: this.generator, docEmitter: this.docEmitter });
         var containerResponse = FactoryClass_1.inject({ ref: ContainerPanelResponse_1.ContainerPanelResponse, dep: [ModelFactory_1.ModelFactory, PhotoshopFactory_1.PhotoshopFactory] });
-        FactoryClass_1.execute(containerResponse, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
+        FactoryClass_1.execute(containerResponse, { generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
+            storage: { documentManager: this.documentManager } });
     };
     DocumentStarter.prototype.stabalizeDocument = function () {
         var documentStabalizer = FactoryClass_1.inject({ ref: DocumentStabalizer_1.DocumentStabalizer, dep: [] });
@@ -329,6 +336,10 @@ var DocumentStarter = /** @class */ (function () {
         this.structureMap = new Map();
         this.mapFactory = this.modelFactory.getMappingModel();
         this.structureMap
+            .set(this.mapFactory.getGenericViewMap(), {
+            ref: CreateViewStructure_1.CreateViewStructure,
+            dep: [CreateViewClasses_1.CreateView, ModelFactory_1.ModelFactory, PhotoshopFactory_1.PhotoshopFactory]
+        })
             .set(this.mapFactory.getComponentsMap(), {
             ref: CreateComponent_1.CreateComponent,
             dep: [ModelFactory_1.ModelFactory]

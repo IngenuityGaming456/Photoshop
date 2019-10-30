@@ -11,7 +11,7 @@ for (var i = 0; i < languagesCount; i++) {
     deCheckbox.size = [20, 20];
     deCheckbox.value = true;
 }
-var lockResponses = localisationWindow.add('button', undefined, 'Lock Responses');
+var lockResponses = localisationWindow.add('button', undefined, 'Generate');
 lockResponses.addEventListener('click', handleResponse);
 localisationWindow.show();
 

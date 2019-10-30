@@ -55,7 +55,7 @@ export class Validation implements IFactory {
                     return true;
                 }
             });
-            if (questItem) {
+            if (questItem && questItem.name !== "generic") {
                 this.docEmitter.emit("logWarning", `Not allowed to rename Quest Item, ${questItem.name} with id = ${id}`);
                 this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
                     {id: questItem.id, name: questItem.name});

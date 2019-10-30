@@ -26,7 +26,7 @@ export class PhotoshopFactory implements IFactory {
         this.platform = platform;
         for(let keys in parserObject) {
             let jsxParams: IJsxParam = {parentId: "", childName: "", type: ""};
-            if(!parserObject.hasOwnProperty(keys)) {
+            if(!parserObject.hasOwnProperty(keys) || keys === "base") {
                 continue;
             }
             layerType = parserObject[keys].type;

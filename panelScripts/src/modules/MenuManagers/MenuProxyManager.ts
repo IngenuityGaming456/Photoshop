@@ -55,17 +55,12 @@ export class MenuProxyManager implements IFactory {
     }
 
     private async drawMenuItems(menu) {
-        if(~this.menuStates.indexOf(menuLabels[menu].label)) {
+        if(menuLabels.enabled === false) {
             await this.generator.addMenuItem(menuLabels[menu].label,
-                menuLabels[menu].displayName, false, false);
+                menuLabels[menu].displayName, menuLabels.enabled, false);
         } else {
-            if(menuLabels.enabled === false) {
-                await this.generator.addMenuItem(menuLabels[menu].label,
-                    menuLabels[menu].displayName, menuLabels.enabled, false);
-            } else {
-                await this.generator.addMenuItem(menuLabels[menu].label,
-                    menuLabels[menu].displayName, true, false);
-            }
+            await this.generator.addMenuItem(menuLabels[menu].label,
+                menuLabels[menu].displayName, true, false);
         }
     }
 

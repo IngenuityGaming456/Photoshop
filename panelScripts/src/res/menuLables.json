@@ -1,42 +1,7 @@
 {
-  "Desktop": {
-    "label": "DesktopView",
-    "displayName": "Desktop",
-    "menuGroup": "Menu_Platform"
-  },
-  "Mobile": {
-    "label": "MobileView",
-    "displayName": "Mobile",
-    "menuGroup": "Menu_Platform"
-  },
-  "Divider1": {
-    "label": "Divider1",
-    "displayName": "",
-    "enabled": false
-  },
   "GenericView": {
     "label": "AddGenericView",
     "displayName": "NewView"
-  },
-  "FreeGameView": {
-    "label": "AddFreeGameView",
-    "displayName": "FreeGameView",
-    "menuGroup": "Menu_View"
-  },
-  "IntroOutro": {
-    "label": "AddIntroOutro",
-    "displayName": "IntroOutro",
-    "menuGroup": "Menu_View"
-  },
-  "Paytable": {
-    "label": "AddPaytable",
-    "displayName": "Paytable",
-    "menuGroup": "Menu_View"
-  },
-  "MainView": {
-    "label": "AddMainView",
-    "displayName": "MainView",
-    "menuGroup": "Menu_View"
   },
   "Divider2": {
     "label": "Divider2",

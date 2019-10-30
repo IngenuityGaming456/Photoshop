@@ -1,7 +1,4 @@
 import {IFactory, IJsxParam, IParams, IViewStructure} from "../interfaces/IJsxParam";
-import {JsonComponentsFactory} from "./JsonComponentsFactory";
-import {PhotoshopJsonComponent, QuestJsonComponent} from "./JsonComponents";
-import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
 import {CreatePlatform, CreateView} from "./CreateViewClasses";
 import {PhotoshopModel} from "../models/PhotoshopModels/PhotoshopModel";
@@ -57,11 +54,9 @@ export class CreateViewStructure implements IFactory {
             const params = this.getElementMap().get(menuName);
             this.emitValidCalls(menuName);
             for (let keys in params) {
-                this.applyStartingLogs(keys);
                 if (params.hasOwnProperty(keys)) {
                     await this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform);
                 }
-                this.applyEndingLogs(keys);
             }
         }
     }
@@ -79,24 +74,6 @@ export class CreateViewStructure implements IFactory {
     private emitValidCalls(menuName) {
         if(menuName != "AddGenericView") {
             this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
-        }
-    }
-
-    private applyStartingLogs(keys) {
-        if(keys === "baseGame") {
-            this.docEmitter.emit("logStatus", "Started making BaseGame");
-        }
-        if(keys === "freeGame") {
-            this.docEmitter.emit("logStatus", "Started making FreeGame");
-        }
-    }
-
-    private applyEndingLogs(keys) {
-        if(keys === "baseGame") {
-            this.docEmitter.emit("logStatus", "BaseGame done");
-        }
-        if(keys === "freeGame") {
-            this.docEmitter.emit("logStatus", "FreeGame done");
         }
     }
 

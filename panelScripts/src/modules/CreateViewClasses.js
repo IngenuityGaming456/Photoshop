@@ -56,7 +56,7 @@ var CreateView = /** @class */ (function () {
                             && (!this.isAlreadyMade(selectedLayersIdArray[0], getPlatform, menuName, viewDeletionObj))) {
                             return [2 /*return*/, Promise.resolve({ insertId: selectedLayersIdArray[0], platform: this.platform })];
                         }
-                        docEmitter.emit("logWarning", "Need to select only common to make " + menuName + ", \n                                       if common selected, the view already exists");
+                        docEmitter.emit("logWarning", "Need to select only common to make " + menuName);
                         return [2 /*return*/, Promise.reject("invalid")];
                 }
             });

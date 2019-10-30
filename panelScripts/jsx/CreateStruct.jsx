@@ -54,11 +54,11 @@ function getPathName(layerRef, pathName, baseName, level, type) {
         return getPathName(layerRef.parent, pathName, baseName, level, type);
     }
     if(level === 1) {
-        if(~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin|generic)/))) {
+        if(layerRef.parent.name === "common") {
             if(type && type === "static") {
-                pathName = setNameToStatic(layerRef, pathName)
+                pathName = setNameToStatic(layerRef, pathName);
             } else {
-                pathName = setNameToAnimations(layerRef, pathName)
+                pathName = setNameToAnimations(layerRef, pathName);
             }
             level = 2;
         }
@@ -154,7 +154,7 @@ function quickMaker(type) {
     makerPanel.orientation = "column";
     makerPanel.alignChildren = "center";
     var countBox = makerPanel.add("edittext", [0,0,150,60], "0");
-    var submitButton = makerPanel.add('button', undefined, 'Lock Response');
+    var submitButton = makerPanel.add('button', undefined, 'Generate');
     submitButton.addEventListener("click", onSubmitButtonClick);
     makerWindow.show();
     return countBox.text;

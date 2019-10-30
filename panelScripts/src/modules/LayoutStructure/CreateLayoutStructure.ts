@@ -41,8 +41,8 @@ export class CreateLayoutStructure implements IFactory {
         utlis.traverseObject(result.layers, this.filterResult.bind(this));
         this.modifyJSON(result.layers);
         this.modifyBottomBar(result.layers);
-        this.writeJSON(result);
         await this.removeUnwantedLayers();
+        this.writeJSON(result);
         this.emitStopStatus();
     }
 

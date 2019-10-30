@@ -10,6 +10,7 @@ var MappingModel = /** @class */ (function () {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.fireEvents();
+        this.makeGenericViewMap();
         this.makeComponentsMap();
         this.makePlatformMap();
         this.makeLayoutMap();
@@ -33,23 +34,22 @@ var MappingModel = /** @class */ (function () {
     ;
     MappingModel.prototype.makeSubViewMap = function (responseObj) {
         var viewMap = new Map();
-        viewMap.set("AddMainView", {
-            backgrounds: responseObj["backgrounds"],
-            bigWin: responseObj["bigWin"],
-            baseGame: responseObj["baseGame"]
-        }).set("AddPaytable", {
-            paytable: responseObj["paytable"]
-        }).set("AddIntroOutro", {
-            IntroOutro: responseObj["IntroOutro"]
-        }).set("AddFreeGameView", {
-            backgroundsFg: responseObj["backgroundsFg"],
-            freeGame: responseObj["freeGame"]
-        }).set("AddGenericView", {
+        viewMap.set("baseGame", responseObj["baseGame"])
+            .set("paytable", responseObj["paytable"])
+            .set("IntroOutro", responseObj["IntroOutro"])
+            .set("freeGame", responseObj["freeGame"])
+            .set("backgrounds", responseObj["backgrounds"])
+            .set("backgroundsFg", responseObj["backgroundsFg"])
+            .set("bigWin", responseObj["bigWin"]);
+        return viewMap;
+    };
+    MappingModel.prototype.makeGenericViewMap = function () {
+        this.genericViewMap = new Map();
+        this.genericViewMap.set("AddGenericView", {
             generic: {
                 generic: {}
             }
         });
-        return viewMap;
     };
     MappingModel.prototype.makeComponentsMap = function () {
         var _this = this;
@@ -66,13 +66,11 @@ var MappingModel = /** @class */ (function () {
         });
     };
     MappingModel.prototype.makePlatformMap = function () {
-        var desktopPlatform = { desktop: this.params.storage.platformStruct.desktop }, mobilePlatform = { mobile: this.params.storage.platformStruct.mobile };
+        var desktopPlatform = { desktop: this.params.storage.platformStruct.desktop }, portraitPlatform = { portrait: this.params.storage.platformStruct.portrait }, landscapePlatform = { landscape: this.params.storage.platformStruct.landscape };
         this.platformMap = new Map();
-        this.platformMap.set("DesktopView", {
-            desktop: desktopPlatform
-        }).set("MobileView", {
-            mobile: mobilePlatform
-        });
+        this.platformMap.set("desktop", desktopPlatform)
+            .set("portrait", portraitPlatform)
+            .set("landscape", landscapePlatform);
     };
     MappingModel.prototype.makeLayoutMap = function () {
         this.layoutMap = new Map();
@@ -108,6 +106,9 @@ var MappingModel = /** @class */ (function () {
             landscape: this.landscapeViewMap
         };
         return viewObj[platform];
+    };
+    MappingModel.prototype.getGenericViewMap = function () {
+        return this.genericViewMap;
     };
     MappingModel.prototype.onPhotoshopStart = function () {
     };

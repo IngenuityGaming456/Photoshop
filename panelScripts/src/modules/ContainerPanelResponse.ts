@@ -2,6 +2,7 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
 import * as path from "path";
+import * as layerClass from "../../lib/dom/layer";
 let packageJson = require("../../package.json");
 
 export class ContainerPanelResponse implements IFactory {
@@ -13,6 +14,7 @@ export class ContainerPanelResponse implements IFactory {
     private docEmitter;
     private activeDocument;
     private deletionHandler = [];
+    private documentManager;
 
     public constructor(modelFactory: ModelFactory, photoshopFactory) {
         this.modelFactory = modelFactory;
@@ -26,6 +28,7 @@ export class ContainerPanelResponse implements IFactory {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
+        this.documentManager = params.storage.documentManager;
         this.subscribeListeners();
     }
 
@@ -54,20 +57,71 @@ export class ContainerPanelResponse implements IFactory {
             const element = utlis.isIDExists(item.id, questArray);
             if(element) {
                 const elementView = utlis.getElementView(element, this.activeDocument.layers);
-                if(elementView) {
-                    this.socket.emit("UncheckFromContainerPanel", elementView, element.name);
-                }
+                const elementPlatform = utlis.getElementPlatform(element, this.activeDocument.layers);
+                this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
             }
         });
         utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap,
                               this.deletionHandler);
     }
 
-    private getDataForChanges() {
+    private async getDataForChanges() {
         const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse;
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
         if(previousResponse) {
             this.getChanges(previousResponse, currentResponse);
+        } else {
+            await this.construct(currentResponse);
+        }
+    }
+
+    private async construct(currentResponse) {
+        for(let platform of this.platformArray) {
+            if (currentResponse[platform]["base"]) {
+                await this.makePlatforms(platform);
+            }
+            const viewObj = currentResponse[platform];
+            for (let view in viewObj) {
+                if (!viewObj.hasOwnProperty(view)) {
+                    continue;
+                }
+                if (viewObj[view][view] && viewObj[view][view]["base"]) {
+                    this.applyStartingLogs(view);
+                    await this.makeViews(view, platform);
+                    this.applyEndingLogs(view);
+                }
+            }
+        }
+    }
+
+    private async makePlatforms(platform) {
+        const platformMap = this.modelFactory.getMappingModel().getPlatformMap();
+        const platformJson = platformMap.get(platform);
+        await this.photoshopFactory.makeStruct(platformJson, null, null, null);
+    }
+
+    private async makeViews(view, platform) {
+        const viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
+        const viewJson = viewMap.get(view);
+        const platformRef = this.getPlatformRef(platform);
+        const commonId = this.getCommonId(platformRef);
+        await this.photoshopFactory.makeStruct(viewJson, commonId, null, platform);
+    }
+
+    private getPlatformRef(platform) {
+        const activeLayers: layerClass.LayerGroup = this.activeDocument.layers.layers;
+        for(let layer of activeLayers) {
+            if(layer.name === platform) {
+                return layer;
+            }
+        }
+    }
+
+    private getCommonId(platformRef: layerClass.LayerGroup) {
+        for(let layer of platformRef.layers) {
+            if(layer.name === "common") {
+                return layer.id;
+            }
         }
     }
 
@@ -78,50 +132,35 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async getPlatformChanges(platform, previousPlatformView, currentPlatformView) {
+        await this.sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform);
         for(let key in previousPlatformView) {
             if(!previousPlatformView.hasOwnProperty(key)) {
                 continue;
             }
-            if(this.isViewDeleted(platform, key) === false) {
-                await this.sendJsonChanges(previousPlatformView[key], currentPlatformView[key], platform);
-            }
+            await this.sendViewJsonChanges(previousPlatformView[key], currentPlatformView[key], key, platform);
         }
     };
 
-    private isViewDeleted(platform, valueKey) {
-        const viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
-        const viewKeys = viewMap.keys();
-        for(let key of viewKeys) {
-            const value = viewMap.get(key);
-            const isInValue = Object.keys(value).some(item => {
-                if(item === valueKey) {
-                    return true;
-                }
-            });
-            if(isInValue) {
-                return this.modelFactory.getPhotoshopModel().viewDeletion[platform][key];
-            }
+    private async sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform) {
+        if(currentPlatformView.base && !previousPlatformView.base) {
+            await this.makePlatforms(platform);
         }
     }
 
-    private async sendJsonChanges(previousJson, currentJson, platform) {
+    private async sendViewJsonChanges(previousJson, currentJson, key, platform) {
         const previousBaseChild = previousJson[Object.keys(previousJson)[0]];
         const currentBaseChild = currentJson[Object.keys(currentJson)[0]];
-
-        for (let key in currentBaseChild) {
-            if(currentBaseChild.hasOwnProperty(key)) {
-                if(!previousBaseChild[key]) {
-                    await this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[key], key,  platform);
-                }
-            }
+        if(currentBaseChild && currentBaseChild["base"] && previousBaseChild && !previousBaseChild["base"]) {
+            this.applyStartingLogs(key);
+            await this.makeViews(key, platform);
+            this.applyEndingLogs(key);
+            return;
         }
 
-        for(let key in previousBaseChild) {
-            if(previousBaseChild.hasOwnProperty(key)) {
-                if(!currentBaseChild[key]) {
-                    const keysArray = Object.keys(previousJson);
-                    const firstKey = keysArray[0];
-                    await this.sendDeletionRequest(firstKey, key, platform);
+        for (let keyC in currentBaseChild) {
+            if(currentBaseChild.hasOwnProperty(keyC)) {
+                if(!previousBaseChild[keyC]) {
+                    await this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[keyC], keyC,  platform);
                 }
             }
         }
@@ -129,29 +168,6 @@ export class ContainerPanelResponse implements IFactory {
 
     private async sendAdditionRequest(baseKey, currentObj, key, platform) {
         await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey), baseKey, platform);
-    }
-
-    private async sendDeletionRequest(view, key, platform) {
-        const childId = this.getChildId(view, key, platform);
-        if(!childId) {
-            await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: childId});
-        }
-    }
-
-    private getChildId(view, element, platform) {
-        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
-        const viewObj = elementalMap[platform][view];
-        for(let key in viewObj) {
-            if(!viewObj.hasOwnProperty(key)) {
-                continue;
-            }
-            for(let item of viewObj[key]) {
-                if(item.name === element) {
-                    return item.id;
-                }
-            }
-        }
-        return null;
     }
 
     private getParentId(baseKey) {
@@ -164,6 +180,14 @@ export class ContainerPanelResponse implements IFactory {
         if(parent) {
             return parent.id;
         }
+    }
+
+    private applyStartingLogs(keys) {
+        this.docEmitter.emit("logStatus", `Started making ${keys}`);
+    }
+
+    private applyEndingLogs(keys) {
+        this.docEmitter.emit("logStatus", `${keys} done`);
     }
 
 }

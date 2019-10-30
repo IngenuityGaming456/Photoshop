@@ -159,11 +159,17 @@ export class utlis {
         } else {
             const itemRef = utlis.isIDExists(viewItem.id, eventLayers);
             if (itemRef) {
+                utlis.spliceFrom(viewItem.id, drawnQuestItems);
+                utlis.setSubDeletionObj(viewItem.id, viewItem.name, itemV, deletionObj, sessionHandler);
                 delete viewItems[itemV];
-                utlis.spliceFrom(itemV.id, drawnQuestItems);
-                utlis.setSubDeletionObj(itemV.id, itemV.name, itemV, deletionObj, sessionHandler);
             }
         }
+    }
+
+    public static getElementPlatform(element, activeLayers) {
+        const activeDocumentLayers: layerClass.LayerGroup = activeLayers;
+        const insertionRef = activeDocumentLayers.findLayer(element.id);
+        return utlis.getElementName(insertionRef, null);
     }
 
     public static spliceFrom(id, array) {
@@ -179,17 +185,17 @@ export class utlis {
     public static getElementView(element, activeDocumentLayers) {
         const layers: layerClass.LayerGroup = activeDocumentLayers;
         const elementRef = layers.findLayer(element.id);
-        return utlis.getView(elementRef);
+        return utlis.getElementName(elementRef, "common");
     }
 
-    private static getView(elementRef) {
+    private static getElementName(elementRef, keyName) {
         if ((elementRef.layer)) {
-            return utlis.getView(elementRef.layer.group);
+            return utlis.getElementName(elementRef.layer.group, keyName);
         }
-        if (elementRef.group && elementRef.group.name === "common") {
+        if (elementRef.group && elementRef.group.name === keyName) {
             return elementRef.name;
         } else if (elementRef.group) {
-            return utlis.getView(elementRef.group);
+            return utlis.getElementName(elementRef.group, keyName);
         } else {
             return null;
         }
