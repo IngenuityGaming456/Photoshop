@@ -1,0 +1,105 @@
+{
+    "freeGame": {
+        "freegameleftMtr": {
+            "type": "meter",
+            "text": "$00000000",
+            "id": "freegameleftMtr"
+        },
+        "totalwinMtrFG": {
+            "type": "meter",
+            "text": "$00000000",
+            "id": "totalwinMtrFG"
+        },
+        "5OfAKindContainer": {
+            "type": "container",
+            "id": "5OfAKindContainer",
+            "leaf": true
+        },
+        "buttonsContainer": {
+            "type": "container",
+            "id": "buttonsContainer"
+        },
+        "paidmeter": {
+            "type": "meter",
+            "text": "$000000",
+            "id": "winMtrFG",
+            "parent": "buttonsContainer"
+        },
+        "balancemeter": {
+            "type": "meter",
+            "text": "$000000000",
+            "id": "balance",
+            "parent": "buttonsContainer"
+        },
+        "totalbetmeter": {
+            "type": "meter",
+            "text": "0",
+            "id": "totalbet",
+            "parent": "buttonsContainer"
+        },
+        "minusButtonBet": {
+            "type": "button",
+            "id": "stakeDownBtn",
+            "parent": "buttonsContainer"
+        },
+        "plusButtonBet": {
+            "type": "button",
+            "id": "stakeUpBtn",
+            "parent": "buttonsContainer"
+        },
+        "betmeter_Label": {
+            "type": "label",
+            "text": "betmeter_Text",
+            "id": "betmeter_Label",
+            "parent": "buttonsContainer"
+        },
+        "coinMeter": {
+            "type": "meter",
+            "text": "0.1",
+            "id": "bet",
+            "parent": "buttonsContainer"
+        },
+        "skipButton": {
+            "type": "button",
+            "id": "skip",
+            "parent": "buttonsContainer"
+        },
+        "spinStopButton": {
+            "type": "button",
+            "id": "spinStop",
+            "parent": "buttonsContainer"
+        },
+        "AutoPlayOnBtnContainer": {
+            "type": "container",
+            "id": "AutoPlayOnBtnContainer",
+            "parent": "buttonsContainer",
+            "leaf": true
+        },
+        "promoMessageContainer": {
+            "type": "container",
+            "id": "promoMessageContainer",
+            "leaf": true
+        },
+        "reelsContainer": {
+            "type": "container",
+            "id": "reelsContainer",
+            "noElement": true
+        },
+        "reelsBGContainer": {
+            "type": "container",
+            "id": "reelsBGContainer",
+            "parent": "reelsContainer",
+            "leaf": true
+        },
+        "gameLogoContainer": {
+            "type": "container",
+            "id": "gameLogoContainer",
+            "leaf": true
+        },
+        "Symbols": {
+            "type": "container",
+            "id": "Symbols",
+            "leaf": true
+        }
+    }
+}

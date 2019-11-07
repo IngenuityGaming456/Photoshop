@@ -1,0 +1,138 @@
+{
+  "baseGame": {
+    "buttonsContainerBG": {
+      "type": "container",
+      "id": "buttonsContainerBG"
+    },
+    "winMtr": {
+      "type": "meter",
+      "id": "winMtr",
+      "parent": "buttonsContainerBG"
+    },
+    "balancemeter": {
+      "type": "meter",
+      "id": "balance",
+      "parent": "buttonsContainerBG"
+    },
+    "totalbetmeter": {
+      "type": "meter",
+      "id": "totalbet",
+      "parent": "buttonsContainerBG"
+    },
+    "minusButtonBet": {
+      "type": "button",
+      "id": "stakeDownBtn",
+      "parent": "buttonsContainerBG"
+    },
+    "plusButtonBet": {
+      "type": "button",
+      "id": "stakeUpBtn",
+      "parent": "buttonsContainerBG"
+    },
+    "coinMeter": {
+      "type": "meter",
+      "id": "bet",
+      "parent": "buttonsContainerBG"
+    },
+    "spinButton": {
+      "type": "button",
+      "id": "spin",
+      "parent": "buttonsContainerBG"
+    },
+    "spinStopButton": {
+      "type": "button",
+      "id": "spinStop",
+      "parent": "buttonsContainerBG"
+    },
+    "helpBtn": {
+      "type": "button",
+      "id": "info",
+      "parent": "buttonsContainerBG"
+    },
+    "menuContainer": {
+      "type": "container",
+      "id": "menuContainer",
+      "parent": "buttonsContainerBG",
+      "noContainer": true
+    },
+    "settingsBtn": {
+      "type": "button",
+      "id": "setting",
+      "parent": "menuContainer"
+    },
+    "AutoPlayOnBtnContainer": {
+      "type": "container",
+      "id": "AutoPlayOnBtnContainer",
+      "parent": "buttonsContainerBG",
+      "noContainer": true
+    },
+    "autoPlayOnButton": {
+      "id": "autoPlayOn",
+      "type": "button",
+      "parent": "AutoPlayOnBtnContainer"
+    },
+    "AutoPlayOffBtnContainer": {
+      "type": "container",
+      "id": "AutoPlayOffBtnContainer",
+      "parent": "buttonsContainerBG",
+      "noContainer": true
+    },
+    "autoPlayOffButton": {
+      "id": "autoPlayOff",
+      "type": "button",
+      "parent": "AutoPlayOffBtnContainer"
+    },
+    "autoPlayMeter": {
+      "type": "meter",
+      "id": "autoPlayMeter",
+      "parent": "AutoPlayOffBtnContainer"
+    },
+    "promoMessageContainer": {
+      "type": "container",
+      "id": "promoMessageContainer",
+      "leaf": true
+    },
+    "5OfAKindContainer": {
+      "type": "container",
+      "id": "5OfAKindContainer",
+      "leaf": true
+    },
+    "anticipationAnim": {
+      "type": "animation",
+      "id": "anticipationAnim",
+      "frameRate": 15,
+      "loop": true
+    },
+    "reelsContainer": {
+      "type": "container",
+      "id": "reelsContainer",
+      "noElement": true
+    },
+    "reelsBGContainer": {
+      "type": "container",
+      "id": "reelsBGContainer",
+      "parent": "reelsContainer",
+      "leaf": true
+    },
+    "gameLogoContainer": {
+      "type": "container",
+      "id": "gameLogoContainer",
+      "leaf": true
+    },
+    "Symbols": {
+      "type": "container",
+      "id": "Symbols",
+      "leaf": true
+    },
+    "Paylines": {
+      "type": "container",
+      "id": "Paylines",
+      "leaf": true
+    },
+    "WinFrames": {
+      "type": "container",
+      "id": "WinFrames",
+      "leaf": true
+    }
+  }
+}

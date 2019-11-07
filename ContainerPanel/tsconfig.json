@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ESNext",
+    "sourceMap": true,
+    "downlevelIteration": true,
+    "types": ["node"],
+    "outFile": "main.js"
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include":  [
+    "./js"
+  ]
+}

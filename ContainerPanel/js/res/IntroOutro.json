@@ -1,0 +1,22 @@
+{
+  "IntroOutro": {
+    "noElement": true,
+    "IntroOutroContainer": {
+      "type": "container",
+      "id": "IntroOutroContainer",
+      "noElement": true
+    },
+    "IntroContainer": {
+      "type": "container",
+      "id": "IntroContainer",
+      "parent": "IntroOutroContainer",
+      "leaf": true
+    },
+    "OutroContainer": {
+      "type": "container",
+      "id": "OutroContainer",
+      "parent": "IntroOutroContainer",
+      "leaf": true
+    }
+  }
+}
