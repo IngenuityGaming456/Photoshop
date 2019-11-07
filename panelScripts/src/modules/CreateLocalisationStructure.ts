@@ -1,20 +1,27 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
-import {Generator} from "../../../generator-core/lib/generator";
 import {Document} from "../../lib/dom/document.js";
 import * as layerClass from "../../lib/dom/layer.js"
 import * as path from "path";
+import {ModelFactory} from "../models/ModelFactory";
 
 let languagesStruct = require("../res/languages");
 
 export class CreateLocalisationStructure implements IFactory {
-    private _generator: Generator;
+    private _generator;
     private _activeDocument: Document;
     private docEmitter;
+    private recordedResponse = [];
+    private modelFactory;
+
+    public constructor(modelFactory: ModelFactory) {
+        this.modelFactory = modelFactory;
+    }
 
     public async execute(params: IParams) {
         this._generator = params.generator;
         this._activeDocument = params.activeDocument;
         this.docEmitter = params.docEmitter;
+        this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
         this.getParents(await this.findSelectedLayers());
     }
 
@@ -55,15 +62,24 @@ export class CreateLocalisationStructure implements IFactory {
         const idsMapKeys = [...idsMap.keys()];
         const idsMapValues = [...idsMap.values()];
         const langId = this.findLanguageId(idsMapValues);
+        if(!langId) {
+            return;
+        }
         this.filterMapValues(idsMapValues);
         const params = {
             languages: languagesStruct.languages,
             ids: idsMapKeys,
             values: idsMapValues,
-            langId: langId
+            langId: langId,
+            recordedResponse: this.recordedResponse
         };
         this.docEmitter.emit("localisation", idsMapKeys);
-        await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
+        const response = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
+        this.pushToRecordedResponse(response);
+    }
+
+    private pushToRecordedResponse(response) {
+        response.split(",").forEach(item => this.recordedResponse.push(item));
     }
 
     private findLanguageId(idsMapValues: Array<Array<any>>) {
@@ -73,6 +89,9 @@ export class CreateLocalisationStructure implements IFactory {
                 return true;
             }
         });
+        if(!this.safeToLocalise(parent, idsMapValues)) {
+            return null;
+        }
         const parentRef = docLayers.findLayer(parent.id);
         const languagesRef = parentRef.layer.layers.find(item => {
             if(item.name === "languages") {
@@ -80,6 +99,23 @@ export class CreateLocalisationStructure implements IFactory {
             }
         });
         return languagesRef.id;
+    }
+
+    private safeToLocalise(parent, idsMapValues) {
+        if(!parent) {
+            this.docEmitter.emit("logWarning", "Can't Localise a container");
+            return false;
+        }
+        const langItem =  idsMapValues[0].find(item => {
+            if (item.name.search(/(languages)/) !== -1) {
+                return true;
+            }
+        });
+        if(langItem) {
+            this.docEmitter.emit("logWarning", "Can't Localise an already localised layer");
+            return false;
+        }
+        return true;
     }
 
     private filterMapValues(filterArray) {

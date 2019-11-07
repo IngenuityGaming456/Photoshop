@@ -1,5 +1,4 @@
 import {IFactory, IParams} from "../../interfaces/IJsxParam";
-import {Generator} from "../../../../generator-core/lib/generator.js";
 import * as fs from "fs";
 import * as path from "path";
 import {utlis} from "../../utils/utils";
@@ -8,7 +7,7 @@ import {ModelFactory} from "../../models/ModelFactory";
 let packageJson = require("../../../package.json");
 
 export class CreateLayoutStructure implements IFactory {
-    private _generator: Generator;
+    private _generator;
     private _pluginId;
     private _activeDocument;
     private layerMap;
@@ -33,7 +32,6 @@ export class CreateLayoutStructure implements IFactory {
         this.bufferMap = params.storage.bufferMap;
         this.assetsPath = params.storage.assetsPath;
         this.docEmitter = params.docEmitter;
-        //this.unsubscribeEventListener("imageChanged");
         this.emitStartStatus();
         await this.restructureTempLayers();
         await this.modifyPathNames();
@@ -42,6 +40,7 @@ export class CreateLayoutStructure implements IFactory {
         this.modifyJSON(result.layers);
         this.modifyBottomBar(result.layers);
         await this.removeUnwantedLayers();
+        this.removeDuplicates(result.layers);
         this.writeJSON(result);
         this.emitStopStatus();
     }
@@ -75,14 +74,6 @@ export class CreateLayoutStructure implements IFactory {
     private async requestDocument() {
         return await this._generator.getDocumentInfo(undefined);
     }
-
-
-    // private unsubscribeEventListener(eventName: string) {
-    //     const listeners = this._generator.photoshopEventListeners(eventName);
-    //     // Just a hack, will write a very detailed code in later phase.
-    //     CreateLayoutStructure.listenerFn = listeners[1];
-    //     this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
-    // }
 
     private filterResult(artLayerRef) {
         artLayerRef.name = this.applySplitter(artLayerRef.name);
@@ -146,10 +137,11 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private async upperLevelUnwantedLayers() {
+        this.modelFactory.getPhotoshopModel().isDeletedFromLayout = true;
         const str = `var upperLevelLayers = app.activeDocument.layers; 
                      var layersCount = upperLevelLayers.length;
                      for(var i=0;i<layersCount;i++) {
-                          if(!~upperLevelLayers[i].name.search(/(desktop|mobile)/)) {
+                          if(!~upperLevelLayers[i].name.search(/(desktop|landscape|portrait)/)) {
                                upperLevelLayers[i].remove();
                           }         
                      }`;
@@ -199,6 +191,57 @@ export class CreateLayoutStructure implements IFactory {
                 this.modifyBottomBar(item.layers);
             }
         });
+    }
+
+    private removeDuplicates(layers) {
+        for(let item of layers) {
+            if(item.name === "common") {
+                this.handleCommonLayers(item);
+                break;
+            }
+            if(item.layers) {
+                this.removeDuplicates(item.layers);
+            }
+        }
+    }
+
+    private handleCommonLayers(item) {
+        const commonLayers = item.layers;
+        commonLayers.forEach(view => {
+            this.handleViewDuplicates(view.layers, null);
+        });
+    }
+
+    private handleViewDuplicates(viewLayers, uiMap) {
+        uiMap = uiMap || {};
+        viewLayers.forEach(item => {
+            if(item.generatorSettings && item.generatorSettings[this._pluginId]) {
+                const genSettings = item.generatorSettings[this._pluginId].json;
+                if(!uiMap.hasOwnProperty(genSettings)) {
+                    uiMap[genSettings] = [];
+                    uiMap[genSettings].push(item.name);
+                } else {
+                    if(~uiMap[genSettings].indexOf(item.name)) {
+                        const sequence = this.getCorrectSequence(uiMap[genSettings], item.name, 1);
+                        uiMap[genSettings].push(item.name + sequence);
+                        item.name = item.name + sequence;
+                    } else {
+                        uiMap[genSettings].push(item.name);
+                    }
+                }
+            }
+            if(item.layers) {
+                this.handleViewDuplicates(item.layers, uiMap);
+            }
+        })
+    }
+
+    private getCorrectSequence(uiArray, name, count) {
+        if(~uiArray.indexOf(name + count)) {
+            return this.getCorrectSequence(uiArray, name, count++);
+        } else {
+            return count;
+        }
     }
 
     private emitStopStatus() {

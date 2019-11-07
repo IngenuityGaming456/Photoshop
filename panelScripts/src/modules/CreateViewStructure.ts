@@ -40,10 +40,7 @@ export class CreateViewStructure implements IFactory {
     }
 
     private getElementMap() {
-        if(!this.platform) {
-            return this.modelFactory.getMappingModel().getPlatformMap();
-        }
-        return this.modelFactory.getMappingModel().getViewPlatformMap(this.platform);
+        return this.modelFactory.getMappingModel().getGenericViewMap();
     }
     
     private async drawStruct(menuName) {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var path = require("path");
 var DocumentLogger = /** @class */ (function () {
     function DocumentLogger() {
     }
@@ -29,6 +30,9 @@ var DocumentLogger = /** @class */ (function () {
         this.loggerEmitter.on("activeDocument", function (docId) {
             _this.onActiveDoc(docId);
         });
+        this.loggerEmitter.on("destroy", function () { return _this.onDestroy(); });
+        this.loggerEmitter.on("newDocument", function () { return _this.onNewDocument(); });
+        this.loggerEmitter.on("currentDocument", function () { return _this.onCurrentDocument(); });
     };
     DocumentLogger.prototype.onSocketUpdate = function (socket) {
         this.socket = socket;
@@ -38,15 +42,32 @@ var DocumentLogger = /** @class */ (function () {
     };
     DocumentLogger.prototype.handleDocumentWarning = function (loggerType) {
         this.socket.emit("logWarning", loggerType);
+        this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
+            panelName: "Warning",
+            text: loggerType
+        });
     };
     DocumentLogger.prototype.handleDocumentError = function (id, key, loggerType) {
         this.socket.emit("logError", id, key, loggerType);
+        this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
+            panelName: "Error",
+            text: loggerType
+        });
     };
     DocumentLogger.prototype.onStatusMessage = function (message) {
         this.socket.emit("logStatus", message);
     };
     DocumentLogger.prototype.handleErrorRemoval = function (id) {
         this.socket.emit("removeError", id);
+    };
+    DocumentLogger.prototype.onDestroy = function () {
+        this.socket.emit("destroy");
+    };
+    DocumentLogger.prototype.onCurrentDocument = function () {
+        this.socket.emit("enablePage");
+    };
+    DocumentLogger.prototype.onNewDocument = function () {
+        this.socket.emit("disablePage");
     };
     return DocumentLogger;
 }());

@@ -1,4 +1,5 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
+import * as path from "path";
 
 export class DocumentLogger implements IFactory {
     private generator;
@@ -31,6 +32,9 @@ export class DocumentLogger implements IFactory {
         this.loggerEmitter.on("activeDocument", docId => {
             this.onActiveDoc(docId);
         });
+        this.loggerEmitter.on("destroy", () => this.onDestroy());
+        this.loggerEmitter.on("newDocument", () => this.onNewDocument());
+        this.loggerEmitter.on("currentDocument", () => this.onCurrentDocument());
     }
 
     private onSocketUpdate(socket) {
@@ -43,10 +47,18 @@ export class DocumentLogger implements IFactory {
 
     private handleDocumentWarning(loggerType) {
         this.socket.emit("logWarning", loggerType);
+        this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
+            panelName: "Warning",
+            text: loggerType
+        });
 }
 
     private handleDocumentError(id, key, loggerType) {
         this.socket.emit("logError", id, key, loggerType);
+        this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
+            panelName: "Error",
+            text: loggerType
+        });
     }
 
     private onStatusMessage(message) {
@@ -55,6 +67,18 @@ export class DocumentLogger implements IFactory {
 
     private handleErrorRemoval(id) {
         this.socket.emit("removeError", id);
+    }
+
+    private onDestroy() {
+        this.socket.emit("destroy");
+    }
+
+    private onCurrentDocument() {
+        this.socket.emit("enablePage");
+    }
+
+    private onNewDocument() {
+        this.socket.emit("disablePage");
     }
 
 }

@@ -36,7 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
-var utils_1 = require("../utils/utils");
 var DocumentStabalizer = /** @class */ (function () {
     function DocumentStabalizer() {
     }
@@ -45,17 +44,9 @@ var DocumentStabalizer = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this.openDocumentData = params.storage.openDocumentData;
                         this.generator = params.generator;
-                        this.docId = params.storage.docId;
-                        if (!!this.openDocumentData) return [3 /*break*/, 2];
-                        utils_1.utlis.makeDir("D:\\PSDFromScripts");
-                        return [4 /*yield*/, this.removeBackgroundLayer()];
+                        return [4 /*yield*/, this.forceSave()];
                     case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: return [4 /*yield*/, this.forceSave()];
-                    case 3:
                         _a.sent();
                         return [2 /*return*/];
                 }
@@ -76,15 +67,28 @@ var DocumentStabalizer = /** @class */ (function () {
     };
     DocumentStabalizer.prototype.forceSave = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var savePath, result;
+            var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        savePath = "D:/PSDFromScripts/" + this.docId + ".psd";
-                        return [4 /*yield*/, this.generator.evaluateJSXString("app.activeDocument.saveAs(File(\"" + savePath + "\"))")];
+                    case 0: return [4 /*yield*/, this.generator.evaluateJSXString("app.activeDocument.artLayers.add()")];
                     case 1:
-                        result = _a.sent();
-                        return [2 /*return*/];
+                        _a.sent();
+                        return [4 /*yield*/, this.generator.evaluateJSXString("app.activeDocument.activeLayer.remove()")];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.generator.evaluateJSXString("try {\n                                                                        app.activeDocument.save();\n                                                                        }catch(err) {\n                                                                         false;\n                                                                        }")];
+                    case 3:
+                        response = _a.sent();
+                        if (!!response) return [3 /*break*/, 5];
+                        return [4 /*yield*/, this.removeBackgroundLayer()];
+                    case 4:
+                        _a.sent();
+                        this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
+                            panelName: "Status",
+                            text: "Save Document To Start Working"
+                        });
+                        _a.label = 5;
+                    case 5: return [2 /*return*/];
                 }
             });
         });

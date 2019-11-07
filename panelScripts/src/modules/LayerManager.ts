@@ -1,5 +1,4 @@
 import {Document} from "../../lib/dom/document.js";
-import {Generator} from "../../../generator-core/lib/generator.js";
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
@@ -7,7 +6,7 @@ let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
 
 export class LayerManager implements IFactory{
-    private  _generator: Generator;
+    private  _generator;
     private  _activeDocument: Document;
     private  pluginId: string;
     public static promiseArray: Array<Promise<any>> = [];

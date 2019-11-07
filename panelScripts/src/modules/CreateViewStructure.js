@@ -54,10 +54,7 @@ var CreateViewStructure = /** @class */ (function () {
         this.drawStruct(params.menuName);
     };
     CreateViewStructure.prototype.getElementMap = function () {
-        if (!this.platform) {
-            return this.modelFactory.getMappingModel().getPlatformMap();
-        }
-        return this.modelFactory.getMappingModel().getViewPlatformMap(this.platform);
+        return this.modelFactory.getMappingModel().getGenericViewMap();
     };
     CreateViewStructure.prototype.drawStruct = function (menuName) {
         return __awaiter(this, void 0, void 0, function () {

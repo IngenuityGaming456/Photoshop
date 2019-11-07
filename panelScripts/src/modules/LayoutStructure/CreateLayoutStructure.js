@@ -70,7 +70,6 @@ var CreateLayoutStructure = /** @class */ (function () {
                         this.bufferMap = params.storage.bufferMap;
                         this.assetsPath = params.storage.assetsPath;
                         this.docEmitter = params.docEmitter;
-                        //this.unsubscribeEventListener("imageChanged");
                         this.emitStartStatus();
                         return [4 /*yield*/, this.restructureTempLayers()];
                     case 1:
@@ -87,6 +86,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                         return [4 /*yield*/, this.removeUnwantedLayers()];
                     case 4:
                         _a.sent();
+                        this.removeDuplicates(result.layers);
                         this.writeJSON(result);
                         this.emitStopStatus();
                         return [2 /*return*/];
@@ -170,12 +170,6 @@ var CreateLayoutStructure = /** @class */ (function () {
             });
         });
     };
-    // private unsubscribeEventListener(eventName: string) {
-    //     const listeners = this._generator.photoshopEventListeners(eventName);
-    //     // Just a hack, will write a very detailed code in later phase.
-    //     CreateLayoutStructure.listenerFn = listeners[1];
-    //     this._generator.removePhotoshopEventListener(eventName, CreateLayoutStructure.listenerFn);
-    // }
     CreateLayoutStructure.prototype.filterResult = function (artLayerRef) {
         artLayerRef.name = this.applySplitter(artLayerRef.name);
         delete artLayerRef["generatorSettings"][this._pluginId];
@@ -306,7 +300,8 @@ var CreateLayoutStructure = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        str = "var upperLevelLayers = app.activeDocument.layers; \n                     var layersCount = upperLevelLayers.length;\n                     for(var i=0;i<layersCount;i++) {\n                          if(!~upperLevelLayers[i].name.search(/(desktop|mobile)/)) {\n                               upperLevelLayers[i].remove();\n                          }         \n                     }";
+                        this.modelFactory.getPhotoshopModel().isDeletedFromLayout = true;
+                        str = "var upperLevelLayers = app.activeDocument.layers; \n                     var layersCount = upperLevelLayers.length;\n                     for(var i=0;i<layersCount;i++) {\n                          if(!~upperLevelLayers[i].name.search(/(desktop|landscape|portrait)/)) {\n                               upperLevelLayers[i].remove();\n                          }         \n                     }";
                         return [4 /*yield*/, this._generator.evaluateJSXString(str)];
                     case 1:
                         _a.sent();
@@ -360,6 +355,69 @@ var CreateLayoutStructure = /** @class */ (function () {
                 _this.modifyBottomBar(item.layers);
             }
         });
+    };
+    CreateLayoutStructure.prototype.removeDuplicates = function (layers) {
+        try {
+            for (var layers_1 = __values(layers), layers_1_1 = layers_1.next(); !layers_1_1.done; layers_1_1 = layers_1.next()) {
+                var item = layers_1_1.value;
+                if (item.name === "common") {
+                    this.handleCommonLayers(item);
+                    break;
+                }
+                if (item.layers) {
+                    this.removeDuplicates(item.layers);
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (layers_1_1 && !layers_1_1.done && (_a = layers_1.return)) _a.call(layers_1);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        var e_3, _a;
+    };
+    CreateLayoutStructure.prototype.handleCommonLayers = function (item) {
+        var _this = this;
+        var commonLayers = item.layers;
+        commonLayers.forEach(function (view) {
+            _this.handleViewDuplicates(view.layers, null);
+        });
+    };
+    CreateLayoutStructure.prototype.handleViewDuplicates = function (viewLayers, uiMap) {
+        var _this = this;
+        uiMap = uiMap || {};
+        viewLayers.forEach(function (item) {
+            if (item.generatorSettings && item.generatorSettings[_this._pluginId]) {
+                var genSettings = item.generatorSettings[_this._pluginId].json;
+                if (!uiMap.hasOwnProperty(genSettings)) {
+                    uiMap[genSettings] = [];
+                    uiMap[genSettings].push(item.name);
+                }
+                else {
+                    if (~uiMap[genSettings].indexOf(item.name)) {
+                        var sequence = _this.getCorrectSequence(uiMap[genSettings], item.name, 1);
+                        uiMap[genSettings].push(item.name + sequence);
+                        item.name = item.name + sequence;
+                    }
+                    else {
+                        uiMap[genSettings].push(item.name);
+                    }
+                }
+            }
+            if (item.layers) {
+                _this.handleViewDuplicates(item.layers, uiMap);
+            }
+        });
+    };
+    CreateLayoutStructure.prototype.getCorrectSequence = function (uiArray, name, count) {
+        if (~uiArray.indexOf(name + count)) {
+            return this.getCorrectSequence(uiArray, name, count++);
+        }
+        else {
+            return count;
+        }
     };
     CreateLayoutStructure.prototype.emitStopStatus = function () {
         this.docEmitter.emit("logStatus", "Layout Generation done");

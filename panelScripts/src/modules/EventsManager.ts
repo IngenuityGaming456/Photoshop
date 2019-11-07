@@ -15,6 +15,7 @@ export class EventsManager implements IFactory{
         this.isAddedEvent(event);
         this.isDeletionEvent(event);
         this.isRenameEvent(event);
+        this.isDocumentChange(event);
     }
 
     private subscribeListeners() {
@@ -68,6 +69,12 @@ export class EventsManager implements IFactory{
         this.generator.emit("closedDocument", nowCloseDocuments[0]);
     }
 
+    private isDocumentChange(event) {
+        if(event.active) {
+            this.generator.emit("activeDocumentChanged", event.id);
+        }
+    }
+
     private removeUnwantedEvents(event) {
         if(event.layers) {
             this.removeUnwantedLayers(event.layers);
@@ -78,31 +85,11 @@ export class EventsManager implements IFactory{
     private removeUnwantedLayers(rawChange) {
         var unwantedLayers = [];
         rawChange.forEach((item, index) => {
-            if((item.added && item.removed) || this.isEntireEmpty(item)) {
+            if((item.added && item.removed)) {
                 unwantedLayers.push(index);
             }
         });
         this.sliceArray(rawChange, unwantedLayers);
-    }
-
-    private isEntireEmpty(item) {
-        const levelStat = [];
-        if(item.added || item.removed || item.moved || item.name) {
-            return false;
-        }
-        if(item.layers) {
-            for (let itemN of item.layers) {
-                levelStat.push(this.isEntireEmpty(itemN));
-            }
-            for(let stat of levelStat) {
-                if(!stat) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return true;
-        }
     }
 
     private removeUnwantedProperty(rawChange) {

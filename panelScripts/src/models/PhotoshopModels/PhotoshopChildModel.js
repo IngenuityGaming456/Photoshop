@@ -17,6 +17,8 @@ var PhotoshopChildModel = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.sessionHandler = [];
         _this.modifiedIds = [];
+        _this.recordedResponse = [];
+        _this.isFromLayout = false;
         return _this;
     }
     PhotoshopChildModel.prototype.execute = function (params) {
@@ -32,6 +34,23 @@ var PhotoshopChildModel = /** @class */ (function (_super) {
     Object.defineProperty(PhotoshopChildModel.prototype, "allModifiedIds", {
         get: function () {
             return this.modifiedIds;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopChildModel.prototype, "allRecordedResponse", {
+        get: function () {
+            return this.recordedResponse;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopChildModel.prototype, "isDeletedFromLayout", {
+        get: function () {
+            return this.isFromLayout;
+        },
+        set: function (value) {
+            this.isFromLayout = value;
         },
         enumerable: true,
         configurable: true

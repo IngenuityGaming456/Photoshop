@@ -13,6 +13,7 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
     private docEmitter;
     private docId;
     private activeId;
+    private currentId;
 
     public execute(params: IParams) {
         this.generator = params.generator;
@@ -20,6 +21,7 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
         this.activeDocument = params.activeDocument;
         this.docId = params.storage.docId;
         this.activeId = this.activeDocument.id;
+        this.currentId = params.storage.activeId;
         this.subscribeListeners();
     }
 
@@ -40,9 +42,11 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
     }
 
     private async onPhotoshopClose() {
+        if(this.currentId.id && this.currentId.id !== this.activeId) {
+            return;
+        }
         const docId = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,
             packageJson.name + "Document");
-        this.createFolder(docId);
         this.isState = this.photoshopCloseCallback;
         this.notify();
     }
@@ -50,15 +54,6 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
     private onPhotoshopOpen() {
         this.isState = this.photoshopStartCallback;
         this.notify();
-    }
-
-    public createFolder(docId) {
-        if(this.activeDocument.directory) {
-            const filteredPath = this.activeDocument.directory + "\\" + docId.docId;
-            if (!fs.existsSync(filteredPath)) {
-                fs.mkdirSync(filteredPath);
-            }
-        }
     }
 
     private photoshopCloseCallback(observer: IModel) {

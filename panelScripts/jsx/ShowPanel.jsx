@@ -1,4 +1,6 @@
 #include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+var checkCount = 1;
+var selectedLayers = [];
 var languagesArray = params.languages;
 var languagesCount = languagesArray.length;
 var localisationWindow = new Window('dialog', 'Localisation');
@@ -9,14 +11,38 @@ languagePanel.spacing = 0;
 for (var i = 0; i < languagesCount; i++) {
     var deCheckbox = languagePanel.add('checkbox', undefined, languagesArray[i]);
     deCheckbox.size = [20, 20];
-    deCheckbox.value = true;
+    deCheckbox.value = isRecordedResponse(languagesArray[i]);
 }
+var checkUncheck = localisationWindow.add('button', undefined, 'Check/Uncheck');
+checkUncheck.addEventListener('click', handleClick);
 var lockResponses = localisationWindow.add('button', undefined, 'Generate');
 lockResponses.addEventListener('click', handleResponse);
 localisationWindow.show();
 
+function isRecordedResponse(key) {
+    var recordedCount = params.recordedResponse.length;
+    for(var i=0;i<recordedCount;i++) {
+        if(key === params.recordedResponse[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function handleClick() {
+    if(checkCount % 2) {
+        for (var i = 0; i < languagesCount; i++) {
+            languagePanel.children[i].value = true;
+        }
+    } else {
+        for (var i = 0; i < languagesCount; i++) {
+            languagePanel.children[i].value = false;
+        }
+    }
+    checkCount++;
+}
+
 function handleResponse() {
-    var selectedLayers = [];
     for (var i = 0; i < languagesCount; i++) {
         if (languagePanel.children[i].value === true) {
             selectedLayers.push(languagePanel.children[i].text);
@@ -82,3 +108,4 @@ function duplicateItemLayer(itemId, parentRef) {
     var itemLayerRef = getInsertionReferenceById(itemId);
     itemLayerRef.duplicate(parentRef);
 }
+selectedLayers;

@@ -48,6 +48,7 @@ var PhotoshopEventSubject = /** @class */ (function () {
         this.activeDocument = params.activeDocument;
         this.docId = params.storage.docId;
         this.activeId = this.activeDocument.id;
+        this.currentId = params.storage.activeId;
         this.subscribeListeners();
     };
     PhotoshopEventSubject.prototype.subscribeListeners = function () {
@@ -70,10 +71,13 @@ var PhotoshopEventSubject = /** @class */ (function () {
             var docId;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
+                    case 0:
+                        if (this.currentId.id && this.currentId.id !== this.activeId) {
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
                     case 1:
                         docId = _a.sent();
-                        this.createFolder(docId);
                         this.isState = this.photoshopCloseCallback;
                         this.notify();
                         return [2 /*return*/];
@@ -84,14 +88,6 @@ var PhotoshopEventSubject = /** @class */ (function () {
     PhotoshopEventSubject.prototype.onPhotoshopOpen = function () {
         this.isState = this.photoshopStartCallback;
         this.notify();
-    };
-    PhotoshopEventSubject.prototype.createFolder = function (docId) {
-        if (this.activeDocument.directory) {
-            var filteredPath = this.activeDocument.directory + "\\" + docId.docId;
-            if (!fs.existsSync(filteredPath)) {
-                fs.mkdirSync(filteredPath);
-            }
-        }
     };
     PhotoshopEventSubject.prototype.photoshopCloseCallback = function (observer) {
         observer.onPhotoshopClose();

@@ -54,7 +54,7 @@ function getPathName(layerRef, pathName, baseName, level, type) {
         return getPathName(layerRef.parent, pathName, baseName, level, type);
     }
     if(level === 1) {
-        if(layerRef.parent.name === "common") {
+        if(layerRef.parent.name === "common" || layerRef.parent.name === "languages") {
             if(type && type === "static") {
                 pathName = setNameToStatic(layerRef, pathName);
             } else {

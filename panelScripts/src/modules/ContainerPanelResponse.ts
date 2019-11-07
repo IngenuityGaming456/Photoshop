@@ -1,7 +1,6 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
-import * as path from "path";
 import * as layerClass from "../../lib/dom/layer";
 let packageJson = require("../../package.json");
 
@@ -30,21 +29,20 @@ export class ContainerPanelResponse implements IFactory {
         this.activeDocument = params.activeDocument;
         this.documentManager = params.storage.documentManager;
         this.subscribeListeners();
+        this.isReady();
     }
 
     private subscribeListeners() {
-        this.generator.on("save", () => this.onSave());
         this.generator.on("layersDeleted", (eventLayers) => this.onLayersDeleted(eventLayers));
         this.docEmitter.on("HandleSocketResponse", () => this.getDataForChanges());
         this.docEmitter.on("getUpdatedHTMLSocket", socket => this.onSocketUpdate(socket));
+        this.docEmitter.on("destroy", () => this.onDestroy());
+        this.docEmitter.on("newDocument", () => this.onNewDocument());
+        this.docEmitter.on("currentDocument", () => this.onCurrentDocument());
     }
 
-    private async onSave() {
-        if(this.socket) {
-            const docIdObj = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,
-                packageJson.name + "Document");
-            this.socket.emit("activeDocument", this.activeDocument.directory, docIdObj.docId);
-        }
+    private isReady() {
+        this.docEmitter.emit("containerPanelReady");
     }
 
     private onSocketUpdate(socket) {
@@ -52,13 +50,19 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async onLayersDeleted(eventLayers) {
+        if(this.modelFactory.getPhotoshopModel().isDeletedFromLayout) {
+            this.modelFactory.getPhotoshopModel().isDeletedFromLayout = false;
+            return;
+        }
         const questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         eventLayers.forEach(item => {
-            const element = utlis.isIDExists(item.id, questArray);
-            if(element) {
-                const elementView = utlis.getElementView(element, this.activeDocument.layers);
-                const elementPlatform = utlis.getElementPlatform(element, this.activeDocument.layers);
-                this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
+            if(item.removed) {
+                const element = utlis.isIDExists(item.id, questArray);
+                if(element) {
+                    const elementView = utlis.getElementView(element, this.activeDocument.layers);
+                    const elementPlatform = utlis.getElementPlatform(element, this.activeDocument.layers);
+                    this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
+                }
             }
         });
         utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap,
@@ -167,19 +171,13 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async sendAdditionRequest(baseKey, currentObj, key, platform) {
-        await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey), baseKey, platform);
+        await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey, platform), baseKey, platform);
     }
 
-    private getParentId(baseKey) {
-        const baseId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        const parent = baseId.find(item => {
-            if(item.name === baseKey) {
-                return true;
-            }
-        });
-        if(parent) {
-            return parent.id;
-        }
+    private getParentId(baseKey, platform) {
+        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        const view = elementalMap[platform][baseKey];
+        return view.base.id;
     }
 
     private applyStartingLogs(keys) {
@@ -188,6 +186,18 @@ export class ContainerPanelResponse implements IFactory {
 
     private applyEndingLogs(keys) {
         this.docEmitter.emit("logStatus", `${keys} done`);
+    }
+
+    private onDestroy() {
+        this.socket.emit("destroy");
+    }
+
+    private onNewDocument() {
+        this.socket.emit("disablePage");
+    }
+
+    private onCurrentDocument() {
+        this.socket.emit("enablePage");
     }
 
 }

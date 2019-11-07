@@ -7,6 +7,7 @@ import {AddedViewState} from "../../states/photoshopMenuStates/AddedViewState";
 import {DeletedViewState} from "../../states/photoshopMenuStates/DeletedViewsState";
 import {ModelFactory} from "../../models/ModelFactory";
 import {DeletedPlatformState} from "../../states/photoshopMenuStates/DeletedPlatformState";
+import {UtilsPhotoshopState} from "../../utils/utilsPhotoshopState";
 let menuLabels = require("../../res/menuLables");
 
 export class MenuProxyManager implements IFactory {
@@ -45,6 +46,8 @@ export class MenuProxyManager implements IFactory {
         this.generator.on("layersDeleted", deletedLayers => {
             this.onLayersDeletion(deletedLayers)
         });
+        this.docEmitter.on("currentDocument", () => this.enableAllMenuItems());
+        this.docEmitter.on("newDocument", () => this.disableAllMenuItems());
     }
 
     private async addMenuItems() {
@@ -210,4 +213,21 @@ export class MenuProxyManager implements IFactory {
         }
     }
 
+    private async enableAllMenuItems() {
+        for(let menu in menuLabels) {
+            if(menuLabels.hasOwnProperty(menu)) {
+                await this.generator.toggleMenu(menuLabels[menu].label, true, false,
+                    menuLabels[menu].displayName);
+            }
+        }
+    }
+
+    private async disableAllMenuItems() {
+        for(let menu in menuLabels) {
+            if(menuLabels.hasOwnProperty(menu)) {
+                    await this.generator.toggleMenu(menuLabels[menu].label,false, false,
+                        menuLabels[menu].displayName);
+                }
+            }
+        }
 }

@@ -59,7 +59,9 @@ var layerClass = require("../../lib/dom/layer.js");
 var path = require("path");
 var languagesStruct = require("../res/languages");
 var CreateLocalisationStructure = /** @class */ (function () {
-    function CreateLocalisationStructure() {
+    function CreateLocalisationStructure(modelFactory) {
+        this.recordedResponse = [];
+        this.modelFactory = modelFactory;
     }
     CreateLocalisationStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -70,6 +72,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
                         this._generator = params.generator;
                         this._activeDocument = params.activeDocument;
                         this.docEmitter = params.docEmitter;
+                        this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
                         _a = this.getParents;
                         return [4 /*yield*/, this.findSelectedLayers()];
                     case 1:
@@ -129,28 +132,37 @@ var CreateLocalisationStructure = /** @class */ (function () {
     };
     CreateLocalisationStructure.prototype.drawLayers = function (idsMap) {
         return __awaiter(this, void 0, void 0, function () {
-            var idsMapKeys, idsMapValues, langId, params;
+            var idsMapKeys, idsMapValues, langId, params, response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         idsMapKeys = __spread(idsMap.keys());
                         idsMapValues = __spread(idsMap.values());
                         langId = this.findLanguageId(idsMapValues);
+                        if (!langId) {
+                            return [2 /*return*/];
+                        }
                         this.filterMapValues(idsMapValues);
                         params = {
                             languages: languagesStruct.languages,
                             ids: idsMapKeys,
                             values: idsMapValues,
-                            langId: langId
+                            langId: langId,
+                            recordedResponse: this.recordedResponse
                         };
                         this.docEmitter.emit("localisation", idsMapKeys);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params)];
                     case 1:
-                        _a.sent();
+                        response = _a.sent();
+                        this.pushToRecordedResponse(response);
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    CreateLocalisationStructure.prototype.pushToRecordedResponse = function (response) {
+        var _this = this;
+        response.split(",").forEach(function (item) { return _this.recordedResponse.push(item); });
     };
     CreateLocalisationStructure.prototype.findLanguageId = function (idsMapValues) {
         var docLayers = this._activeDocument.layers;
@@ -159,6 +171,9 @@ var CreateLocalisationStructure = /** @class */ (function () {
                 return true;
             }
         });
+        if (!this.safeToLocalise(parent, idsMapValues)) {
+            return null;
+        }
         var parentRef = docLayers.findLayer(parent.id);
         var languagesRef = parentRef.layer.layers.find(function (item) {
             if (item.name === "languages") {
@@ -166,6 +181,22 @@ var CreateLocalisationStructure = /** @class */ (function () {
             }
         });
         return languagesRef.id;
+    };
+    CreateLocalisationStructure.prototype.safeToLocalise = function (parent, idsMapValues) {
+        if (!parent) {
+            this.docEmitter.emit("logWarning", "Can't Localise a container");
+            return false;
+        }
+        var langItem = idsMapValues[0].find(function (item) {
+            if (item.name.search(/(languages)/) !== -1) {
+                return true;
+            }
+        });
+        if (langItem) {
+            this.docEmitter.emit("logWarning", "Can't Localise an already localised layer");
+            return false;
+        }
+        return true;
     };
     CreateLocalisationStructure.prototype.filterMapValues = function (filterArray) {
         filterArray.forEach(function (item) {

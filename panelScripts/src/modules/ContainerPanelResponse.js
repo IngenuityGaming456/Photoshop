@@ -62,30 +62,19 @@ var ContainerPanelResponse = /** @class */ (function () {
         this.activeDocument = params.activeDocument;
         this.documentManager = params.storage.documentManager;
         this.subscribeListeners();
+        this.isReady();
     };
     ContainerPanelResponse.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("save", function () { return _this.onSave(); });
         this.generator.on("layersDeleted", function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
         this.docEmitter.on("HandleSocketResponse", function () { return _this.getDataForChanges(); });
         this.docEmitter.on("getUpdatedHTMLSocket", function (socket) { return _this.onSocketUpdate(socket); });
+        this.docEmitter.on("destroy", function () { return _this.onDestroy(); });
+        this.docEmitter.on("newDocument", function () { return _this.onNewDocument(); });
+        this.docEmitter.on("currentDocument", function () { return _this.onCurrentDocument(); });
     };
-    ContainerPanelResponse.prototype.onSave = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var docIdObj;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.socket) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
-                    case 1:
-                        docIdObj = _a.sent();
-                        this.socket.emit("activeDocument", this.activeDocument.directory, docIdObj.docId);
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
-                }
-            });
-        });
+    ContainerPanelResponse.prototype.isReady = function () {
+        this.docEmitter.emit("containerPanelReady");
     };
     ContainerPanelResponse.prototype.onSocketUpdate = function (socket) {
         this.socket = socket;
@@ -95,13 +84,19 @@ var ContainerPanelResponse = /** @class */ (function () {
             var _this = this;
             var questArray;
             return __generator(this, function (_a) {
+                if (this.modelFactory.getPhotoshopModel().isDeletedFromLayout) {
+                    this.modelFactory.getPhotoshopModel().isDeletedFromLayout = false;
+                    return [2 /*return*/];
+                }
                 questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
                 eventLayers.forEach(function (item) {
-                    var element = utils_1.utlis.isIDExists(item.id, questArray);
-                    if (element) {
-                        var elementView = utils_1.utlis.getElementView(element, _this.activeDocument.layers);
-                        var elementPlatform = utils_1.utlis.getElementPlatform(element, _this.activeDocument.layers);
-                        _this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
+                    if (item.removed) {
+                        var element = utils_1.utlis.isIDExists(item.id, questArray);
+                        if (element) {
+                            var elementView = utils_1.utlis.getElementView(element, _this.activeDocument.layers);
+                            var elementPlatform = utils_1.utlis.getElementPlatform(element, _this.activeDocument.layers);
+                            _this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
+                        }
                     }
                 });
                 utils_1.utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap, this.deletionHandler);
@@ -384,7 +379,7 @@ var ContainerPanelResponse = /** @class */ (function () {
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.photoshopFactory.makeStruct((_a = {}, _a[key] = currentObj, _a), this.getParentId(baseKey), baseKey, platform)];
+                    case 0: return [4 /*yield*/, this.photoshopFactory.makeStruct((_a = {}, _a[key] = currentObj, _a), this.getParentId(baseKey, platform), baseKey, platform)];
                     case 1:
                         _b.sent();
                         return [2 /*return*/];
@@ -392,22 +387,25 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.getParentId = function (baseKey) {
-        var baseId = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        var parent = baseId.find(function (item) {
-            if (item.name === baseKey) {
-                return true;
-            }
-        });
-        if (parent) {
-            return parent.id;
-        }
+    ContainerPanelResponse.prototype.getParentId = function (baseKey, platform) {
+        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        var view = elementalMap[platform][baseKey];
+        return view.base.id;
     };
     ContainerPanelResponse.prototype.applyStartingLogs = function (keys) {
         this.docEmitter.emit("logStatus", "Started making " + keys);
     };
     ContainerPanelResponse.prototype.applyEndingLogs = function (keys) {
         this.docEmitter.emit("logStatus", keys + " done");
+    };
+    ContainerPanelResponse.prototype.onDestroy = function () {
+        this.socket.emit("destroy");
+    };
+    ContainerPanelResponse.prototype.onNewDocument = function () {
+        this.socket.emit("disablePage");
+    };
+    ContainerPanelResponse.prototype.onCurrentDocument = function () {
+        this.socket.emit("enablePage");
     };
     return ContainerPanelResponse;
 }());

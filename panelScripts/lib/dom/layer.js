@@ -1396,7 +1396,10 @@
                 }
             }, this);
         }
-
+        if(rawLayerChange.layers && rawLayerChange.layers[0].name && !rawLayerChange.layers[0].added) {
+            const refId = this.findLayer(rawLayerChange.layers[0].id);
+            return BaseLayer.prototype._applyChange.call(refId.layer, rawLayerChange.layers[0]);
+        }
         return BaseLayer.prototype._applyChange.call(this, rawLayerChange);
     };
 

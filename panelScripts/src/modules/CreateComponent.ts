@@ -70,7 +70,7 @@ export class CreateComponent implements IFactory {
         if(!layerRef) {
             return false;
         }
-        if(~layerRef.name.search((/(baseGame|freeGame|paytable|backgrounds|backgroundsFg|Loading|IntroOutro|bigWin|generic)/))) {
+        if(layerRef.group && ~layerRef.group.name.search((/common/))) {
             return true;
         }
         return this.isCorrectSelection(layerRef.group);

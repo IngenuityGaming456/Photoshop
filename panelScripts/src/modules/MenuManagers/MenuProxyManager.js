@@ -94,6 +94,8 @@ var MenuProxyManager = /** @class */ (function () {
         this.generator.on("layersDeleted", function (deletedLayers) {
             _this.onLayersDeletion(deletedLayers);
         });
+        this.docEmitter.on("currentDocument", function () { return _this.enableAllMenuItems(); });
+        this.docEmitter.on("newDocument", function () { return _this.disableAllMenuItems(); });
     };
     MenuProxyManager.prototype.addMenuItems = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -302,6 +304,60 @@ var MenuProxyManager = /** @class */ (function () {
                 return;
             }
         }
+    };
+    MenuProxyManager.prototype.enableAllMenuItems = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, _b, _i, menu;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        _a = [];
+                        for (_b in menuLabels)
+                            _a.push(_b);
+                        _i = 0;
+                        _c.label = 1;
+                    case 1:
+                        if (!(_i < _a.length)) return [3 /*break*/, 4];
+                        menu = _a[_i];
+                        if (!menuLabels.hasOwnProperty(menu)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.generator.toggleMenu(menuLabels[menu].label, true, false, menuLabels[menu].displayName)];
+                    case 2:
+                        _c.sent();
+                        _c.label = 3;
+                    case 3:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    MenuProxyManager.prototype.disableAllMenuItems = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, _b, _i, menu;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        _a = [];
+                        for (_b in menuLabels)
+                            _a.push(_b);
+                        _i = 0;
+                        _c.label = 1;
+                    case 1:
+                        if (!(_i < _a.length)) return [3 /*break*/, 4];
+                        menu = _a[_i];
+                        if (!menuLabels.hasOwnProperty(menu)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.generator.toggleMenu(menuLabels[menu].label, false, false, menuLabels[menu].displayName)];
+                    case 2:
+                        _c.sent();
+                        _c.label = 3;
+                    case 3:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
     };
     return MenuProxyManager;
 }());

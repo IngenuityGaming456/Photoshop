@@ -1,11 +1,10 @@
 import {IFactory, IParams, IPhotoshopState} from "../../interfaces/IJsxParam";
-import {Generator} from "../../../../generator-core/lib/generator";
 import {ModelFactory} from "../../models/ModelFactory";
 
 export class MenuManager implements IFactory {
 
     deps?: IFactory[];
-    private generator: Generator;
+    private generator;
     private readonly noPlatform: IPhotoshopState;
     private readonly addedPlatform: IPhotoshopState;
     private readonly deletedView: IPhotoshopState;
