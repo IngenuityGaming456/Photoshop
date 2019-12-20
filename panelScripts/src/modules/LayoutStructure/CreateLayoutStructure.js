@@ -117,45 +117,57 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.restructure = function (layerName) {
         return __awaiter(this, void 0, void 0, function () {
-            var drawnQuestItems, items, items_1, items_1_1, item, e_1_1, e_1, _a;
+            var drawnQuestItems, items, items_1, items_1_1, item, structRef, structRefNestedLayers, i, e_1_1, e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-                        items = drawnQuestItems.map(function (item) {
+                        items = drawnQuestItems.filter(function (item) {
                             if (item.name === layerName) {
-                                return item.id;
+                                return true;
                             }
-                            return -1;
                         });
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, 7, 8]);
+                        _b.trys.push([1, 8, 9, 10]);
                         items_1 = __values(items), items_1_1 = items_1.next();
                         _b.label = 2;
                     case 2:
-                        if (!!items_1_1.done) return [3 /*break*/, 5];
+                        if (!!items_1_1.done) return [3 /*break*/, 7];
                         item = items_1_1.value;
-                        if (!(item > -1)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"), { id: item })];
+                        structRef = this._activeDocument.layers.findLayer(item.id);
+                        if (structRef.layer.group.name === "BaseGame") {
+                            return [2 /*return*/];
+                        }
+                        if (!structRef.layer.layers) return [3 /*break*/, 6];
+                        structRefNestedLayers = structRef.layer.layers.length;
+                        i = 0;
+                        _b.label = 3;
                     case 3:
-                        _b.sent();
-                        _b.label = 4;
+                        if (!(i < structRefNestedLayers)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"), { id: structRef.layer.layers[i].layers[0].id, parentName: layerName,
+                                subLayerName: structRef.layer.layers[i].name })];
                     case 4:
+                        _b.sent();
+                        _b.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 3];
+                    case 6:
                         items_1_1 = items_1.next();
                         return [3 /*break*/, 2];
-                    case 5: return [3 /*break*/, 8];
-                    case 6:
+                    case 7: return [3 /*break*/, 10];
+                    case 8:
                         e_1_1 = _b.sent();
                         e_1 = { error: e_1_1 };
-                        return [3 /*break*/, 8];
-                    case 7:
+                        return [3 /*break*/, 10];
+                    case 9:
                         try {
                             if (items_1_1 && !items_1_1.done && (_a = items_1.return)) _a.call(items_1);
                         }
                         finally { if (e_1) throw e_1.error; }
                         return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });

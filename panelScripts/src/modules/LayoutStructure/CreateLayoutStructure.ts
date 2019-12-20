@@ -57,16 +57,23 @@ export class CreateLayoutStructure implements IFactory {
 
     private async restructure(layerName) {
         const drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        const items = drawnQuestItems.map(item => {
+        const items = drawnQuestItems.filter(item => {
             if (item.name === layerName) {
-                return item.id;
+                return true
             }
-            return -1;
         });
         for (let item of items) {
-            if (item > -1) {
-                await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"),
-                    {id: item});
+            const structRef = this._activeDocument.layers.findLayer(item.id);
+            if(structRef.layer.group.name === "BaseGame") {
+                return;
+            }
+            if(structRef.layer.layers) {
+                const structRefNestedLayers = structRef.layer.layers.length;
+                for(let i=0;i<structRefNestedLayers;i++) {
+                    await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"),
+                        {id: structRef.layer.layers[i].layers[0].id, parentName: layerName,
+                            subLayerName: structRef.layer.layers[i].name});
+                }
             }
         }
     }
