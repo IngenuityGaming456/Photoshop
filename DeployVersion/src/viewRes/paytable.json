@@ -1,0 +1,44 @@
+{
+  "paytable": {
+    "payTableFullContainer": {
+      "type": "container",
+      "id": "payTableFullContainer"
+    },
+    "pagesContainer": {
+      "type": "container",
+      "id": "pagesContainer",
+      "parent": "payTableFullContainer"
+    },
+    "pageOneContainer": {
+      "type": "container",
+      "id": "pageOneContainer",
+      "parent": "pagesContainer"
+    },
+    "pageTwoContainer": {
+      "type": "container",
+      "id": "pageTwoContainer",
+      "parent": "pagesContainer"
+    },
+    "exitSettingContainer": {
+      "type": "container",
+      "id": "exitSettingContainer",
+      "parent": "payTableFullContainer"
+    },
+    "info_next_button": {
+      "type": "button",
+      "id": "info_next_button",
+      "images": "InfoButton",
+      "parent": "exitSettingContainer"
+    },
+    "info_prev_button": {
+      "type": "button",
+      "id": "info_prev_button",
+      "parent": "exitSettingContainer"
+    },
+    "info_back_button": {
+      "type": "button",
+      "id": "info_back_button",
+      "parent": "exitSettingContainer"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConfig) {
+﻿function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConfig) {
     var childLayer;
     if (layerType === "layerSection") {
         childLayer = parentRef.layerSets.add();
@@ -189,4 +189,44 @@ function translate(textLayer) {
     var x = app.activeDocument.width/2 - textLayer.bounds[0];
     var y = app.activeDocument.height/2 - textLayer.bounds[1];
     textLayer.translate(x, y);
+}
+
+function makeWindowAndPanel(windowName, panelName) {
+    var window = new Window('dialog', windowName);
+    var panel = window.add('panel', undefined, panelName);
+    panel.orientation = "column";
+    panel.alignChildren = "center";
+    panel.spacing = 0;
+    return {
+        window: window,
+        panel: panel
+    };
+}
+
+function addElementsToPanel(panel, elementArray, elementName, callback) {
+    var elementCount = elementArray.length;
+    for(var i=0;i<elementCount;i++) {
+        var element = panel.add(elementName, undefined, elementArray[i]);
+        element.size = [20, 20];
+        element.value = callback ? callback(elementArray[i]) : false;
+    }
+}
+
+function getRadioResponse(panel, count) {
+    for(var i=0;i<count;i++) {
+        if(panel.children[i].value) {
+            return panel.children[i].text;
+        }
+    }
+    return null;
+}
+
+function getElementRef(params, key) {
+    var elementName = params.childName ? params.childName : key + params.clicks;
+    var elementRef = params.parentId ? getInsertionReferenceById(params.parentId) :
+        getParentRef();
+    return {
+        name: elementName,
+        ref: elementRef
+    };
 }

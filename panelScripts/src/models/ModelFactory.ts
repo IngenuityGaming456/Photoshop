@@ -1,11 +1,8 @@
 import {IDataSubModel, IFactory, IModel, IParams} from "../interfaces/IJsxParam";
 import {inject, execute} from "../modules/FactoryClass";
 import {MappingModel} from "./MappingModel";
-import {PhotoshopModel} from "./PhotoshopModels/PhotoshopModel";
-import {PhotoshopStartModel} from "./PhotoshopStartModel";
 import {DataPhotoshopModel} from "./PhotoshopModels/DataPhotoshopModel";
 import {NoDataPhotoshopModel} from "./PhotoshopModels/NoDataPhotoshopModel";
-import {utlis} from "../utils/utils";
 import {PhotoshopChildModel} from "./PhotoshopModels/PhotoshopChildModel";
 
 let menuLabels = require("../res/menuLables.json");

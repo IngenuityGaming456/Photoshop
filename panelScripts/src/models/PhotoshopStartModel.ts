@@ -11,24 +11,28 @@ export class PhotoshopStartModel implements IModel {
     private docIdObj;
 
     public execute(params: IParams) {
+        this.writeObj = {};
+        this.docIdObj = null;
+        this.openDocumentData = null;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     }
 
     private subscribeListeners() {
-        this.generator.on("writeData", data => this.onWriteData(data));
+        this.generator.on("writeData", (data, isComplete?) => this.onWriteData(data, isComplete));
+        this.generator.on("docId", (docId) => {
+            this.docIdObj.docId = docId;
+        });
     }
 
-    private onWriteData(data) {
+    private onWriteData(data, isComplete?) {
         this.writeObj = Object.assign(this.writeObj, data);
-        this.writeDataAtPath();
+        isComplete && this.writeDataAtPath();
     }
 
     private async writeDataAtPath() {
         const result = JSON.stringify(this.writeObj, null, "  ");
-        this.docIdObj = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,
-            packageJson.name + "Document");
         fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", result, err => {
             if(err) {
                 console.log(err);
@@ -48,7 +52,6 @@ export class PhotoshopStartModel implements IModel {
     }
 
     public onPhotoshopClose() {
-
     }
 
 }

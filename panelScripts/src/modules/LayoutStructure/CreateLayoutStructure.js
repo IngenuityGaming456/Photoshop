@@ -247,6 +247,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
+                        this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
                         this.modifiedIds.push(key);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:

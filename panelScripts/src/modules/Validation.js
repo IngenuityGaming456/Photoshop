@@ -4,6 +4,7 @@ var utils_1 = require("../utils/utils");
 var path = require("path");
 var Validation = /** @class */ (function () {
     function Validation(modelFactory) {
+        this.alreadyRenamed = [];
         this.modelFactory = modelFactory;
         this.layersErrorData = this.modelFactory.getPhotoshopModel().allLayersErrorData;
     }
@@ -19,7 +20,7 @@ var Validation = /** @class */ (function () {
         this.generator.on("layerRenamed", function (eventLayers) { return _this.onLayersRename(eventLayers); });
     };
     Validation.prototype.isInHTML = function (key, id, questArray, drawnQuestItems) {
-        if (~questArray.indexOf(key) && !utils_1.utlis.isIDExists(id, drawnQuestItems)) {
+        if (~questArray.indexOf(key) && !utils_1.utlis.isIDExists(id, drawnQuestItems) && !~this.alreadyRenamed.indexOf(id)) {
             this.docEmitter.emit("logWarning", "Not allowed to create HTML Container, " + key + " with id = " + id);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: id });
         }
@@ -40,6 +41,8 @@ var Validation = /** @class */ (function () {
         }
     };
     Validation.prototype.drawnQuestItemsRenamed = function (name, id, drawnQuestItems) {
+        var layerId = this.modelFactory.getPhotoshopModel().allSelectedLayers[0];
+        var layerRef = this.activeDocument.layers.findLayer(Number(layerId));
         var questItem = drawnQuestItems.find(function (item) {
             if (item.id === id && item.name !== name) {
                 return true;
@@ -48,6 +51,16 @@ var Validation = /** @class */ (function () {
         if (questItem && questItem.name !== "generic") {
             this.docEmitter.emit("logWarning", "Not allowed to rename Quest Item, " + questItem.name + " with id = " + id);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: questItem.id, name: questItem.name });
+            throw new Error("Validation Stop");
+        }
+        if (utils_1.utlis.getElementName(layerRef, "languages") && !~this.alreadyRenamed.indexOf(id)) {
+            if (this.modelFactory.getPhotoshopModel().isRenamedFromLayout) {
+                this.modelFactory.getPhotoshopModel().isRenamedFromLayout = false;
+                return this;
+            }
+            this.alreadyRenamed.push(id);
+            this.docEmitter.emit("logWarning", "Can't rename an item inside languages");
+            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: layerRef.layer.id, name: layerRef.layer.name });
             throw new Error("Validation Stop");
         }
         return this;

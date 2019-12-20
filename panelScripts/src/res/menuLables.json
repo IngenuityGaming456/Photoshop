@@ -32,6 +32,12 @@
     "type": "comp",
     "menuGroup": "Menu_UI"
   },
+  "Bitmap": {
+    "label": "AddBitmap",
+    "displayName": "Bitmap",
+    "type": "comp",
+    "menuGroup": "Menu_UI"
+  },
   "Spine": {
     "label": "AddSpine",
     "displayName": "Spine",
@@ -69,8 +75,8 @@
     "label": "LayoutEnabled",
     "displayName": "GetLayout"
   },
-  "Testing": {
+  "RemovePath": {
     "label": "Testing",
-    "displayName": "Testing"
+    "displayName": "RemovePath"
   }
 }

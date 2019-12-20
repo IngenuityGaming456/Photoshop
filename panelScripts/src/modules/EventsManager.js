@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var EventsManager = /** @class */ (function () {
     function EventsManager() {
+        this.isNewDocument = false;
+        this.activeDocId = null;
     }
     EventsManager.prototype.execute = function (params) {
         this.generator = params.generator;
@@ -9,16 +11,23 @@ var EventsManager = /** @class */ (function () {
         this.subscribeListeners();
     };
     EventsManager.prototype.onImageChanged = function (event) {
+        this.isDocumentChange(event);
+        if (this.activeDocId && this.activeDocId != event.id) {
+            return;
+        }
         this.removeUnwantedEvents(event);
         this.isAddedEvent(event);
         this.isDeletionEvent(event);
         this.isRenameEvent(event);
-        this.isDocumentChange(event);
     };
     EventsManager.prototype.subscribeListeners = function () {
         var _this = this;
+        this.generator.on("activeDocumentId", function (activeDocId) { return _this.activeDocId = activeDocId; });
+        this.generator.on("newDocument", function () { return _this.isNewDocument = true; });
+        this.generator.on("currentDocument", function () { return _this.isNewDocument = false; });
         this.generator.on("eventProcessed", function (event) {
-            _this.onHandleEvents(event);
+            if (!_this.isNewDocument)
+                _this.onHandleEvents(event);
         });
         this.documentManager.on("openDocumentsChanged", function (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) {
             _this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
@@ -120,7 +129,7 @@ var EventsManager = /** @class */ (function () {
     };
     EventsManager.prototype.isAddedEvent = function (event) {
         if (event.layers && this.isAdded(event.layers)) {
-            this.generator.emit("layersAdded", event.layers);
+            this.generator.emit("layersAdded", event.layers, this.isNewDocument);
         }
     };
     EventsManager.prototype.isDeletionEvent = function (event) {

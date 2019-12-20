@@ -41,22 +41,9 @@
         _eventsManager.onImageChanged(event);
     }
 
-    // function onDocumentChanged() {
-    //     componentsMap.forEach(handleChange);
-    //     Promise.all(documentPromise)
-    //         .then(
-    //             _generator.evaluateJSXFile(path.join(__dirname, "../jsx/alert.jsx"), {
-    //                 message: "Search is done, Happy Photoshopping"
-    //             }));
-    // }
-    //
-
-
-
     function initializeModelFactory() {
         _startModel = new PhotoshopStartModel();
     }
-
 
     function initializeDocumentStarter() {
         _documentStarter = new DocumentStarter();

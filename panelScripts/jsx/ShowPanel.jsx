@@ -3,21 +3,13 @@ var checkCount = 1;
 var selectedLayers = [];
 var languagesArray = params.languages;
 var languagesCount = languagesArray.length;
-var localisationWindow = new Window('dialog', 'Localisation');
-var languagePanel = localisationWindow.add('panel', undefined, 'Select Languages');
-languagePanel.orientation = "column";
-languagePanel.alignChildren = "center";
-languagePanel.spacing = 0;
-for (var i = 0; i < languagesCount; i++) {
-    var deCheckbox = languagePanel.add('checkbox', undefined, languagesArray[i]);
-    deCheckbox.size = [20, 20];
-    deCheckbox.value = isRecordedResponse(languagesArray[i]);
-}
-var checkUncheck = localisationWindow.add('button', undefined, 'Check/Uncheck');
+var windowStruct = makeWindowAndPanel('Localisation', 'Select Languages');
+addElementsToPanel(windowStruct.panel, languagesArray, 'checkbox', isRecordedResponse);
+var checkUncheck = windowStruct.window.add('button', undefined, 'Check/Uncheck');
 checkUncheck.addEventListener('click', handleClick);
-var lockResponses = localisationWindow.add('button', undefined, 'Generate');
+var lockResponses = windowStruct.window.add('button', undefined, 'Generate');
 lockResponses.addEventListener('click', handleResponse);
-localisationWindow.show();
+windowStruct.window.show();
 
 function isRecordedResponse(key) {
     var recordedCount = params.recordedResponse.length;
@@ -48,7 +40,7 @@ function handleResponse() {
             selectedLayers.push(languagePanel.children[i].text);
         }
     }
-    localisationWindow.close();
+    windowStruct.window.close();
     drawStruct(selectedLayers);
 }
 

@@ -39,7 +39,7 @@ export class DocumentStarter implements IFactory {
     private htmlSocket;
     private checkedBoxes;
     private connectedSockets = {};
-    private activeId = { id: null};
+    private activeId = {id: null};
     private imageState = {
         state: false
     };
@@ -63,20 +63,26 @@ export class DocumentStarter implements IFactory {
             this.activeId.id = changeId;
             this.onDocumentOpen(changeId);
         });
+        this.documentManager.on("documentResolved", () => {
+            this.generator.emit("documentResolved")
+        });
         this.generator.onPhotoshopEvent("generatorMenuChanged", (event) => this.onButtonMenuClicked(event));
     }
 
     private async onDocumentOpen(openId) {
         if(this.activeDocument && this.activeDocument.id !== openId) {
+            this.generator.emit("newDocument");
             this.loggerEmitter.emit("newDocument");
             this.docEmitter.emit("newDocument");
             return;
         }
         if(this.activeDocument && this.activeDocument.id === openId) {
+            this.generator.emit("currentDocument");
             this.loggerEmitter.emit("currentDocument");
             this.docEmitter.emit("currentDocument");
             return;
         }
+        this.generator.on("closedDocument", (closeId) => this.onDocumentClose(closeId));
         this.generator.on("save", () =>  {
             this.start(openId);
         });
@@ -106,6 +112,11 @@ export class DocumentStarter implements IFactory {
     }
 
     private createSocket() {
+        if(this.io) {
+            this.io.close()
+            this.io = null;
+            this.generator.removeAllListeners("PanelsConnected");
+        }
         this.io = require('socket.io')(8099);
         console.log("making a socket connection");
         this.io.on("connection", (socket) => {
@@ -190,9 +201,6 @@ export class DocumentStarter implements IFactory {
     }
 
     private restorePhotoshop() {
-        FactoryClass.factoryInstance = null;
-        this.checkedBoxes = null;
-        this.connectedSockets = {};
         this.removeListeners();
         this.applyDocumentListeners();
     }
@@ -208,6 +216,10 @@ export class DocumentStarter implements IFactory {
         this.generator.removeAllListeners("save");
         this.generator.removeAllListeners("closedDocument");
         this.generator.removeAllListeners("PanelsConnected");
+        this.generator.removeAllListeners("copyToLayer");
+        this.generator.removeAllListeners("duplicate");
+        this.generator.removeAllListeners("writeData");
+        this.generator.removeAllListeners("docId");
     }
 
     private applyDocumentListeners() {
@@ -241,6 +253,7 @@ export class DocumentStarter implements IFactory {
                 packageJson.name + "Document");
             this.docId = docIdObj.docId;
         }
+        this.generator.emit("docId", this.docId);
     }
 
     private createDependencies() {
@@ -273,6 +286,7 @@ export class DocumentStarter implements IFactory {
     }
 
     private async addDocumentStatus() {
+       this.generator.emit("activeDocumentId", this.activeDocument.id);
        this.loggerEmitter.emit("activeDocument", this.docId);
        this.loggerEmitter.emit("logStatus", "Document is Saved");
        this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
@@ -283,6 +297,9 @@ export class DocumentStarter implements IFactory {
             return;
         }
         this.loggerEmitter.emit("logStatus", "Document is Saved");
+        if(!this.checkedBoxes) {
+            return;
+        }
         const filteredPath = this.activeDocument.directory + "\\" + this.docId;
         if (!fs.existsSync(filteredPath)) {
             fs.mkdirSync(filteredPath);
@@ -339,15 +356,24 @@ export class DocumentStarter implements IFactory {
     };
 
     private onDocumentClose(closeId) {
-        if(closeId === this.activeDocument.id) {
+        if(this.activeDocument && closeId === this.activeDocument.id) {
             this.activeDocument = null;
             this.docId = null;
-            this.loggerEmitter.emit("destroy");
-            this.docEmitter.emit("destroy");
+            FactoryClass.factoryInstance = null;
+            this.checkedBoxes = null;
+            this.connectedSockets = {};
+            this.removeListeners();
             if(this.io) {
                 this.io.close();
                 this.io = null;
             }
+            this.startModel.onPhotoshopClose();
+            this.loggerEmitter.emit("destroy");
+            this.docEmitter.emit("destroy");
+        }
+        if(!this.activeDocument) {
+            this.generator.removeAllListeners("closedDocument");
+            this.generator.removeAllListeners("save");
         }
     }
 

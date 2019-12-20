@@ -34,13 +34,14 @@ var MappingModel = /** @class */ (function () {
     ;
     MappingModel.prototype.makeSubViewMap = function (responseObj) {
         var viewMap = new Map();
-        viewMap.set("baseGame", responseObj["baseGame"])
+        viewMap.set("BaseGame", responseObj["BaseGame"])
             .set("paytable", responseObj["paytable"])
             .set("IntroOutro", responseObj["IntroOutro"])
-            .set("freeGame", responseObj["freeGame"])
+            .set("FreeGame", responseObj["FreeGame"])
             .set("backgrounds", responseObj["backgrounds"])
             .set("backgroundsFg", responseObj["backgroundsFg"])
-            .set("bigWin", responseObj["bigWin"]);
+            .set("bigWin", responseObj["bigWin"])
+            .set("loader", responseObj["loader"]);
         return viewMap;
     };
     MappingModel.prototype.makeGenericViewMap = function () {

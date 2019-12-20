@@ -1,10 +1,9 @@
-var localisationWindow = new Window('dialog', 'Info');
-var infoPanel = localisationWindow.add('panel', undefined, params.panelName);
-infoPanel.add('statictext', undefined, params.text);
-var button = infoPanel.add("button", undefined, "OK");
+var windowStruct = makeWindowAndPanel('Info', params.panelName);
+windowStruct.panel.add('statictext', undefined, params.text);
+var button = windowStruct.panel.add("button", undefined, "OK");
 button.addEventListener("click", onClick);
-localisationWindow.show();
+windowStruct.window.show();
 
 function onClick() {
-    localisationWindow.close();
+    windowStruct.window.close();
 }

@@ -1,0 +1,76 @@
+{
+  "GenericView": {
+    "label": "AddGenericView",
+    "displayName": "NewView"
+  },
+  "Divider2": {
+    "label": "Divider2",
+    "displayName": "",
+    "enabled": false
+  },
+  "EmptyContainer": {
+    "label": "AddEmptyCont",
+    "displayName": "EmptyContainer",
+    "type": "comp",
+    "menuGroup": "Menu_UI"
+  },
+  "Meter": {
+    "label": "AddMeter",
+    "displayName": "Meter",
+    "type": "comp",
+    "menuGroup": "Menu_UI"
+  },
+  "Button": {
+    "label": "AddButton",
+    "displayName": "Button",
+    "type": "comp",
+    "menuGroup": "Menu_UI"
+  },
+  "Animation": {
+    "label": "AddAnimation",
+    "displayName": "Animation",
+    "type": "comp",
+    "menuGroup": "Menu_UI"
+  },
+  "Spine": {
+    "label": "AddSpine",
+    "displayName": "Spine",
+    "type": "comp",
+    "menuGroup": "Menu_UI"
+  },
+  "Symbol": {
+    "label": "AddSymbol",
+    "displayName": "Symbol",
+    "type": "comp",
+    "menuGroup": "Menu_Special_UI"
+  },
+  "Payline": {
+    "label": "AddPayline",
+    "displayName": "Payline",
+    "type": "comp",
+    "menuGroup": "Menu_Special_UI"
+  },
+  "WinFrame": {
+    "label": "AddWinFrame",
+    "displayName": "WinFrame",
+    "type": "comp",
+    "menuGroup": "Menu_Special_UI"
+  },
+  "Localisation": {
+    "label": "Localise",
+    "displayName": "Localise"
+  },
+  "Divider3": {
+    "label": "Divider3",
+    "displayName": "",
+    "enabled": false
+  },
+  "LayoutEnabled": {
+    "label": "LayoutEnabled",
+    "displayName": "GetLayout"
+  },
+  "RemovePath": {
+    "label": "Testing",
+    "displayName": "RemovePath"
+  }
+}

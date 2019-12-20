@@ -42,36 +42,35 @@ var PhotoshopStartModel = /** @class */ (function () {
         this.writeObj = {};
     }
     PhotoshopStartModel.prototype.execute = function (params) {
+        this.writeObj = {};
+        this.docIdObj = null;
+        this.openDocumentData = null;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     };
     PhotoshopStartModel.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("writeData", function (data) { return _this.onWriteData(data); });
+        this.generator.on("writeData", function (data, isComplete) { return _this.onWriteData(data, isComplete); });
+        this.generator.on("docId", function (docId) {
+            _this.docIdObj.docId = docId;
+        });
     };
-    PhotoshopStartModel.prototype.onWriteData = function (data) {
+    PhotoshopStartModel.prototype.onWriteData = function (data, isComplete) {
         this.writeObj = Object.assign(this.writeObj, data);
-        this.writeDataAtPath();
+        isComplete && this.writeDataAtPath();
     };
     PhotoshopStartModel.prototype.writeDataAtPath = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var result, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        result = JSON.stringify(this.writeObj, null, "  ");
-                        _a = this;
-                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
-                    case 1:
-                        _a.docIdObj = _b.sent();
-                        fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", result, function (err) {
-                            if (err) {
-                                console.log(err);
-                            }
-                        });
-                        return [2 /*return*/];
-                }
+            var result;
+            return __generator(this, function (_a) {
+                result = JSON.stringify(this.writeObj, null, "  ");
+                fs.writeFile(this.activeDocument.directory + "\\" + this.docIdObj.docId + "/States.json", result, function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+                return [2 /*return*/];
             });
         });
     };

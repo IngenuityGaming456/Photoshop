@@ -91,6 +91,9 @@ var DocumentStarter = /** @class */ (function () {
             _this.activeId.id = changeId;
             _this.onDocumentOpen(changeId);
         });
+        this.documentManager.on("documentResolved", function () {
+            _this.generator.emit("documentResolved");
+        });
         this.generator.onPhotoshopEvent("generatorMenuChanged", function (event) { return _this.onButtonMenuClicked(event); });
     };
     DocumentStarter.prototype.onDocumentOpen = function (openId) {
@@ -98,15 +101,18 @@ var DocumentStarter = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 if (this.activeDocument && this.activeDocument.id !== openId) {
+                    this.generator.emit("newDocument");
                     this.loggerEmitter.emit("newDocument");
                     this.docEmitter.emit("newDocument");
                     return [2 /*return*/];
                 }
                 if (this.activeDocument && this.activeDocument.id === openId) {
+                    this.generator.emit("currentDocument");
                     this.loggerEmitter.emit("currentDocument");
                     this.docEmitter.emit("currentDocument");
                     return [2 /*return*/];
                 }
+                this.generator.on("closedDocument", function (closeId) { return _this.onDocumentClose(closeId); });
                 this.generator.on("save", function () {
                     _this.start(openId);
                 });
@@ -159,6 +165,11 @@ var DocumentStarter = /** @class */ (function () {
     };
     DocumentStarter.prototype.createSocket = function () {
         var _this = this;
+        if (this.io) {
+            this.io.close();
+            this.io = null;
+            this.generator.removeAllListeners("PanelsConnected");
+        }
         this.io = require('socket.io')(8099);
         console.log("making a socket connection");
         this.io.on("connection", function (socket) {
@@ -251,9 +262,6 @@ var DocumentStarter = /** @class */ (function () {
         this.htmlSocket.emit("docOpen", this.activeDocument.directory, this.docId);
     };
     DocumentStarter.prototype.restorePhotoshop = function () {
-        FactoryClass_1.FactoryClass.factoryInstance = null;
-        this.checkedBoxes = null;
-        this.connectedSockets = {};
         this.removeListeners();
         this.applyDocumentListeners();
     };
@@ -268,6 +276,10 @@ var DocumentStarter = /** @class */ (function () {
         this.generator.removeAllListeners("save");
         this.generator.removeAllListeners("closedDocument");
         this.generator.removeAllListeners("PanelsConnected");
+        this.generator.removeAllListeners("copyToLayer");
+        this.generator.removeAllListeners("duplicate");
+        this.generator.removeAllListeners("writeData");
+        this.generator.removeAllListeners("docId");
     };
     DocumentStarter.prototype.applyDocumentListeners = function () {
         var _this = this;
@@ -308,7 +320,9 @@ var DocumentStarter = /** @class */ (function () {
                         docIdObj = _a.sent();
                         this.docId = docIdObj.docId;
                         _a.label = 4;
-                    case 4: return [2 /*return*/];
+                    case 4:
+                        this.generator.emit("docId", this.docId);
+                        return [2 /*return*/];
                 }
             });
         });
@@ -346,6 +360,7 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.addDocumentStatus = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
+                this.generator.emit("activeDocumentId", this.activeDocument.id);
                 this.loggerEmitter.emit("activeDocument", this.docId);
                 this.loggerEmitter.emit("logStatus", "Document is Saved");
                 this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
@@ -358,6 +373,9 @@ var DocumentStarter = /** @class */ (function () {
             return;
         }
         this.loggerEmitter.emit("logStatus", "Document is Saved");
+        if (!this.checkedBoxes) {
+            return;
+        }
         var filteredPath = this.activeDocument.directory + "\\" + this.docId;
         if (!fs.existsSync(filteredPath)) {
             fs.mkdirSync(filteredPath);
@@ -411,15 +429,24 @@ var DocumentStarter = /** @class */ (function () {
     };
     ;
     DocumentStarter.prototype.onDocumentClose = function (closeId) {
-        if (closeId === this.activeDocument.id) {
+        if (this.activeDocument && closeId === this.activeDocument.id) {
             this.activeDocument = null;
             this.docId = null;
-            this.loggerEmitter.emit("destroy");
-            this.docEmitter.emit("destroy");
+            FactoryClass_1.FactoryClass.factoryInstance = null;
+            this.checkedBoxes = null;
+            this.connectedSockets = {};
+            this.removeListeners();
             if (this.io) {
                 this.io.close();
                 this.io = null;
             }
+            this.startModel.onPhotoshopClose();
+            this.loggerEmitter.emit("destroy");
+            this.docEmitter.emit("destroy");
+        }
+        if (!this.activeDocument) {
+            this.generator.removeAllListeners("closedDocument");
+            this.generator.removeAllListeners("save");
         }
     };
     return DocumentStarter;

@@ -1,14 +1,12 @@
 #include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var buttonStruct = ["disabled", "down", "hover", "normal"];
 var statesCount = buttonStruct.length;
-var buttonName = params.childName ? params.childName : "Button" + params.clicks;
-var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
-    getParentRef();
+var buttonObj = getElementRef(params, "Button");
 var mappedButtonRef;
 if(params["mappedItem"]) {
     mappedButtonRef = getInsertionReferenceById(params["mappedItem"].id);
 }
-var buttonRef = insertLayer(parentRef, buttonName, "layerSection");
+var buttonRef = insertLayer(buttonObj.ref, buttonObj.name, "layerSection");
 for (var i = 0; i < statesCount; i++) {
     var buttonStructRef = insertLayer(buttonRef, buttonStruct[i], "layerSection");
     if(mappedButtonRef) {

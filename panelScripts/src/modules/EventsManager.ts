@@ -3,6 +3,8 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 export class EventsManager implements IFactory{
     private generator;
     private documentManager;
+    private isNewDocument: boolean = false;
+    private activeDocId: number = null;
 
     public execute(params: IParams) {
         this.generator = params.generator;
@@ -11,16 +13,22 @@ export class EventsManager implements IFactory{
     }
 
     public onImageChanged(event) {
+        this.isDocumentChange(event);
+        if(this.activeDocId && this.activeDocId != event.id) {
+            return;
+        }
         this.removeUnwantedEvents(event);
         this.isAddedEvent(event);
         this.isDeletionEvent(event);
         this.isRenameEvent(event);
-        this.isDocumentChange(event);
     }
 
     private subscribeListeners() {
+        this.generator.on("activeDocumentId", activeDocId => this.activeDocId = activeDocId);
+        this.generator.on("newDocument", () => this.isNewDocument = true);
+        this.generator.on("currentDocument", () => this.isNewDocument = false);
         this.generator.on("eventProcessed", (event) => {
-            this.onHandleEvents(event);
+            if(!this.isNewDocument) this.onHandleEvents(event);
         });
         this.documentManager.on("openDocumentsChanged", (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) => {
             this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
@@ -112,7 +120,7 @@ export class EventsManager implements IFactory{
     }
 
     private removeProperty(rawChange) {
-        var unwantedLayers = [];
+        let unwantedLayers = [];
         rawChange.forEach((item, index) => {
             if(item.removed) {
                 if(!item.layers) {
@@ -129,7 +137,7 @@ export class EventsManager implements IFactory{
 
     private isAddedEvent(event) {
         if(event.layers && this.isAdded(event.layers)) {
-            this.generator.emit("layersAdded", event.layers);
+            this.generator.emit("layersAdded", event.layers, this.isNewDocument);
         }
     }
 

@@ -1,0 +1,29 @@
+{
+    "loader": {
+        "loadingLogo": {
+            "type": "container",
+            "id": "loadingLogo",
+            "leaf": true
+        },
+        "percentBar": {
+            "type": "container",
+            "id": "percentBar"
+        },
+        "progress": {
+            "type": "container",
+            "id": "progress",
+            "parent": "percentBar",
+            "noElement": true
+        },
+        "loadingText": {
+            "type": "label",
+            "id": "loadingText",
+            "parent": "percentBar"
+        },
+        "loaderPercent": {
+            "type": "meter",
+            "id": "loaderPercent",
+            "parent": "percentBar"
+        }
+    }
+}

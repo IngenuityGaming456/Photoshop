@@ -46,11 +46,7 @@ export class CreateComponent implements IFactory {
     }
 
     private async isValid() {
-        const selectedLayerId = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
-        let selectedLayersIdArray = selectedLayerId.toString().split(",");
-        if(selectedLayersIdArray.length !== 1) {
-
-        }
+        const selectedLayersIdArray = this.modelFactory.getPhotoshopModel().allSelectedLayers;
         const layers: layerClass.LayerGroup = this.activeDocument.layers;
         const selectedRef = layers.findLayer(Number(selectedLayersIdArray[0]));
         return this.isCorrectSelection(selectedRef);
@@ -70,7 +66,7 @@ export class CreateComponent implements IFactory {
         if(!layerRef) {
             return false;
         }
-        if(layerRef.group && ~layerRef.group.name.search((/common/))) {
+        if(layerRef.group && layerRef.group.name && ~layerRef.group.name.search((/common/))) {
             return true;
         }
         return this.isCorrectSelection(layerRef.group);
@@ -86,13 +82,47 @@ export class CreateComponent implements IFactory {
     }
 
     private async controlJSXReturn(id, elementValue) {
-        if(Number(id)) {
-            await this.setGeneratorSettings(id, elementValue);
-            return;
+        try {
+            await this.isID(id,elementValue);
+            (await this.isBitmap(id, elementValue))
+                .isInvalidSpecialItem(id)
+                .isInvalidBitmap(id);
+        } catch(err) {
+            console.log("return controlled");
         }
+    }
+
+    private async isID(id, elementValue) {
+        if(Number(id)) {
+            await this.setGeneratorSettings(id, elementValue.label.toLowerCase(), this._pluginId);
+            throw new Error("Control Done");
+        }
+    }
+
+    private async isBitmap(id, elementValue) {
+        const returnArray = id.split(",");
+        if(Number(returnArray[0])) {
+            await this.setGeneratorSettings(returnArray[0], elementValue.label.toLowerCase(), this._pluginId);
+            await this.setGeneratorSettings(returnArray[0], returnArray[1], this._pluginId + "Bitmap");
+            throw new Error("Control Done");
+        }
+        return this;
+    }
+
+    private isInvalidSpecialItem(id) {
         const returnArray = id.split(",");
         if(returnArray[0] === "false") {
             this.docEmitter.emit("logWarning", `Need to select ${returnArray[1]} from the document tree`);
+            throw new Error("Control Done");
+        }
+        return this;
+    }
+
+    private isInvalidBitmap(id) {
+        const returnArray = id.split(",");
+        if(returnArray[0] === "bitmap") {
+            this.docEmitter.emit("logWarning", `No bitmap font is found at "others/Bitmaps"`);
+            throw new Error("Control Done");
         }
     }
 
@@ -112,8 +142,8 @@ export class CreateComponent implements IFactory {
         return await this._generator.evaluateJSXFile(jsxPath, {clicks: sequenceId});
     }
 
-    private async setGeneratorSettings(id, elementValue) {
-        await this._generator.setLayerSettingsForPlugin((elementValue.label).toLowerCase(), id, this._pluginId)
+    private async setGeneratorSettings(id, insertion, pluginId) {
+        await this._generator.setLayerSettingsForPlugin(insertion, id, pluginId);
     }
 
     private onPaste() {
@@ -127,17 +157,27 @@ export class CreateComponent implements IFactory {
     }
 
     private onAddition(addedLayer) {
-        const component = this.isComponent(addedLayer.name);
-        if(component) {
-            const sequenceId = Restructure.sequenceStructure(this.elementValue);
-            this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/RenameErrorLayer.jsx"), {
-                id: addedLayer.id,
-                level: 1,
-                index: component.index,
-                sequence: sequenceId
-            });
-            this.elementValue.elementArray.push({id: addedLayer.id, sequence: sequenceId});
-        }
+        this._generator.once("documentResolved", () => {
+            const component = this.isComponent(addedLayer.name);
+            if(component) {
+                if(this.isInLanguage(addedLayer)) {
+                    return;
+                }
+                const sequenceId = Restructure.sequenceStructure(this.elementValue);
+                this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/RenameErrorLayer.jsx"), {
+                    id: addedLayer.id,
+                    level: 1,
+                    index: component.index,
+                    sequence: sequenceId
+                });
+                this.elementValue.elementArray.push({id: addedLayer.id, sequence: sequenceId});
+            }
+        });
+    }
+
+    private isInLanguage(addedLayer) {
+        const addedLayerRef = this.activeDocument.layers.findLayer(addedLayer.id);
+        return !!utlis.getElementName(addedLayerRef, "languages");
     }
 
     private isComponent(layerName) {

@@ -13,10 +13,10 @@ export class LayerManager implements IFactory{
     private eventName: string;
     private selectedLayers = [];
     private localisedLayers = [];
-    private copiedLayers = [];
     private isPasteEvent = false;
     private docEmitter;
     private modelFactory;
+    private queuedImageLayers = [];
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
@@ -31,16 +31,12 @@ export class LayerManager implements IFactory{
     }
 
     private subscribeListeners() {
-        this._generator.on("layersAdded", eventLayers => {
-            this.onLayersAdded(eventLayers);
+        this._generator.on("layersAdded", (eventLayers, isNewDocument) => {
+            this.onLayersAdded(eventLayers, isNewDocument);
         });
         this._generator.on("select", async () => {
             this.eventName = Events.SELECT;
-            this.selectedLayers = await this.getSelectedLayers();
-        });
-        this._generator.on("copy", async () => {
-            this.eventName = Events.COPY;
-            this.copiedLayers = await this.getSelectedLayers();
+            this.selectedLayers = this.modelFactory.getPhotoshopModel().allSelectedLayers;
         });
         this._generator.on("paste", () => {
             this.eventName = Events.PASTE;
@@ -58,8 +54,22 @@ export class LayerManager implements IFactory{
         });
     }
 
-    private async onLayersAdded(eventLayers) {
+    private async onLayersAdded(eventLayers, isNewDocument) {
+        if(isNewDocument) {
+            this.constructQueuedArray(eventLayers);
+            this.docEmitter.once("currentDocument", async ()=> {
+                await this.handleImportEvent(this.queuedImageLayers, undefined);
+                this.queuedImageLayers = [];
+            });
+            return;
+        }
         this.addBufferData(eventLayers);
+    }
+
+    private constructQueuedArray(eventLayers) {
+        eventLayers.forEach(item => {
+            this.queuedImageLayers.push(item);
+        })
     }
 
     private async handleLayersAddition(eventLayers, questItems, deletedLayers) {
@@ -82,11 +92,6 @@ export class LayerManager implements IFactory{
         }
     }
 
-    private async getSelectedLayers() {
-        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
-        return selectedLayersString.toString().split(",");
-    }
-
     public async addBufferData(changedLayers) {
         switch(this.eventName) {
             case Events.COPYTOLAYER :
@@ -105,7 +110,7 @@ export class LayerManager implements IFactory{
             const questItems = this.modelFactory.getPhotoshopModel().allQuestItems;
             const deletedLayers = [];
             await this.handleLayersAddition(changedLayers, questItems, deletedLayers);
-            await this.handleDuplicate(changedLayers, this.copiedLayers, deletedLayers);
+            await this.handleDuplicate(changedLayers, this.selectedLayers, deletedLayers);
             this.isPasteEvent = false;
             return;
         }
@@ -182,10 +187,6 @@ export class LayerManager implements IFactory{
                 await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
             }
         }
-    }
-
-    private getGeneratorSettings(parentLayerRef): boolean {
-        return parentLayerRef.generatorSettings && parentLayerRef.generatorSettings[this.pluginId];
     }
 
     private async handleGroupEvent(copiedLayerGroup, pastedLayerGroup) {
