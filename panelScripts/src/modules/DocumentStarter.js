@@ -443,6 +443,7 @@ var DocumentStarter = /** @class */ (function () {
             this.startModel.onPhotoshopClose();
             this.loggerEmitter.emit("destroy");
             this.docEmitter.emit("destroy");
+            this.generator.emit("activeDocumentClosed");
         }
         if (!this.activeDocument) {
             this.generator.removeAllListeners("closedDocument");

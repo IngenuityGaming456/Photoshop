@@ -32,6 +32,7 @@ var EventsManager = /** @class */ (function () {
         this.documentManager.on("openDocumentsChanged", function (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) {
             _this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
         });
+        this.generator.on("activeDocumentClosed", function () { return _this.isNewDocument = false; });
     };
     EventsManager.prototype.handleDocumentOpenClose = function (nowOpenDocuments, nowClosedDocuments) {
         if (nowOpenDocuments.length) {

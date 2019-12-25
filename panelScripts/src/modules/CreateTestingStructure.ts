@@ -2,12 +2,13 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {CreateLayoutStructure} from "./LayoutStructure/CreateLayoutStructure";
 import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 
 export class CreateTestingStructure implements IFactory {
     private modifiedIds = [];
 
     public constructor(modelFactory: ModelFactory) {
-        this.modifiedIds = modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modifiedIds = (modelFactory.getPhotoshopModel() as PhotoshopModelApp).allModifiedIds;
     }
     public async execute(params: IParams) {
         //params.generator.onPhotoshopEvent("imageChanged", CreateLayoutStructure.listenerFn);

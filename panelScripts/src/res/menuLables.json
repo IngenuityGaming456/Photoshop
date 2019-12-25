@@ -38,12 +38,6 @@
     "type": "comp",
     "menuGroup": "Menu_UI"
   },
-  "Spine": {
-    "label": "AddSpine",
-    "displayName": "Spine",
-    "type": "comp",
-    "menuGroup": "Menu_UI"
-  },
   "Symbol": {
     "label": "AddSymbol",
     "displayName": "Symbol",

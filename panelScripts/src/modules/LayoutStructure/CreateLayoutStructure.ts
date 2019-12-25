@@ -33,6 +33,7 @@ export class CreateLayoutStructure implements IFactory {
         this.assetsPath = params.storage.assetsPath;
         this.docEmitter = params.docEmitter;
         this.emitStartStatus();
+        await this.upperLevelUnwantedLayers();
         await this.restructureTempLayers();
         await this.modifyPathNames();
         const result = await this.requestDocument();
@@ -135,7 +136,6 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private async removeUnwantedLayers() {
-        await this.upperLevelUnwantedLayers();
         const targetPath = this.assetsPath + "-assets";
         if(fs.existsSync(targetPath)) {
             fs.readdirSync(targetPath).forEach(fileName => {
@@ -158,6 +158,9 @@ export class CreateLayoutStructure implements IFactory {
 
     private removeFiles(targetPath) {
         const path = targetPath + "/common";
+        if(!fs.existsSync(path)) {
+            return;
+        }
         fs.readdirSync(path).forEach(fileName => {
             if (~fileName.search(/(Animation)/)) {
                 utlis.removeFile(path + "/" + fileName);
@@ -215,7 +218,7 @@ export class CreateLayoutStructure implements IFactory {
 
     private handleCommonLayers(item) {
         const commonLayers = item.layers;
-        commonLayers.forEach(view => {
+        commonLayers && commonLayers.forEach(view => {
             this.handleViewDuplicates(view.layers, null);
         });
     }
@@ -223,6 +226,12 @@ export class CreateLayoutStructure implements IFactory {
     private handleViewDuplicates(viewLayers, uiMap) {
         uiMap = uiMap || {};
         viewLayers.forEach(item => {
+            //Mocking a text layer as it does not have generator setting by default.
+            if(item.type === "textLayer") {
+                item["generatorSettings"] = {};
+                item["generatorSettings"][this._pluginId] = {};
+                item["generatorSettings"][this._pluginId]["json"] = "label";
+            }
             if(item.generatorSettings && item.generatorSettings[this._pluginId]) {
                 const genSettings = item.generatorSettings[this._pluginId].json;
                 if(!uiMap.hasOwnProperty(genSettings)) {
@@ -246,7 +255,7 @@ export class CreateLayoutStructure implements IFactory {
 
     private getCorrectSequence(uiArray, name, count) {
         if(~uiArray.indexOf(name + count)) {
-            return this.getCorrectSequence(uiArray, name, count++);
+            return this.getCorrectSequence(uiArray, name, ++count);
         } else {
             return count;
         }

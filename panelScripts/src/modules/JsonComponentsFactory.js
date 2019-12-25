@@ -12,7 +12,6 @@ var JsonComponentsFactory = /** @class */ (function () {
             .set("label", new JsonComponents_1.PhotoshopJsonComponent("artLayer", unifiedPath + "InsertLayer.jsx", "text"))
             .set("container", new JsonComponents_1.PhotoshopJsonComponent("layerSection", unifiedPath + "InsertLayer.jsx"))
             .set("meter", new JsonComponents_1.QuestJsonComponent("meter", unifiedPath + "AddMeter.jsx"))
-            .set("spine", new JsonComponents_1.QuestJsonComponent("spine", unifiedPath + "AddSpine.jsx"))
             .set("button", new JsonComponents_1.QuestJsonComponent("button", unifiedPath + "AddButton.jsx"))
             .set("animation", new JsonComponents_1.QuestJsonComponent("animation", unifiedPath + "AddAnimation.jsx"));
         return jsonMap;

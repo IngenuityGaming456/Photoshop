@@ -12,7 +12,7 @@ export class CreateProxyLayout implements IFactory {
     private activeDocument;
     private artLayers = [];
     private nameCache = [];
-    private errorData = [];
+    private readonly errorData = [];
     private readonly modelFactory;
     private bufferMap = new Map();
     private docEmitter;

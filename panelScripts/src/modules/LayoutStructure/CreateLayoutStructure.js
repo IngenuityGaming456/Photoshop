@@ -71,20 +71,23 @@ var CreateLayoutStructure = /** @class */ (function () {
                         this.assetsPath = params.storage.assetsPath;
                         this.docEmitter = params.docEmitter;
                         this.emitStartStatus();
-                        return [4 /*yield*/, this.restructureTempLayers()];
+                        return [4 /*yield*/, this.upperLevelUnwantedLayers()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.modifyPathNames()];
+                        return [4 /*yield*/, this.restructureTempLayers()];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.requestDocument()];
+                        return [4 /*yield*/, this.modifyPathNames()];
                     case 3:
+                        _a.sent();
+                        return [4 /*yield*/, this.requestDocument()];
+                    case 4:
                         result = _a.sent();
                         utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
                         this.modifyJSON(result.layers);
                         this.modifyBottomBar(result.layers);
                         return [4 /*yield*/, this.removeUnwantedLayers()];
-                    case 4:
+                    case 5:
                         _a.sent();
                         this.removeDuplicates(result.layers);
                         this.writeJSON(result);
@@ -292,18 +295,13 @@ var CreateLayoutStructure = /** @class */ (function () {
             var _this = this;
             var targetPath;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.upperLevelUnwantedLayers()];
-                    case 1:
-                        _a.sent();
-                        targetPath = this.assetsPath + "-assets";
-                        if (fs.existsSync(targetPath)) {
-                            fs.readdirSync(targetPath).forEach(function (fileName) {
-                                _this.removeFiles(targetPath + "/" + fileName);
-                            });
-                        }
-                        return [2 /*return*/];
+                targetPath = this.assetsPath + "-assets";
+                if (fs.existsSync(targetPath)) {
+                    fs.readdirSync(targetPath).forEach(function (fileName) {
+                        _this.removeFiles(targetPath + "/" + fileName);
+                    });
                 }
+                return [2 /*return*/];
             });
         });
     };
@@ -325,6 +323,9 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.removeFiles = function (targetPath) {
         var path = targetPath + "/common";
+        if (!fs.existsSync(path)) {
+            return;
+        }
         fs.readdirSync(path).forEach(function (fileName) {
             if (~fileName.search(/(Animation)/)) {
                 utils_1.utlis.removeFile(path + "/" + fileName);
@@ -394,7 +395,7 @@ var CreateLayoutStructure = /** @class */ (function () {
     CreateLayoutStructure.prototype.handleCommonLayers = function (item) {
         var _this = this;
         var commonLayers = item.layers;
-        commonLayers.forEach(function (view) {
+        commonLayers && commonLayers.forEach(function (view) {
             _this.handleViewDuplicates(view.layers, null);
         });
     };
@@ -402,6 +403,12 @@ var CreateLayoutStructure = /** @class */ (function () {
         var _this = this;
         uiMap = uiMap || {};
         viewLayers.forEach(function (item) {
+            //Mocking a text layer as it does not have generator setting by default.
+            if (item.type === "textLayer") {
+                item["generatorSettings"] = {};
+                item["generatorSettings"][_this._pluginId] = {};
+                item["generatorSettings"][_this._pluginId]["json"] = "label";
+            }
             if (item.generatorSettings && item.generatorSettings[_this._pluginId]) {
                 var genSettings = item.generatorSettings[_this._pluginId].json;
                 if (!uiMap.hasOwnProperty(genSettings)) {
@@ -426,7 +433,7 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.getCorrectSequence = function (uiArray, name, count) {
         if (~uiArray.indexOf(name + count)) {
-            return this.getCorrectSequence(uiArray, name, count++);
+            return this.getCorrectSequence(uiArray, name, ++count);
         }
         else {
             return count;

@@ -33,6 +33,7 @@ export class EventsManager implements IFactory{
         this.documentManager.on("openDocumentsChanged", (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) => {
             this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
         });
+        this.generator.on("activeDocumentClosed", () => this.isNewDocument = false);
     }
 
     private handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments) {
@@ -74,6 +75,7 @@ export class EventsManager implements IFactory{
     }
 
     private handleCloseDocument(nowCloseDocuments) {
+
         this.generator.emit("closedDocument", nowCloseDocuments[0]);
     }
 

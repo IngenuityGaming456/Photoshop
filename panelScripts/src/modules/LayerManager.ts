@@ -38,16 +38,24 @@ export class LayerManager implements IFactory{
             this.eventName = Events.SELECT;
             this.selectedLayers = this.modelFactory.getPhotoshopModel().allSelectedLayers;
         });
+        this._generator.on("copy", () => {
+            this.eventName = Events.COPY;
+        });
         this._generator.on("paste", () => {
-            this.eventName = Events.PASTE;
-            this.isPasteEvent = true;
+            if(this.eventName === Events.COPY) {
+                this.eventName = Events.PASTE;
+                this.isPasteEvent = true;
+            } else {
+                this.eventName = Events.OTHER;
+            }
         });
         this._generator.on("copyToLayer", () => {
             this.eventName = Events.COPYTOLAYER;
         });
         this._generator.on("duplicate", () => {
-            this.eventName = Events.DUPLICATE;
-            this.isPasteEvent = true;
+            if(this.eventName !== Events.OTHER) {
+                this.eventName = Events.DUPLICATE;
+            }
         });
         this.docEmitter.on("localisation", localisedLayers => {
             this.localisedLayers = localisedLayers;
@@ -253,4 +261,5 @@ enum Events {
     COPYTOLAYER = "CpTL",
     COPY = "copy",
     PASTE = "past",
+    OTHER = "other"
 }

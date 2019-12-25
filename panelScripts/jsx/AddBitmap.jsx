@@ -28,7 +28,7 @@ function bitmapSelectionPanel(filesArray) {
 }
 
 if(radioResponse) {
-    var bitmapRef = insertLayer(bitmapObj.ref, bitmapObj.name, "artLayer", { kind: LayerKind.TEXT });
+    var bitmapRef = insertLayer(bitmapObj.ref, bitmapObj.name, "layerSection");
     bitmapRef.id + "," + radioResponse;
 } else {
     "bitmap";

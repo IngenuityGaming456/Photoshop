@@ -75,16 +75,25 @@ var LayerManager = /** @class */ (function () {
                 return [2 /*return*/];
             });
         }); });
+        this._generator.on("copy", function () {
+            _this.eventName = Events.COPY;
+        });
         this._generator.on("paste", function () {
-            _this.eventName = Events.PASTE;
-            _this.isPasteEvent = true;
+            if (_this.eventName === Events.COPY) {
+                _this.eventName = Events.PASTE;
+                _this.isPasteEvent = true;
+            }
+            else {
+                _this.eventName = Events.OTHER;
+            }
         });
         this._generator.on("copyToLayer", function () {
             _this.eventName = Events.COPYTOLAYER;
         });
         this._generator.on("duplicate", function () {
-            _this.eventName = Events.DUPLICATE;
-            _this.isPasteEvent = true;
+            if (_this.eventName !== Events.OTHER) {
+                _this.eventName = Events.DUPLICATE;
+            }
         });
         this.docEmitter.on("localisation", function (localisedLayers) {
             _this.localisedLayers = localisedLayers;
@@ -462,5 +471,6 @@ var Events;
     Events["COPYTOLAYER"] = "CpTL";
     Events["COPY"] = "copy";
     Events["PASTE"] = "past";
+    Events["OTHER"] = "other";
 })(Events || (Events = {}));
 //# sourceMappingURL=LayerManager.js.map

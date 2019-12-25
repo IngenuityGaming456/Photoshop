@@ -20,6 +20,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var Loading_1 = require("../../srcExtension/loader/Loading");
 var FactoryClass = /** @class */ (function () {
     function FactoryClass() {
         this.dependencyMap = new Map();
@@ -61,6 +62,8 @@ var FactoryClass = /** @class */ (function () {
 exports.FactoryClass = FactoryClass;
 exports.inject = function (params) {
     var factoryClass = FactoryClass.getInstance();
+    var subClassRef = Loading_1.loadingMap.get(params.ref);
+    params.ref = subClassRef ? subClassRef : params.ref;
     factoryClass.dependencyMap.set(params.ref, params.dep);
     params.isNonSingleton = params.isNonSingleton ? params.isNonSingleton : false;
     return factoryClass.construct(params.ref, params.dep, params.isNonSingleton);

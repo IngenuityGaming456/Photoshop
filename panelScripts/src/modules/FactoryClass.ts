@@ -1,4 +1,5 @@
 import {IClassParams, IFactory, IFactoryConstruct, IParams} from "../interfaces/IJsxParam";
+import {loadingMap} from "../../srcExtension/loader/Loading";
 
 export class FactoryClass {
     public dependencyMap = new Map();
@@ -33,12 +34,14 @@ export class FactoryClass {
 
     static set factoryInstance(ref) {
         FactoryClass.instance = ref;
-    }
+}
 
 }
 
 export const inject = function (params: IClassParams): any {
     const factoryClass = FactoryClass.getInstance();
+    const subClassRef = loadingMap.get(params.ref);
+    params.ref = subClassRef ? subClassRef : params.ref;
     factoryClass.dependencyMap.set(params.ref, params.dep);
     params.isNonSingleton = params.isNonSingleton ? params.isNonSingleton : false;
     return factoryClass.construct(params.ref, params.dep, params.isNonSingleton);

@@ -2,6 +2,7 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
 import * as layerClass from "../../lib/dom/layer";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 
 export class ContainerPanelResponse implements IFactory {
     private modelFactory: ModelFactory;
@@ -22,7 +23,7 @@ export class ContainerPanelResponse implements IFactory {
     public execute(params: IParams)
     {
         this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
-        this.deletionHandler = this.modelFactory.getPhotoshopModel().allSessionHandler;
+        this.deletionHandler = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).allSessionHandler;
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
@@ -49,8 +50,8 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async onLayersDeleted(eventLayers) {
-        if(this.modelFactory.getPhotoshopModel().isDeletedFromLayout) {
-            this.modelFactory.getPhotoshopModel().isDeletedFromLayout = false;
+        if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isDeletedFromLayout) {
+            (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isDeletedFromLayout = false;
             return;
         }
         const questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
