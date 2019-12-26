@@ -11,21 +11,24 @@ export class PhotoshopStartModel implements IModel {
     private docIdObj;
 
     public execute(params: IParams) {
+        this.writeObj = {};
+        this.docIdObj = null;
+        this.openDocumentData = null;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     }
 
     private subscribeListeners() {
-        this.generator.on("writeData", data => this.onWriteData(data));
+        this.generator.on("writeData", (data, isComplete?) => this.onWriteData(data, isComplete));
         this.generator.on("docId", (docId) => {
             this.docIdObj.docId = docId;
         });
     }
 
-    private onWriteData(data) {
+    private onWriteData(data, isComplete?) {
         this.writeObj = Object.assign(this.writeObj, data);
-        this.writeDataAtPath();
+        isComplete && this.writeDataAtPath();
     }
 
     private async writeDataAtPath() {
@@ -49,7 +52,6 @@ export class PhotoshopStartModel implements IModel {
     }
 
     public onPhotoshopClose() {
-
     }
 
 }

@@ -142,24 +142,78 @@ var CreateComponent = /** @class */ (function () {
     };
     CreateComponent.prototype.controlJSXReturn = function (id, elementValue) {
         return __awaiter(this, void 0, void 0, function () {
-            var returnArray;
+            var err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, this.isID(id, elementValue)];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.isBitmap(id, elementValue)];
+                    case 2:
+                        (_a.sent())
+                            .isInvalidSpecialItem(id)
+                            .isInvalidBitmap(id);
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_1 = _a.sent();
+                        console.log("return controlled");
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateComponent.prototype.isID = function (id, elementValue) {
+        return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!Number(id)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.setGeneratorSettings(id, elementValue)];
+                        return [4 /*yield*/, this.setGeneratorSettings(id, elementValue.label.toLowerCase(), this._pluginId)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
-                    case 2:
-                        returnArray = id.split(",");
-                        if (returnArray[0] === "false") {
-                            this.docEmitter.emit("logWarning", "Need to select " + returnArray[1] + " from the document tree");
-                        }
-                        return [2 /*return*/];
+                        throw new Error("Control Done");
+                    case 2: return [2 /*return*/];
                 }
             });
         });
+    };
+    CreateComponent.prototype.isBitmap = function (id, elementValue) {
+        return __awaiter(this, void 0, void 0, function () {
+            var returnArray;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        returnArray = id.split(",");
+                        if (!Number(returnArray[0])) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.setGeneratorSettings(returnArray[0], elementValue.label.toLowerCase(), this._pluginId)];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.setGeneratorSettings(returnArray[0], returnArray[1], this._pluginId + "Bitmap")];
+                    case 2:
+                        _a.sent();
+                        throw new Error("Control Done");
+                    case 3: return [2 /*return*/, this];
+                }
+            });
+        });
+    };
+    CreateComponent.prototype.isInvalidSpecialItem = function (id) {
+        var returnArray = id.split(",");
+        if (returnArray[0] === "false") {
+            this.docEmitter.emit("logWarning", "Need to select " + returnArray[1] + " from the document tree");
+            throw new Error("Control Done");
+        }
+        return this;
+    };
+    CreateComponent.prototype.isInvalidBitmap = function (id) {
+        var returnArray = id.split(",");
+        if (returnArray[0] === "bitmap") {
+            this.docEmitter.emit("logWarning", "No bitmap font is found at \"others/Bitmaps\"");
+            throw new Error("Control Done");
+        }
     };
     CreateComponent.prototype.handleChange = function (eventLayers) {
         if (this.isPaste) {
@@ -184,11 +238,11 @@ var CreateComponent = /** @class */ (function () {
             });
         });
     };
-    CreateComponent.prototype.setGeneratorSettings = function (id, elementValue) {
+    CreateComponent.prototype.setGeneratorSettings = function (id, insertion, pluginId) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin((elementValue.label).toLowerCase(), id, this._pluginId)];
+                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(insertion, id, pluginId)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];

@@ -42,20 +42,23 @@ var PhotoshopStartModel = /** @class */ (function () {
         this.writeObj = {};
     }
     PhotoshopStartModel.prototype.execute = function (params) {
+        this.writeObj = {};
+        this.docIdObj = null;
+        this.openDocumentData = null;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
         this.subscribeListeners();
     };
     PhotoshopStartModel.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("writeData", function (data) { return _this.onWriteData(data); });
+        this.generator.on("writeData", function (data, isComplete) { return _this.onWriteData(data, isComplete); });
         this.generator.on("docId", function (docId) {
             _this.docIdObj.docId = docId;
         });
     };
-    PhotoshopStartModel.prototype.onWriteData = function (data) {
+    PhotoshopStartModel.prototype.onWriteData = function (data, isComplete) {
         this.writeObj = Object.assign(this.writeObj, data);
-        this.writeDataAtPath();
+        isComplete && this.writeDataAtPath();
     };
     PhotoshopStartModel.prototype.writeDataAtPath = function () {
         return __awaiter(this, void 0, void 0, function () {

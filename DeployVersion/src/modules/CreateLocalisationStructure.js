@@ -77,19 +77,17 @@ var CreateLocalisationStructure = /** @class */ (function () {
     }
     CreateLocalisationStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var idsArray, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var idsArray;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         this._generator = params.generator;
                         this._activeDocument = params.activeDocument;
                         this.docEmitter = params.docEmitter;
                         this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
-                        _a = this.modifySelectedResponse;
-                        return [4 /*yield*/, this.findSelectedLayers()];
-                    case 1: return [4 /*yield*/, _a.apply(this, [_b.sent()])];
-                    case 2:
-                        idsArray = _b.sent();
+                        return [4 /*yield*/, this.modifySelectedResponse(this.findSelectedLayers())];
+                    case 1:
+                        idsArray = _a.sent();
                         this.getParents(idsArray);
                         return [2 /*return*/];
                 }
@@ -97,17 +95,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
         });
     };
     CreateLocalisationStructure.prototype.findSelectedLayers = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var selectedIds;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
-                    case 1:
-                        selectedIds = _a.sent();
-                        return [2 /*return*/, selectedIds.toString().split(",")];
-                }
-            });
-        });
+        return this.modelFactory.getPhotoshopModel().allSelectedLayers;
     };
     CreateLocalisationStructure.prototype.modifySelectedResponse = function (idsArray) {
         return __awaiter(this, void 0, void 0, function () {
@@ -239,15 +227,64 @@ var CreateLocalisationStructure = /** @class */ (function () {
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params)];
                     case 1:
                         response = _a.sent();
-                        this.pushToRecordedResponse(response);
+                        return [4 /*yield*/, this.handleResponse(response)];
+                    case 2:
+                        _a.sent();
                         return [2 /*return*/];
                 }
             });
         });
     };
-    CreateLocalisationStructure.prototype.pushToRecordedResponse = function (response) {
-        var _this = this;
-        response.split(",").forEach(function (item) { return _this.recordedResponse.push(item); });
+    CreateLocalisationStructure.prototype.handleResponse = function (response) {
+        return __awaiter(this, void 0, void 0, function () {
+            var responseArray, responseArray_1, responseArray_1_1, item, responseSubArray, viewCount, i, e_3_1, e_3, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        responseArray = response.split(":");
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 9, 10, 11]);
+                        responseArray_1 = __values(responseArray), responseArray_1_1 = responseArray_1.next();
+                        _b.label = 2;
+                    case 2:
+                        if (!!responseArray_1_1.done) return [3 /*break*/, 8];
+                        item = responseArray_1_1.value;
+                        responseSubArray = item.split(",");
+                        this.recordedResponse.push(responseSubArray[0]);
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin("lang", Number(responseSubArray[1]), packageJson.name)];
+                    case 3:
+                        _b.sent();
+                        viewCount = responseSubArray.length;
+                        i = 2;
+                        _b.label = 4;
+                    case 4:
+                        if (!(i < viewCount)) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin("view", Number(responseSubArray[i]), packageJson.name)];
+                    case 5:
+                        _b.sent();
+                        _b.label = 6;
+                    case 6:
+                        i++;
+                        return [3 /*break*/, 4];
+                    case 7:
+                        responseArray_1_1 = responseArray_1.next();
+                        return [3 /*break*/, 2];
+                    case 8: return [3 /*break*/, 11];
+                    case 9:
+                        e_3_1 = _b.sent();
+                        e_3 = { error: e_3_1 };
+                        return [3 /*break*/, 11];
+                    case 10:
+                        try {
+                            if (responseArray_1_1 && !responseArray_1_1.done && (_a = responseArray_1.return)) _a.call(responseArray_1);
+                        }
+                        finally { if (e_3) throw e_3.error; }
+                        return [7 /*endfinally*/];
+                    case 11: return [2 /*return*/];
+                }
+            });
+        });
     };
     CreateLocalisationStructure.prototype.findLanguageId = function (idsMapValues) {
         var docLayers = this._activeDocument.layers;

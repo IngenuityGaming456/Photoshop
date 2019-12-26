@@ -1,5 +1,5 @@
 {
-  "baseGame": {
+  "BaseGame": {
     "buttonsContainer": {
       "type": "container",
       "id": "buttonsContainer"

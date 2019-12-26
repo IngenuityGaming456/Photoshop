@@ -137,10 +137,10 @@ var PhotoshopModel = /** @class */ (function () {
     };
     PhotoshopModel.prototype.constructViewMapping = function (itemV, index) {
         var nestedViewMap = {};
-        if (itemV === "freeGame") {
+        if (itemV === "FreeGame") {
             return {
                 mapping: (_a = {},
-                    _a[this.questPlatforms[index]] = "baseGame",
+                    _a[this.questPlatforms[index]] = "BaseGame",
                     _a)
             };
         }
@@ -278,7 +278,7 @@ var PhotoshopModel = /** @class */ (function () {
             menuCurrentState: this.currentState,
             drawnQuestItems: this.drawnQuestItems
         };
-        this.generator.emit("writeData", this.writeData);
+        this.generator.emit("writeData", this.writeData, true);
     };
     PhotoshopModel.prototype.getMenuStates = function () {
         for (var key in menuLabels) {

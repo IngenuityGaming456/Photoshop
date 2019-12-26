@@ -52,8 +52,8 @@ var LayerManager = /** @class */ (function () {
     function LayerManager(modelFactory) {
         this.selectedLayers = [];
         this.localisedLayers = [];
-        this.copiedLayers = [];
         this.isPasteEvent = false;
+        this.queuedImageLayers = [];
         this.modelFactory = modelFactory;
     }
     LayerManager.prototype.execute = function (params) {
@@ -65,58 +65,68 @@ var LayerManager = /** @class */ (function () {
     };
     LayerManager.prototype.subscribeListeners = function () {
         var _this = this;
-        this._generator.on("layersAdded", function (eventLayers) {
-            _this.onLayersAdded(eventLayers);
+        this._generator.on("layersAdded", function (eventLayers, isNewDocument) {
+            _this.onLayersAdded(eventLayers, isNewDocument);
         });
         this._generator.on("select", function () { return __awaiter(_this, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        this.eventName = Events.SELECT;
-                        _a = this;
-                        return [4 /*yield*/, this.getSelectedLayers()];
-                    case 1:
-                        _a.selectedLayers = _b.sent();
-                        return [2 /*return*/];
-                }
+            return __generator(this, function (_a) {
+                this.eventName = Events.SELECT;
+                this.selectedLayers = this.modelFactory.getPhotoshopModel().allSelectedLayers;
+                return [2 /*return*/];
             });
         }); });
-        this._generator.on("copy", function () { return __awaiter(_this, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        this.eventName = Events.COPY;
-                        _a = this;
-                        return [4 /*yield*/, this.getSelectedLayers()];
-                    case 1:
-                        _a.copiedLayers = _b.sent();
-                        return [2 /*return*/];
-                }
-            });
-        }); });
+        this._generator.on("copy", function () {
+            _this.eventName = Events.COPY;
+        });
         this._generator.on("paste", function () {
-            _this.eventName = Events.PASTE;
-            _this.isPasteEvent = true;
+            if (_this.eventName === Events.COPY) {
+                _this.eventName = Events.PASTE;
+                _this.isPasteEvent = true;
+            }
+            else {
+                _this.eventName = Events.OTHER;
+            }
         });
         this._generator.on("copyToLayer", function () {
             _this.eventName = Events.COPYTOLAYER;
         });
         this._generator.on("duplicate", function () {
-            _this.eventName = Events.DUPLICATE;
-            _this.isPasteEvent = true;
+            if (_this.eventName !== Events.OTHER) {
+                _this.eventName = Events.DUPLICATE;
+            }
         });
         this.docEmitter.on("localisation", function (localisedLayers) {
             _this.localisedLayers = localisedLayers;
         });
     };
-    LayerManager.prototype.onLayersAdded = function (eventLayers) {
+    LayerManager.prototype.onLayersAdded = function (eventLayers, isNewDocument) {
         return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
             return __generator(this, function (_a) {
+                if (isNewDocument) {
+                    this.constructQueuedArray(eventLayers);
+                    this.docEmitter.once("currentDocument", function () { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, this.handleImportEvent(this.queuedImageLayers, undefined)];
+                                case 1:
+                                    _a.sent();
+                                    this.queuedImageLayers = [];
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    return [2 /*return*/];
+                }
                 this.addBufferData(eventLayers);
                 return [2 /*return*/];
             });
+        });
+    };
+    LayerManager.prototype.constructQueuedArray = function (eventLayers) {
+        var _this = this;
+        eventLayers.forEach(function (item) {
+            _this.queuedImageLayers.push(item);
         });
     };
     LayerManager.prototype.handleLayersAddition = function (eventLayers, questItems, deletedLayers) {
@@ -187,19 +197,6 @@ var LayerManager = /** @class */ (function () {
             });
         });
     };
-    LayerManager.prototype.getSelectedLayers = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var selectedLayersString;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
-                    case 1:
-                        selectedLayersString = _a.sent();
-                        return [2 /*return*/, selectedLayersString.toString().split(",")];
-                }
-            });
-        });
-    };
     LayerManager.prototype.addBufferData = function (changedLayers) {
         return __awaiter(this, void 0, void 0, function () {
             var _a;
@@ -241,7 +238,7 @@ var LayerManager = /** @class */ (function () {
                         return [4 /*yield*/, this.handleLayersAddition(changedLayers, questItems, deletedLayers)];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.handleDuplicate(changedLayers, this.copiedLayers, deletedLayers)];
+                        return [4 /*yield*/, this.handleDuplicate(changedLayers, this.selectedLayers, deletedLayers)];
                     case 2:
                         _a.sent();
                         this.isPasteEvent = false;
@@ -381,9 +378,6 @@ var LayerManager = /** @class */ (function () {
             });
         });
     };
-    LayerManager.prototype.getGeneratorSettings = function (parentLayerRef) {
-        return parentLayerRef.generatorSettings && parentLayerRef.generatorSettings[this.pluginId];
-    };
     LayerManager.prototype.handleGroupEvent = function (copiedLayerGroup, pastedLayerGroup) {
         return __awaiter(this, void 0, void 0, function () {
             var copiedLayers, pastedLayers, layersCount, i;
@@ -477,5 +471,6 @@ var Events;
     Events["COPYTOLAYER"] = "CpTL";
     Events["COPY"] = "copy";
     Events["PASTE"] = "past";
+    Events["OTHER"] = "other";
 })(Events || (Events = {}));
 //# sourceMappingURL=LayerManager.js.map

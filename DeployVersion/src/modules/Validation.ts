@@ -2,12 +2,13 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
 import * as path from "path";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 
 export class Validation implements IFactory {
     private modelFactory: ModelFactory;
     private generator;
     private activeDocument;
-    private layersErrorData;
+    private readonly layersErrorData;
     private docEmitter;
     private alreadyRenamed = [];
 
@@ -24,7 +25,8 @@ export class Validation implements IFactory {
     }
 
     private subscribeListeners() {
-        this.generator.on("layerRenamed", (eventLayers) => this.onLayersRename(eventLayers));
+        this.generator.on("layerRenamed", eventLayers => this.onLayersRename(eventLayers));
+        this.generator.on("layersDeleted", eventLayers => this.onLayersDeleted(eventLayers))
     }
 
     private isInHTML(key, id, questArray, drawnQuestItems) {
@@ -38,7 +40,11 @@ export class Validation implements IFactory {
         const questArray = this.modelFactory.getPhotoshopModel().allQuestItems;
         const drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
         this.startValidationSequence(eventLayers, questArray, drawnQuestItems);
-        this.isErrorFree(eventLayers);
+        this.isErrorFree(eventLayers, this.errorFreeFromRename.bind(this));
+    }
+
+    private onLayersDeleted(eventLayers) {
+        this.isErrorFree(eventLayers, this.errorFreeFromDeletion.bind(this));
     }
 
     private startValidationSequence(eventLayers, questArray, drawnQuestItems) {
@@ -51,7 +57,7 @@ export class Validation implements IFactory {
     }
 
     private drawnQuestItemsRenamed(name, id, drawnQuestItems) {
-        const layerId = this.modelFactory.getPhotoshopModel().allSelectedLayers[0];
+        const layerId = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).allSelectedLayers[0];
         const layerRef = this.activeDocument.layers.findLayer(Number(layerId));
             const questItem = drawnQuestItems.find(item => {
                 if(item.id === id && item.name !== name) {
@@ -65,8 +71,8 @@ export class Validation implements IFactory {
                 throw new Error("Validation Stop");
             }
             if(utlis.getElementName(layerRef, "languages") && !~this.alreadyRenamed.indexOf(id)) {
-                if(this.modelFactory.getPhotoshopModel().isRenamedFromLayout) {
-                    this.modelFactory.getPhotoshopModel().isRenamedFromLayout = false;
+                if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRenamedFromLayout) {
+                    (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRenamedFromLayout = false;
                     return this;
                 }
                 this.alreadyRenamed.push(id);
@@ -78,16 +84,29 @@ export class Validation implements IFactory {
             return this;
     }
 
-    private isErrorFree(eventLayers) {
-        const isInErrorData = this.layersErrorData.some(item => {
-            if(item.id === eventLayers[0].id && !~eventLayers[0].name.search(/(Error)/)) {
+    private isErrorFree(eventLayers, callback) {
+        const errorData = callback(eventLayers);
+        if(errorData) {
+            utlis.spliceFrom(errorData.id, this.layersErrorData);
+            this.docEmitter.emit("removeError", eventLayers[0].id);
+        }
+    }
+
+    private errorFreeFromRename(eventLayers) {
+        return this.layersErrorData.find(item => {
+            if (item.id === eventLayers[0].id && !~eventLayers[0].name.search(/(Error)/)) {
                 return true;
             }
         });
-        if(isInErrorData) {
-            utlis.spliceFrom(eventLayers[0].id, this.layersErrorData);
-            this.docEmitter.emit("removeError", eventLayers[0].id);
-        }
+    }
+
+    private errorFreeFromDeletion(eventLayers) {
+        return this.layersErrorData.find(item => {
+            const isInDeletedLayers = utlis.isIDExists(item.id, eventLayers);
+            if(isInDeletedLayers) {
+                return true;
+            }
+        })
     }
 
 }

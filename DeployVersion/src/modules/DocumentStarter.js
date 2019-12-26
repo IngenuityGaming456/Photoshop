@@ -101,11 +101,13 @@ var DocumentStarter = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 if (this.activeDocument && this.activeDocument.id !== openId) {
+                    this.generator.emit("newDocument");
                     this.loggerEmitter.emit("newDocument");
                     this.docEmitter.emit("newDocument");
                     return [2 /*return*/];
                 }
                 if (this.activeDocument && this.activeDocument.id === openId) {
+                    this.generator.emit("currentDocument");
                     this.loggerEmitter.emit("currentDocument");
                     this.docEmitter.emit("currentDocument");
                     return [2 /*return*/];
@@ -164,6 +166,7 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.createSocket = function () {
         var _this = this;
         if (this.io) {
+            this.io.close();
             this.io = null;
             this.generator.removeAllListeners("PanelsConnected");
         }
@@ -276,6 +279,7 @@ var DocumentStarter = /** @class */ (function () {
         this.generator.removeAllListeners("copyToLayer");
         this.generator.removeAllListeners("duplicate");
         this.generator.removeAllListeners("writeData");
+        this.generator.removeAllListeners("docId");
     };
     DocumentStarter.prototype.applyDocumentListeners = function () {
         var _this = this;
@@ -356,6 +360,7 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.addDocumentStatus = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
+                this.generator.emit("activeDocumentId", this.activeDocument.id);
                 this.loggerEmitter.emit("activeDocument", this.docId);
                 this.loggerEmitter.emit("logStatus", "Document is Saved");
                 this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
@@ -368,6 +373,9 @@ var DocumentStarter = /** @class */ (function () {
             return;
         }
         this.loggerEmitter.emit("logStatus", "Document is Saved");
+        if (!this.checkedBoxes) {
+            return;
+        }
         var filteredPath = this.activeDocument.directory + "\\" + this.docId;
         if (!fs.existsSync(filteredPath)) {
             fs.mkdirSync(filteredPath);
@@ -432,8 +440,10 @@ var DocumentStarter = /** @class */ (function () {
                 this.io.close();
                 this.io = null;
             }
+            this.startModel.onPhotoshopClose();
             this.loggerEmitter.emit("destroy");
             this.docEmitter.emit("destroy");
+            this.generator.emit("activeDocumentClosed");
         }
         if (!this.activeDocument) {
             this.generator.removeAllListeners("closedDocument");

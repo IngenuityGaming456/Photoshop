@@ -23,13 +23,12 @@ export class CreateLocalisationStructure implements IFactory {
         this._activeDocument = params.activeDocument;
         this.docEmitter = params.docEmitter;
         this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
-        const idsArray = await this.modifySelectedResponse(await this.findSelectedLayers());
+        const idsArray = await this.modifySelectedResponse(this.findSelectedLayers());
         this.getParents(idsArray);
     }
 
-    private async findSelectedLayers(): Promise<Array<string>> {
-        const selectedIds = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
-        return selectedIds.toString().split(",");
+    private findSelectedLayers() {
+        return this.modelFactory.getPhotoshopModel().allSelectedLayers;
     }
 
     private async modifySelectedResponse(idsArray: Array<string>) {
@@ -106,11 +105,20 @@ export class CreateLocalisationStructure implements IFactory {
         };
         this.docEmitter.emit("localisation", idsMapKeys);
         const response = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
-        this.pushToRecordedResponse(response);
+        await this.handleResponse(response);
     }
 
-    private pushToRecordedResponse(response) {
-        response.split(",").forEach(item => this.recordedResponse.push(item));
+    private async handleResponse(response) {
+        const responseArray = response.split(":");
+        for(let item of responseArray) {
+            const responseSubArray = item.split(",");
+            this.recordedResponse.push(responseSubArray[0]);
+            await this._generator.setLayerSettingsForPlugin("lang", Number(responseSubArray[1]), packageJson.name);
+            const viewCount = responseSubArray.length;
+            for(let i=2;i<viewCount;i++) {
+                await this._generator.setLayerSettingsForPlugin("view", Number(responseSubArray[i]), packageJson.name);
+            }
+        }
     }
 
     private findLanguageId(idsMapValues: Array<Array<any>>) {

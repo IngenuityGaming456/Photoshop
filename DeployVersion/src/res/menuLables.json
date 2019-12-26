@@ -32,9 +32,9 @@
     "type": "comp",
     "menuGroup": "Menu_UI"
   },
-  "Spine": {
-    "label": "AddSpine",
-    "displayName": "Spine",
+  "Bitmap": {
+    "label": "AddBitmap",
+    "displayName": "Bitmap",
     "type": "comp",
     "menuGroup": "Menu_UI"
   },

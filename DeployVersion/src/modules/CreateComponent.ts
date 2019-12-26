@@ -82,13 +82,47 @@ export class CreateComponent implements IFactory {
     }
 
     private async controlJSXReturn(id, elementValue) {
-        if(Number(id)) {
-            await this.setGeneratorSettings(id, elementValue);
-            return;
+        try {
+            await this.isID(id,elementValue);
+            (await this.isBitmap(id, elementValue))
+                .isInvalidSpecialItem(id)
+                .isInvalidBitmap(id);
+        } catch(err) {
+            console.log("return controlled");
         }
+    }
+
+    private async isID(id, elementValue) {
+        if(Number(id)) {
+            await this.setGeneratorSettings(id, elementValue.label.toLowerCase(), this._pluginId);
+            throw new Error("Control Done");
+        }
+    }
+
+    private async isBitmap(id, elementValue) {
+        const returnArray = id.split(",");
+        if(Number(returnArray[0])) {
+            await this.setGeneratorSettings(returnArray[0], elementValue.label.toLowerCase(), this._pluginId);
+            await this.setGeneratorSettings(returnArray[0], returnArray[1], this._pluginId + "Bitmap");
+            throw new Error("Control Done");
+        }
+        return this;
+    }
+
+    private isInvalidSpecialItem(id) {
         const returnArray = id.split(",");
         if(returnArray[0] === "false") {
             this.docEmitter.emit("logWarning", `Need to select ${returnArray[1]} from the document tree`);
+            throw new Error("Control Done");
+        }
+        return this;
+    }
+
+    private isInvalidBitmap(id) {
+        const returnArray = id.split(",");
+        if(returnArray[0] === "bitmap") {
+            this.docEmitter.emit("logWarning", `No bitmap font is found at "others/Bitmaps"`);
+            throw new Error("Control Done");
         }
     }
 
@@ -108,8 +142,8 @@ export class CreateComponent implements IFactory {
         return await this._generator.evaluateJSXFile(jsxPath, {clicks: sequenceId});
     }
 
-    private async setGeneratorSettings(id, elementValue) {
-        await this._generator.setLayerSettingsForPlugin((elementValue.label).toLowerCase(), id, this._pluginId)
+    private async setGeneratorSettings(id, insertion, pluginId) {
+        await this._generator.setLayerSettingsForPlugin(insertion, id, pluginId);
     }
 
     private onPaste() {

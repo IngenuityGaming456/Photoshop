@@ -1,12 +1,9 @@
 import {IDataSubModel, IFactory, IModel, IParams} from "../interfaces/IJsxParam";
 import {inject, execute} from "../modules/FactoryClass";
 import {MappingModel} from "./MappingModel";
-import {PhotoshopModel} from "./PhotoshopModels/PhotoshopModel";
-import {PhotoshopStartModel} from "./PhotoshopStartModel";
 import {DataPhotoshopModel} from "./PhotoshopModels/DataPhotoshopModel";
 import {NoDataPhotoshopModel} from "./PhotoshopModels/NoDataPhotoshopModel";
-import {utlis} from "../utils/utils";
-import {PhotoshopChildModel} from "./PhotoshopModels/PhotoshopChildModel";
+import {PhotoshopModel} from "./PhotoshopModels/PhotoshopModel";
 
 let menuLabels = require("../res/menuLables.json");
 let platformStruct = require("../res/platform.json");
@@ -14,7 +11,7 @@ let languagesStruct = require("../res/languages.json");
 
 export class ModelFactory implements IFactory {
     private mappingModel: MappingModel;
-    private photoshopModel: PhotoshopChildModel;
+    private photoshopModel: PhotoshopModel;
     private activeDocument;
     private socketStorageResponse;
     private generator;
@@ -32,7 +29,7 @@ export class ModelFactory implements IFactory {
     }
 
     private checkOpenData() {
-        if(this.openDocumentData) {
+        if (this.openDocumentData) {
             const dataModel = inject({ref: DataPhotoshopModel, dep: []});
             execute(dataModel, {storage: {openDocumentData: this.openDocumentData}});
             return dataModel;
@@ -42,13 +39,17 @@ export class ModelFactory implements IFactory {
 
     private instantiate() {
         this.mappingModel = inject({ref: MappingModel, dep: []});
-        execute(this.mappingModel, { storage: this.getMappingStorage(),
-                                            generator: this.generator, docEmitter: this.docEmitter,
-                                            activeDocument: this.activeDocument});
-        this.photoshopModel = inject({ref: PhotoshopChildModel, dep: []});
-        execute(this.photoshopModel, { storage: this.getPhotoshopStorage(),
-                                              generator: this.generator, docEmitter: this.docEmitter,
-                                              activeDocument: this.activeDocument});
+        execute(this.mappingModel, {
+            storage: this.getMappingStorage(),
+            generator: this.generator, docEmitter: this.docEmitter,
+            activeDocument: this.activeDocument
+        });
+        this.photoshopModel = inject({ref: PhotoshopModel, dep: []});
+        execute(this.photoshopModel, {
+            storage: this.getPhotoshopStorage(),
+            generator: this.generator, docEmitter: this.docEmitter,
+            activeDocument: this.activeDocument
+        });
     }
 
     private getMappingStorage() {

@@ -256,11 +256,11 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.checkImageFolder = function () {
         this.assetsPath = this.getPath();
-        if(!this.isPluginEnabled()) {
-             this.logError(1001, "", "Image Assets plugin is not on.");
-         } else {
-             this.removeError(1001);
-         }
+        // if(!this.isPluginEnabled()) {
+        //     this.logError(1001, "", "Image Assets plugin is not on.");
+        // } else {
+        //     this.removeError(1001);
+        // }
     };
     CreateProxyLayout.prototype.isPluginEnabled = function () {
         return this.imageState.state;

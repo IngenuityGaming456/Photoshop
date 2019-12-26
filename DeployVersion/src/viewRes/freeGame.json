@@ -1,5 +1,5 @@
 {
-    "freeGame": {
+    "FreeGame": {
         "freegameleftMtr": {
             "type": "meter",
             "text": "$00000000",

@@ -45,28 +45,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var PhotoshopModel_1 = require("./PhotoshopModel");
+var PhotoshopModel_1 = require("../../../src/models/PhotoshopModels/PhotoshopModel");
 var path = require("path");
-var PhotoshopChildModel = /** @class */ (function (_super) {
-    __extends(PhotoshopChildModel, _super);
-    function PhotoshopChildModel() {
+var PhotoshopModelApp = /** @class */ (function (_super) {
+    __extends(PhotoshopModelApp, _super);
+    function PhotoshopModelApp() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.sessionHandler = [];
         _this.modifiedIds = [];
         _this.recordedResponse = [];
         _this.isFromLayout = false;
         _this.selectedLayers = [];
+        _this.renamedFromLayout = false;
         return _this;
     }
-    PhotoshopChildModel.prototype.execute = function (params) {
+    PhotoshopModelApp.prototype.execute = function (params) {
         _super.prototype.execute.call(this, params);
     };
-    PhotoshopChildModel.prototype.subscribeListeners = function () {
+    PhotoshopModelApp.prototype.subscribeListeners = function () {
         var _this = this;
         _super.prototype.subscribeListeners.call(this);
         this.generator.on("select", function () { return _this.getSelectedLayers(); });
     };
-    PhotoshopChildModel.prototype.getSelectedLayers = function () {
+    PhotoshopModelApp.prototype.getSelectedLayers = function () {
         return __awaiter(this, void 0, void 0, function () {
             var selectedLayersString;
             return __generator(this, function (_a) {
@@ -80,28 +81,28 @@ var PhotoshopChildModel = /** @class */ (function (_super) {
             });
         });
     };
-    Object.defineProperty(PhotoshopChildModel.prototype, "allSessionHandler", {
+    Object.defineProperty(PhotoshopModelApp.prototype, "allSessionHandler", {
         get: function () {
             return this.sessionHandler;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(PhotoshopChildModel.prototype, "allModifiedIds", {
+    Object.defineProperty(PhotoshopModelApp.prototype, "allModifiedIds", {
         get: function () {
             return this.modifiedIds;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(PhotoshopChildModel.prototype, "allRecordedResponse", {
+    Object.defineProperty(PhotoshopModelApp.prototype, "allRecordedResponse", {
         get: function () {
             return this.recordedResponse;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(PhotoshopChildModel.prototype, "isDeletedFromLayout", {
+    Object.defineProperty(PhotoshopModelApp.prototype, "isDeletedFromLayout", {
         get: function () {
             return this.isFromLayout;
         },
@@ -111,14 +112,24 @@ var PhotoshopChildModel = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(PhotoshopChildModel.prototype, "allSelectedLayers", {
+    Object.defineProperty(PhotoshopModelApp.prototype, "allSelectedLayers", {
         get: function () {
             return this.selectedLayers;
         },
         enumerable: true,
         configurable: true
     });
-    return PhotoshopChildModel;
+    Object.defineProperty(PhotoshopModelApp.prototype, "isRenamedFromLayout", {
+        get: function () {
+            return this.renamedFromLayout;
+        },
+        set: function (value) {
+            this.renamedFromLayout = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return PhotoshopModelApp;
 }(PhotoshopModel_1.PhotoshopModel));
-exports.PhotoshopChildModel = PhotoshopChildModel;
-//# sourceMappingURL=PhotoshopChildModel.js.map
+exports.PhotoshopModelApp = PhotoshopModelApp;
+//# sourceMappingURL=PhotoshopModelApp.js.map

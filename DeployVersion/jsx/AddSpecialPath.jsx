@@ -2,17 +2,10 @@ var path = (new File($.fileName)).parent;
 var pathNew = path + "/Plug-ins/Generator/DeployVersion/jsx/CreateStruct.jsx";
 $.evalFile(pathNew);
 var activeLayer = getInsertionReferenceById(params.id);
-app.doForcedProgress(restructurePath(activeLayer));
+app.doForcedProgress(restructurePath(activeLayer, params.parentName, params.subLayerName));
 
-function restructurePath(layerRef) {
-    var layerSets = layerRef.layerSets;
-    var layerSetCount = layerSets.length;
-    for(var i=0;i<layerSetCount;i++) {
-        var subLayerRef = layerSets[i];
-        var nestedLayerSets = subLayerRef.layerSets;
-        var animationLayer = nestedLayerSets[2];
-        restructureAnimations(animationLayer, layerRef.name, subLayerRef.name);
-    }
+function restructurePath(animationLayer, parentName, subLayerName) {
+    restructureAnimations(animationLayer, parentName, subLayerName);
 }
 
 function restructureAnimations(nestedLayerRef, parentName, travelName) {

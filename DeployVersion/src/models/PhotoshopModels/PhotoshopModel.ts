@@ -161,10 +161,10 @@ export class PhotoshopModel implements IModel {
 
     private constructViewMapping(itemV, index) {
         const nestedViewMap = {};
-        if (itemV === "freeGame") {
+        if (itemV === "FreeGame") {
             return {
                 mapping: {
-                    [this.questPlatforms[index]]: "baseGame"
+                    [this.questPlatforms[index]]: "BaseGame"
                 }
             }
         }
@@ -272,7 +272,7 @@ export class PhotoshopModel implements IModel {
             menuCurrentState: this.currentState,
             drawnQuestItems: this.drawnQuestItems
         };
-        this.generator.emit("writeData", this.writeData);
+        this.generator.emit("writeData", this.writeData, true);
     }
 
     private getMenuStates() {

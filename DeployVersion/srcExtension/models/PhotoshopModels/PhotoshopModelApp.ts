@@ -1,8 +1,8 @@
-import {PhotoshopModel} from "./PhotoshopModel";
-import {IModel, IParams} from "../../interfaces/IJsxParam";
+import {PhotoshopModel} from "../../../src/models/PhotoshopModels/PhotoshopModel";
+import {IParams} from "../../../src/interfaces/IJsxParam";
 import * as path from "path";
 
-export class PhotoshopChildModel extends PhotoshopModel {
+export class PhotoshopModelApp extends PhotoshopModel {
 
     private sessionHandler = [];
     private modifiedIds = [];

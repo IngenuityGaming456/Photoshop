@@ -45,7 +45,6 @@
         _startModel = new PhotoshopStartModel();
     }
 
-
     function initializeDocumentStarter() {
         _documentStarter = new DocumentStarter();
         execute(_documentStarter, {generator: _generator, storage: {

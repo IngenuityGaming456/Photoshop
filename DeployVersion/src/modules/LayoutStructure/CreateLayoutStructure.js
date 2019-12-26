@@ -71,20 +71,23 @@ var CreateLayoutStructure = /** @class */ (function () {
                         this.assetsPath = params.storage.assetsPath;
                         this.docEmitter = params.docEmitter;
                         this.emitStartStatus();
-                        return [4 /*yield*/, this.restructureTempLayers()];
+                        return [4 /*yield*/, this.upperLevelUnwantedLayers()];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.modifyPathNames()];
+                        return [4 /*yield*/, this.restructureTempLayers()];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.requestDocument()];
+                        return [4 /*yield*/, this.modifyPathNames()];
                     case 3:
+                        _a.sent();
+                        return [4 /*yield*/, this.requestDocument()];
+                    case 4:
                         result = _a.sent();
                         utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
                         this.modifyJSON(result.layers);
                         this.modifyBottomBar(result.layers);
                         return [4 /*yield*/, this.removeUnwantedLayers()];
-                    case 4:
+                    case 5:
                         _a.sent();
                         this.removeDuplicates(result.layers);
                         this.writeJSON(result);
@@ -117,45 +120,57 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.restructure = function (layerName) {
         return __awaiter(this, void 0, void 0, function () {
-            var drawnQuestItems, items, items_1, items_1_1, item, e_1_1, e_1, _a;
+            var drawnQuestItems, items, items_1, items_1_1, item, structRef, structRefNestedLayers, i, e_1_1, e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-                        items = drawnQuestItems.map(function (item) {
+                        items = drawnQuestItems.filter(function (item) {
                             if (item.name === layerName) {
-                                return item.id;
+                                return true;
                             }
-                            return -1;
                         });
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, 7, 8]);
+                        _b.trys.push([1, 8, 9, 10]);
                         items_1 = __values(items), items_1_1 = items_1.next();
                         _b.label = 2;
                     case 2:
-                        if (!!items_1_1.done) return [3 /*break*/, 5];
+                        if (!!items_1_1.done) return [3 /*break*/, 7];
                         item = items_1_1.value;
-                        if (!(item > -1)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"), { id: item })];
+                        structRef = this._activeDocument.layers.findLayer(item.id);
+                        if (structRef.layer.group.name === "BaseGame") {
+                            return [2 /*return*/];
+                        }
+                        if (!structRef.layer.layers) return [3 /*break*/, 6];
+                        structRefNestedLayers = structRef.layer.layers.length;
+                        i = 0;
+                        _b.label = 3;
                     case 3:
-                        _b.sent();
-                        _b.label = 4;
+                        if (!(i < structRefNestedLayers)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"), { id: structRef.layer.layers[i].layers[0].id, parentName: layerName,
+                                subLayerName: structRef.layer.layers[i].name })];
                     case 4:
+                        _b.sent();
+                        _b.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 3];
+                    case 6:
                         items_1_1 = items_1.next();
                         return [3 /*break*/, 2];
-                    case 5: return [3 /*break*/, 8];
-                    case 6:
+                    case 7: return [3 /*break*/, 10];
+                    case 8:
                         e_1_1 = _b.sent();
                         e_1 = { error: e_1_1 };
-                        return [3 /*break*/, 8];
-                    case 7:
+                        return [3 /*break*/, 10];
+                    case 9:
                         try {
                             if (items_1_1 && !items_1_1.done && (_a = items_1.return)) _a.call(items_1);
                         }
                         finally { if (e_1) throw e_1.error; }
                         return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });
@@ -247,6 +262,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
+                        this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
                         this.modifiedIds.push(key);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:
@@ -279,18 +295,13 @@ var CreateLayoutStructure = /** @class */ (function () {
             var _this = this;
             var targetPath;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.upperLevelUnwantedLayers()];
-                    case 1:
-                        _a.sent();
-                        targetPath = this.assetsPath + "-assets";
-                        if (fs.existsSync(targetPath)) {
-                            fs.readdirSync(targetPath).forEach(function (fileName) {
-                                _this.removeFiles(targetPath + "/" + fileName);
-                            });
-                        }
-                        return [2 /*return*/];
+                targetPath = this.assetsPath + "-assets";
+                if (fs.existsSync(targetPath)) {
+                    fs.readdirSync(targetPath).forEach(function (fileName) {
+                        _this.removeFiles(targetPath + "/" + fileName);
+                    });
                 }
+                return [2 /*return*/];
             });
         });
     };
@@ -312,6 +323,9 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.removeFiles = function (targetPath) {
         var path = targetPath + "/common";
+        if (!fs.existsSync(path)) {
+            return;
+        }
         fs.readdirSync(path).forEach(function (fileName) {
             if (~fileName.search(/(Animation)/)) {
                 utils_1.utlis.removeFile(path + "/" + fileName);
@@ -381,7 +395,7 @@ var CreateLayoutStructure = /** @class */ (function () {
     CreateLayoutStructure.prototype.handleCommonLayers = function (item) {
         var _this = this;
         var commonLayers = item.layers;
-        commonLayers.forEach(function (view) {
+        commonLayers && commonLayers.forEach(function (view) {
             _this.handleViewDuplicates(view.layers, null);
         });
     };
@@ -389,6 +403,12 @@ var CreateLayoutStructure = /** @class */ (function () {
         var _this = this;
         uiMap = uiMap || {};
         viewLayers.forEach(function (item) {
+            //Mocking a text layer as it does not have generator setting by default.
+            if (item.type === "textLayer") {
+                item["generatorSettings"] = {};
+                item["generatorSettings"][_this._pluginId] = {};
+                item["generatorSettings"][_this._pluginId]["json"] = "label";
+            }
             if (item.generatorSettings && item.generatorSettings[_this._pluginId]) {
                 var genSettings = item.generatorSettings[_this._pluginId].json;
                 if (!uiMap.hasOwnProperty(genSettings)) {
@@ -413,7 +433,7 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.getCorrectSequence = function (uiArray, name, count) {
         if (~uiArray.indexOf(name + count)) {
-            return this.getCorrectSequence(uiArray, name, count++);
+            return this.getCorrectSequence(uiArray, name, ++count);
         }
         else {
             return count;

@@ -11,7 +11,6 @@ export class JsonComponentsFactory {
                 "text"))
                .set("container", new PhotoshopJsonComponent("layerSection", unifiedPath + "InsertLayer.jsx"))
                .set("meter", new QuestJsonComponent("meter", unifiedPath + "AddMeter.jsx"))
-               .set("spine", new QuestJsonComponent("spine", unifiedPath + "AddSpine.jsx"))
                .set("button", new QuestJsonComponent("button", unifiedPath + "AddButton.jsx"))
                .set("animation", new QuestJsonComponent("animation", unifiedPath + "AddAnimation.jsx"));
         return jsonMap;
