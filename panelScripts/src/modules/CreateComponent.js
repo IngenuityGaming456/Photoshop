@@ -103,12 +103,17 @@ var CreateComponent = /** @class */ (function () {
     };
     CreateComponent.prototype.isValid = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var selectedLayersIdArray, layers, selectedRef;
+            var selectedLayersString, selectedLayersIdArray, layers, selectedRef;
             return __generator(this, function (_a) {
-                selectedLayersIdArray = this.modelFactory.getPhotoshopModel().allSelectedLayers;
-                layers = this.activeDocument.layers;
-                selectedRef = layers.findLayer(Number(selectedLayersIdArray[0]));
-                return [2 /*return*/, this.isCorrectSelection(selectedRef)];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
+                    case 1:
+                        selectedLayersString = _a.sent();
+                        selectedLayersIdArray = selectedLayersString.toString().split(",");
+                        layers = this.activeDocument.layers;
+                        selectedRef = layers.findLayer(Number(selectedLayersIdArray[0]));
+                        return [2 /*return*/, this.isCorrectSelection(selectedRef)];
+                }
             });
         });
     };
@@ -167,6 +172,7 @@ var CreateComponent = /** @class */ (function () {
     };
     CreateComponent.prototype.isID = function (id, elementValue) {
         return __awaiter(this, void 0, void 0, function () {
+            var returnArray, returnCount, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -175,7 +181,22 @@ var CreateComponent = /** @class */ (function () {
                     case 1:
                         _a.sent();
                         throw new Error("Control Done");
-                    case 2: return [2 /*return*/];
+                    case 2:
+                        returnArray = id.split(",");
+                        if (!(returnArray[0] && ~returnArray[1].search(/(Paylines|Symbols|WinFrames)/))) return [3 /*break*/, 6];
+                        returnCount = returnArray.length;
+                        i = 2;
+                        _a.label = 3;
+                    case 3:
+                        if (!(i < returnCount)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this.setGeneratorSettings(Number(returnArray[i]), elementValue.label.toLowerCase(), this._pluginId)];
+                    case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 3];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

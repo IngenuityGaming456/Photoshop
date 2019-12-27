@@ -36,7 +36,8 @@ export class LayerManager implements IFactory{
         });
         this._generator.on("select", async () => {
             this.eventName = Events.SELECT;
-            this.selectedLayers = this.modelFactory.getPhotoshopModel().allSelectedLayers;
+            let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+            this.selectedLayers = selectedLayersString.toString().split(",");
         });
         this._generator.on("copy", () => {
             this.eventName = Events.COPY;

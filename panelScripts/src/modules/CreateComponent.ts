@@ -46,7 +46,8 @@ export class CreateComponent implements IFactory {
     }
 
     private async isValid() {
-        const selectedLayersIdArray = this.modelFactory.getPhotoshopModel().allSelectedLayers;
+        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+        const selectedLayersIdArray = selectedLayersString.toString().split(",");
         const layers: layerClass.LayerGroup = this.activeDocument.layers;
         const selectedRef = layers.findLayer(Number(selectedLayersIdArray[0]));
         return this.isCorrectSelection(selectedRef);
@@ -96,6 +97,13 @@ export class CreateComponent implements IFactory {
         if(Number(id)) {
             await this.setGeneratorSettings(id, elementValue.label.toLowerCase(), this._pluginId);
             throw new Error("Control Done");
+        }
+        const returnArray = id.split(",");
+        if(returnArray[0] && ~returnArray[1].search(/(Paylines|Symbols|WinFrames)/)) {
+            const returnCount = returnArray.length;
+            for(let i=2;i<returnCount;i++) {
+                await this.setGeneratorSettings(Number(returnArray[i]), elementValue.label.toLowerCase(), this._pluginId)
+            }
         }
     }
 

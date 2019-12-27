@@ -286,6 +286,8 @@ export class DocumentStarter implements IFactory {
     }
 
     private async addDocumentStatus() {
+       // const menuState = await this.generator.getMenuState("generator-assets");
+       // this.imageState.state = menuState.checked;
        this.generator.emit("activeDocumentId", this.activeDocument.id);
        this.loggerEmitter.emit("activeDocument", this.docId);
        this.loggerEmitter.emit("logStatus", "Document is Saved");

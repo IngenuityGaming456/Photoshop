@@ -25,7 +25,7 @@ export class Validation implements IFactory {
     }
 
     private subscribeListeners() {
-        this.generator.on("layerRenamed", eventLayers => this.onLayersRename(eventLayers));
+        this.generator.on("layerRenamed", async eventLayers => await this.onLayersRename(eventLayers));
         this.generator.on("layersDeleted", eventLayers => this.onLayersDeleted(eventLayers))
     }
 
@@ -36,10 +36,10 @@ export class Validation implements IFactory {
         }
     }
 
-    private onLayersRename(eventLayers) {
+    private async onLayersRename(eventLayers) {
         const questArray = this.modelFactory.getPhotoshopModel().allQuestItems;
         const drawnQuestItems = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        this.startValidationSequence(eventLayers, questArray, drawnQuestItems);
+        await this.startValidationSequence(eventLayers, questArray, drawnQuestItems);
         this.isErrorFree(eventLayers, this.errorFreeFromRename.bind(this));
     }
 
@@ -47,17 +47,18 @@ export class Validation implements IFactory {
         this.isErrorFree(eventLayers, this.errorFreeFromDeletion.bind(this));
     }
 
-    private startValidationSequence(eventLayers, questArray, drawnQuestItems) {
+    private async startValidationSequence(eventLayers, questArray, drawnQuestItems) {
         try {
-            this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems)
+            (await this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems))
                 .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems);
         } catch(err) {
             console.log("Validation Stopped");
         }
     }
 
-    private drawnQuestItemsRenamed(name, id, drawnQuestItems) {
-        const layerId = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).allSelectedLayers[0];
+    private async drawnQuestItemsRenamed(name, id, drawnQuestItems) {
+        let selectedLayersString = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+        const layerId = selectedLayersString.toString().split(",")[0];
         const layerRef = this.activeDocument.layers.findLayer(Number(layerId));
             const questItem = drawnQuestItems.find(item => {
                 if(item.id === id && item.name !== name) {

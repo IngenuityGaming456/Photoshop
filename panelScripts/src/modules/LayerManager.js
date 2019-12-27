@@ -69,10 +69,17 @@ var LayerManager = /** @class */ (function () {
             _this.onLayersAdded(eventLayers, isNewDocument);
         });
         this._generator.on("select", function () { return __awaiter(_this, void 0, void 0, function () {
+            var selectedLayersString;
             return __generator(this, function (_a) {
-                this.eventName = Events.SELECT;
-                this.selectedLayers = this.modelFactory.getPhotoshopModel().allSelectedLayers;
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0:
+                        this.eventName = Events.SELECT;
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
+                    case 1:
+                        selectedLayersString = _a.sent();
+                        this.selectedLayers = selectedLayersString.toString().split(",");
+                        return [2 /*return*/];
+                }
             });
         }); });
         this._generator.on("copy", function () {

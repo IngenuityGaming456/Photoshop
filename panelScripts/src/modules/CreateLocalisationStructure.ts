@@ -23,12 +23,13 @@ export class CreateLocalisationStructure implements IFactory {
         this._activeDocument = params.activeDocument;
         this.docEmitter = params.docEmitter;
         this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
-        const idsArray = await this.modifySelectedResponse(this.findSelectedLayers());
+        const idsArray = await this.modifySelectedResponse(await this.findSelectedLayers());
         this.getParents(idsArray);
     }
 
-    private findSelectedLayers() {
-        return this.modelFactory.getPhotoshopModel().allSelectedLayers;
+    private async findSelectedLayers() {
+        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+        return selectedLayersString.toString().split(",");
     }
 
     private async modifySelectedResponse(idsArray: Array<string>) {

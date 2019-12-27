@@ -38,7 +38,7 @@
     }
     
     function onImageChanged(event) {
-        _eventsManager.onImageChanged(event);
+        _eventsManager && _eventsManager.onImageChanged(event);
     }
 
     function initializeModelFactory() {

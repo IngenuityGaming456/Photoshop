@@ -360,6 +360,8 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.addDocumentStatus = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
+                // const menuState = await this.generator.getMenuState("generator-assets");
+                // this.imageState.state = menuState.checked;
                 this.generator.emit("activeDocumentId", this.activeDocument.id);
                 this.loggerEmitter.emit("activeDocument", this.docId);
                 this.loggerEmitter.emit("logStatus", "Document is Saved");

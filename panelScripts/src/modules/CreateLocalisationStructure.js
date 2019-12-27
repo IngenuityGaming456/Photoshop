@@ -77,17 +77,19 @@ var CreateLocalisationStructure = /** @class */ (function () {
     }
     CreateLocalisationStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var idsArray;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var idsArray, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         this._generator = params.generator;
                         this._activeDocument = params.activeDocument;
                         this.docEmitter = params.docEmitter;
                         this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
-                        return [4 /*yield*/, this.modifySelectedResponse(this.findSelectedLayers())];
-                    case 1:
-                        idsArray = _a.sent();
+                        _a = this.modifySelectedResponse;
+                        return [4 /*yield*/, this.findSelectedLayers()];
+                    case 1: return [4 /*yield*/, _a.apply(this, [_b.sent()])];
+                    case 2:
+                        idsArray = _b.sent();
                         this.getParents(idsArray);
                         return [2 /*return*/];
                 }
@@ -95,7 +97,17 @@ var CreateLocalisationStructure = /** @class */ (function () {
         });
     };
     CreateLocalisationStructure.prototype.findSelectedLayers = function () {
-        return this.modelFactory.getPhotoshopModel().allSelectedLayers;
+        return __awaiter(this, void 0, void 0, function () {
+            var selectedLayersString;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
+                    case 1:
+                        selectedLayersString = _a.sent();
+                        return [2 /*return*/, selectedLayersString.toString().split(",")];
+                }
+            });
+        });
     };
     CreateLocalisationStructure.prototype.modifySelectedResponse = function (idsArray) {
         return __awaiter(this, void 0, void 0, function () {

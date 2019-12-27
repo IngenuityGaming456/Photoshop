@@ -1,6 +1,5 @@
 import {PhotoshopModel} from "../../../src/models/PhotoshopModels/PhotoshopModel";
 import {IParams} from "../../../src/interfaces/IJsxParam";
-import * as path from "path";
 
 export class PhotoshopModelApp extends PhotoshopModel {
 
@@ -17,12 +16,6 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     protected subscribeListeners() {
         super.subscribeListeners();
-        this.generator.on("select", () => this.getSelectedLayers());
-    }
-
-    private async getSelectedLayers() {
-        let selectedLayersString = await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayersIds.jsx"));
-        this.selectedLayers = selectedLayersString.toString().split(",");
     }
 
     get allSessionHandler() {
@@ -43,10 +36,6 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     set isDeletedFromLayout(value) {
         this.isFromLayout = value;
-    }
-
-    get allSelectedLayers() {
-        return this.selectedLayers;
     }
 
     set isRenamedFromLayout(value) {
