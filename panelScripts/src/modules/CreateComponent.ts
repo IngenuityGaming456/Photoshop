@@ -99,7 +99,7 @@ export class CreateComponent implements IFactory {
             throw new Error("Control Done");
         }
         const returnArray = id.split(",");
-        if(returnArray[0] && ~returnArray[1].search(/(Paylines|Symbols|WinFrames)/)) {
+        if(returnArray[0] && returnArray[1] && ~returnArray[1].search(/(Paylines|Symbols|WinFrames)/)) {
             const returnCount = returnArray.length;
             for(let i=2;i<returnCount;i++) {
                 await this.setGeneratorSettings(Number(returnArray[i]), elementValue.label.toLowerCase(), this._pluginId)
@@ -131,6 +131,9 @@ export class CreateComponent implements IFactory {
         if(returnArray[0] === "bitmap") {
             this.docEmitter.emit("logWarning", `No bitmap font is found at "others/Bitmaps"`);
             throw new Error("Control Done");
+        }
+        if(returnArray[0] === "bitmaptrue") {
+            this.docEmitter.emit("logWarning", `png file corresponding to bitmap is not found`);
         }
     }
 

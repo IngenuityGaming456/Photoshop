@@ -183,7 +183,7 @@ var CreateComponent = /** @class */ (function () {
                         throw new Error("Control Done");
                     case 2:
                         returnArray = id.split(",");
-                        if (!(returnArray[0] && ~returnArray[1].search(/(Paylines|Symbols|WinFrames)/))) return [3 /*break*/, 6];
+                        if (!(returnArray[0] && returnArray[1] && ~returnArray[1].search(/(Paylines|Symbols|WinFrames)/))) return [3 /*break*/, 6];
                         returnCount = returnArray.length;
                         i = 2;
                         _a.label = 3;
@@ -234,6 +234,9 @@ var CreateComponent = /** @class */ (function () {
         if (returnArray[0] === "bitmap") {
             this.docEmitter.emit("logWarning", "No bitmap font is found at \"others/Bitmaps\"");
             throw new Error("Control Done");
+        }
+        if (returnArray[0] === "bitmaptrue") {
+            this.docEmitter.emit("logWarning", "png file corresponding to bitmap is not found");
         }
     };
     CreateComponent.prototype.handleChange = function (eventLayers) {

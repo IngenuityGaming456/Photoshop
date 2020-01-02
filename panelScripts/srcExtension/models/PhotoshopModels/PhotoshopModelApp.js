@@ -21,6 +21,8 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         _this.isFromLayout = false;
         _this.selectedLayers = [];
         _this.renamedFromLayout = false;
+        _this.isRemovalOn = false;
+        _this.lastId = null;
         return _this;
     }
     PhotoshopModelApp.prototype.execute = function (params) {
@@ -66,6 +68,26 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         },
         set: function (value) {
             this.renamedFromLayout = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModelApp.prototype, "isRemoval", {
+        get: function () {
+            return this.isRemovalOn;
+        },
+        set: function (value) {
+            this.isRemovalOn = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModelApp.prototype, "lastRemovalId", {
+        get: function () {
+            return this.lastId;
+        },
+        set: function (value) {
+            this.lastId = value;
         },
         enumerable: true,
         configurable: true

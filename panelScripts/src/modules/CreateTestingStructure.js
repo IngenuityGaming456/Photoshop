@@ -40,6 +40,7 @@ var CreateTestingStructure = /** @class */ (function () {
     function CreateTestingStructure(modelFactory) {
         this.modifiedIds = [];
         this.modifiedIds = modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modelFactory = modelFactory;
     }
     CreateTestingStructure.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -48,6 +49,8 @@ var CreateTestingStructure = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         modifiedIdsCount = this.modifiedIds.length;
+                        this.modelFactory.getPhotoshopModel().lastRemovalId = Number(this.modifiedIds[modifiedIdsCount - 1]);
+                        this.modelFactory.getPhotoshopModel().isRemoval = true;
                         i = 0;
                         _a.label = 1;
                     case 1:

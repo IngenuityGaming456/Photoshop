@@ -59,6 +59,12 @@ export class Validation implements IFactory {
     private async drawnQuestItemsRenamed(name, id, drawnQuestItems) {
         let selectedLayersString = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
         const layerId = selectedLayersString.toString().split(",")[0];
+        if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRemoval) {
+            if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).lastRemovalId === Number(id)) {
+                (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRemoval = false;
+            }
+            throw new Error("Validation Stop");
+        }
         const layerRef = this.activeDocument.layers.findLayer(Number(layerId));
             const questItem = drawnQuestItems.find(item => {
                 if(item.id === id && item.name !== name) {

@@ -9,6 +9,8 @@ export class PhotoshopModelApp extends PhotoshopModel {
     private isFromLayout = false;
     private selectedLayers = [];
     private renamedFromLayout = false;
+    private isRemovalOn = false;
+    private lastId = null;
 
     execute(params: IParams) {
         super.execute(params);
@@ -44,6 +46,22 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     get isRenamedFromLayout(): boolean {
         return this.renamedFromLayout;
+    }
+
+    set isRemoval(value: boolean) {
+        this.isRemovalOn = value;
+    }
+
+    get isRemoval(): boolean {
+        return this.isRemovalOn;
+    }
+
+    set lastRemovalId(value: number) {
+        this.lastId = value;
+    }
+
+    get lastRemovalId() {
+        return this.lastId;
     }
 
 }

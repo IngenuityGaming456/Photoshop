@@ -116,6 +116,12 @@ var Validation = /** @class */ (function () {
                     case 1:
                         selectedLayersString = _a.sent();
                         layerId = selectedLayersString.toString().split(",")[0];
+                        if (this.modelFactory.getPhotoshopModel().isRemoval) {
+                            if (this.modelFactory.getPhotoshopModel().lastRemovalId === Number(id)) {
+                                this.modelFactory.getPhotoshopModel().isRemoval = false;
+                            }
+                            throw new Error("Validation Stop");
+                        }
                         layerRef = this.activeDocument.layers.findLayer(Number(layerId));
                         questItem = drawnQuestItems.find(function (item) {
                             if (item.id === id && item.name !== name) {
