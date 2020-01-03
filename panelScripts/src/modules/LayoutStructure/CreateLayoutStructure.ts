@@ -112,17 +112,23 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private async modifyPathNames() {
-        const bufferKeys = this.layerMap.keys();
-        for (let key of bufferKeys) {
-            const layerValue = this.layerMap.get(key);
-            await this.handleBufferValue(layerValue, key);
+        const bufferKeys = [...this.layerMap.keys()];
+        this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
+        const bufferKeysCount = bufferKeys.length;
+        for (let i=0;i<bufferKeysCount;i++) {
+            const layerValue = this.layerMap.get(bufferKeys[i]);
+            if(i === bufferKeysCount - 1) {
+                await this.handleBufferValue(layerValue, bufferKeys[i], true);
+            } else {
+                await this.handleBufferValue(layerValue, bufferKeys[i]);
+            }
         }
     }
 
-    private async handleBufferValue(layerValue, key) {
+    private async handleBufferValue(layerValue, key, isLast?) {
         if (layerValue.frequency === 1) {
-            this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
             this.modifiedIds.push(key);
+            this.modelFactory.getPhotoshopModel().lastRename = isLast ? Number(key) : null;
             await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"),
                 {id: key});
         }

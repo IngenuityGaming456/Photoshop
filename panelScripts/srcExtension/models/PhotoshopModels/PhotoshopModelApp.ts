@@ -7,10 +7,10 @@ export class PhotoshopModelApp extends PhotoshopModel {
     private modifiedIds = [];
     private recordedResponse = [];
     private isFromLayout = false;
-    private selectedLayers = [];
     private renamedFromLayout = false;
     private isRemovalOn = false;
     private lastId = null;
+    private lastRenameId = null;
 
     execute(params: IParams) {
         super.execute(params);
@@ -62,6 +62,14 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     get lastRemovalId() {
         return this.lastId;
+    }
+
+    set lastRename(value: number) {
+        this.lastRenameId = value;
+    }
+
+    get lastRename() {
+        return this.lastRenameId;
     }
 
 }

@@ -19,10 +19,10 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         _this.modifiedIds = [];
         _this.recordedResponse = [];
         _this.isFromLayout = false;
-        _this.selectedLayers = [];
         _this.renamedFromLayout = false;
         _this.isRemovalOn = false;
         _this.lastId = null;
+        _this.lastRenameId = null;
         return _this;
     }
     PhotoshopModelApp.prototype.execute = function (params) {
@@ -88,6 +88,16 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         },
         set: function (value) {
             this.lastId = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModelApp.prototype, "lastRename", {
+        get: function () {
+            return this.lastRenameId;
+        },
+        set: function (value) {
+            this.lastRenameId = value;
         },
         enumerable: true,
         configurable: true

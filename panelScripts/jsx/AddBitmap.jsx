@@ -25,14 +25,14 @@ function bitmapSelectionPanel(filesArray) {
     windowStruct.window.show();
     function handleResponse() {
         radioResponse = getRadioResponse(windowStruct.panel, filesArray.length);
-        radioResponse = radioResponse.replace(/^.*[\/]/, "");
+        var radioCompress = radioResponse.replace(/^.*[\/]/, "");
         var pngCount = pngArray.length;
         if(!pngCount) {
             noPng = true;
         }
         for(var i=0;i<pngCount;i++) {
             var pngStr = pngArray[i].toString().replace(/^.*[\/]/, "").replace(/\.(png)/, "");
-            if(pngStr === radioResponse.replace(/\.(json|xml|fnt)/, "")) {
+            if(pngStr === radioCompress.replace(/\.(json|xml|fnt)/, "")) {
                 noPng = false;
                 break;
             }

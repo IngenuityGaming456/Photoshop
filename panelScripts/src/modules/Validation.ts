@@ -65,6 +65,12 @@ export class Validation implements IFactory {
             }
             throw new Error("Validation Stop");
         }
+        if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRenamedFromLayout) {
+            if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).lastRename === Number(id)) {
+                (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRenamedFromLayout = false;
+            }
+            return this;
+        }
         const layerRef = this.activeDocument.layers.findLayer(Number(layerId));
             const questItem = drawnQuestItems.find(item => {
                 if(item.id === id && item.name !== name) {
@@ -78,10 +84,6 @@ export class Validation implements IFactory {
                 throw new Error("Validation Stop");
             }
             if(utlis.getElementName(layerRef, "languages") && !~this.alreadyRenamed.indexOf(id)) {
-                if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRenamedFromLayout) {
-                    (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRenamedFromLayout = false;
-                    return this;
-                }
                 this.alreadyRenamed.push(id);
                 this.docEmitter.emit("logWarning", `Can't rename an item inside languages`);
                 this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),

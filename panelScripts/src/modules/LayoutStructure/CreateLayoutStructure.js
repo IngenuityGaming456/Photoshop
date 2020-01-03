@@ -44,6 +44,26 @@ var __values = (this && this.__values) || function (o) {
         }
     };
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spread = (this && this.__spread) || function () {
+    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
@@ -219,51 +239,43 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.modifyPathNames = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var bufferKeys, bufferKeys_1, bufferKeys_1_1, key, layerValue, e_2_1, e_2, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var bufferKeys, bufferKeysCount, i, layerValue;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        bufferKeys = this.layerMap.keys();
-                        _b.label = 1;
+                        bufferKeys = __spread(this.layerMap.keys());
+                        this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
+                        bufferKeysCount = bufferKeys.length;
+                        i = 0;
+                        _a.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, 7, 8]);
-                        bufferKeys_1 = __values(bufferKeys), bufferKeys_1_1 = bufferKeys_1.next();
-                        _b.label = 2;
+                        if (!(i < bufferKeysCount)) return [3 /*break*/, 6];
+                        layerValue = this.layerMap.get(bufferKeys[i]);
+                        if (!(i === bufferKeysCount - 1)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.handleBufferValue(layerValue, bufferKeys[i], true)];
                     case 2:
-                        if (!!bufferKeys_1_1.done) return [3 /*break*/, 5];
-                        key = bufferKeys_1_1.value;
-                        layerValue = this.layerMap.get(key);
-                        return [4 /*yield*/, this.handleBufferValue(layerValue, key)];
-                    case 3:
-                        _b.sent();
-                        _b.label = 4;
+                        _a.sent();
+                        return [3 /*break*/, 5];
+                    case 3: return [4 /*yield*/, this.handleBufferValue(layerValue, bufferKeys[i])];
                     case 4:
-                        bufferKeys_1_1 = bufferKeys_1.next();
-                        return [3 /*break*/, 2];
-                    case 5: return [3 /*break*/, 8];
-                    case 6:
-                        e_2_1 = _b.sent();
-                        e_2 = { error: e_2_1 };
-                        return [3 /*break*/, 8];
-                    case 7:
-                        try {
-                            if (bufferKeys_1_1 && !bufferKeys_1_1.done && (_a = bufferKeys_1.return)) _a.call(bufferKeys_1);
-                        }
-                        finally { if (e_2) throw e_2.error; }
-                        return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/];
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
     };
-    CreateLayoutStructure.prototype.handleBufferValue = function (layerValue, key) {
+    CreateLayoutStructure.prototype.handleBufferValue = function (layerValue, key, isLast) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
-                        this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
                         this.modifiedIds.push(key);
+                        this.modelFactory.getPhotoshopModel().lastRename = isLast ? Number(key) : null;
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:
                         _a.sent();
@@ -383,14 +395,14 @@ var CreateLayoutStructure = /** @class */ (function () {
                 }
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
                 if (layers_1_1 && !layers_1_1.done && (_a = layers_1.return)) _a.call(layers_1);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_2) throw e_2.error; }
         }
-        var e_3, _a;
+        var e_2, _a;
     };
     CreateLayoutStructure.prototype.handleCommonLayers = function (item) {
         var _this = this;
