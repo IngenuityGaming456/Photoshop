@@ -364,6 +364,8 @@ var utlis = /** @class */ (function () {
         return false;
         var e_3, _a;
     };
+    utlis.isNumeric = function () {
+    };
     return utlis;
 }());
 exports.utlis = utlis;

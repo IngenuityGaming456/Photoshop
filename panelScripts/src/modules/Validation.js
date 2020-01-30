@@ -72,14 +72,26 @@ var Validation = /** @class */ (function () {
         }); }); });
         this.generator.on(constants_1.photoshopConstants.generator.layersDeleted, function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
         this.generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers) { return _this.waitForDocumentResolution(eventLayers); });
+        this.generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers) { return _this.checkForNumericName(eventLayers); });
         this.generator.on(constants_1.photoshopConstants.generator.layersMoved, function (eventLayers) { return _this.waitForDocumentResolution(eventLayers); });
         this.docEmitter.on(constants_1.photoshopConstants.emitter.layersMovedMock, function (eventLayers) { return _this.onLayersLocalised(eventLayers, true); });
+    };
+    Validation.prototype.checkForNumericName = function (eventLayers) {
+        utils_1.utlis.traverseAddedLayers(eventLayers, this.isNumericInAdded.bind(this));
+    };
+    Validation.prototype.isNumericInAdded = function (item) {
+        if (~item.name.search(/^[\W\d_]+/)) {
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Not allowed to add Items with special characters");
+            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item.id });
+        }
     };
     Validation.prototype.isInHTML = function (key, id, questArray, drawnQuestItems) {
         if (~questArray.indexOf(key) && !utils_1.utlis.isIDExists(id, drawnQuestItems) && !~this.alreadyRenamed.indexOf(id)) {
             this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Not allowed to create HTML Container, " + key + " with id = " + id);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: id });
+            throw new Error("Validation Stopped");
         }
+        return this;
     };
     Validation.prototype.onLayersRename = function (eventLayers) {
         return __awaiter(this, void 0, void 0, function () {
@@ -502,7 +514,8 @@ var Validation = /** @class */ (function () {
                         return [4 /*yield*/, this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems)];
                     case 1:
                         (_a.sent())
-                            .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems);
+                            .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems)
+                            .isNumeric(eventLayers[0].name, eventLayers[0].id);
                         return [3 /*break*/, 3];
                     case 2:
                         err_1 = _a.sent();
@@ -552,6 +565,13 @@ var Validation = /** @class */ (function () {
                 return [2 /*return*/, this];
             });
         });
+    };
+    Validation.prototype.isNumeric = function (name, id) {
+        if (~name.search(/^[\W\d_]+/)) {
+            var selectedIdPrevName = this.modelFactory.getPhotoshopModel().selectedName;
+            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: id, name: selectedIdPrevName });
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Names Starting with Special characters are not allowed");
+        }
     };
     Validation.prototype.isErrorFree = function (eventLayers, callback) {
         var errorData = callback(eventLayers);

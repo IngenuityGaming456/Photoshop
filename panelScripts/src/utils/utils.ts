@@ -335,4 +335,8 @@ export class utlis {
         }
         return false;
     }
+
+    public static isNumeric() {
+
+    }
 }

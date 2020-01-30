@@ -30,15 +30,29 @@ export class Validation implements IFactory {
         this.generator.on(pc.generator.layerRenamed, async eventLayers => await this.onLayersRename(eventLayers));
         this.generator.on(pc.generator.layersDeleted, eventLayers => this.onLayersDeleted(eventLayers));
         this.generator.on(pc.generator.layersAdded, eventLayers => this.waitForDocumentResolution(eventLayers));
+        this.generator.on(pc.generator.layersAdded, eventLayers => this.checkForNumericName(eventLayers));
         this.generator.on(pc.generator.layersMoved, eventLayers => this.waitForDocumentResolution(eventLayers));
         this.docEmitter.on(pc.emitter.layersMovedMock, eventLayers => this.onLayersLocalised(eventLayers, true));
+    }
+
+    private checkForNumericName(eventLayers) {
+        utlis.traverseAddedLayers(eventLayers, this.isNumericInAdded.bind(this));
+    }
+
+    private isNumericInAdded(item) {
+        if(~item.name.search(/^[\W\d_]+/)) {
+            this.docEmitter.emit(pc.logger.logWarning, "Not allowed to add Items with special characters");
+            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: item.id});
+        }
     }
 
     private isInHTML(key, id, questArray, drawnQuestItems) {
         if(~questArray.indexOf(key) && !utlis.isIDExists(id, drawnQuestItems) && !~this.alreadyRenamed.indexOf(id)) {
             this.docEmitter.emit(pc.logger.logWarning, `Not allowed to create HTML Container, ${key} with id = ${id}`);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: id});
+            throw new Error("Validation Stopped");
         }
+        return this;
     }
 
     private async onLayersRename(eventLayers) {
@@ -331,7 +345,8 @@ export class Validation implements IFactory {
     private async startValidationSequence(eventLayers, questArray, drawnQuestItems) {
         try {
             (await this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems))
-                .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems);
+                .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems)
+                .isNumeric(eventLayers[0].name, eventLayers[0].id);
         } catch(err) {
             console.log("Validation Stopped");
         }
@@ -340,6 +355,7 @@ export class Validation implements IFactory {
     private async drawnQuestItemsRenamed(name, id, drawnQuestItems) {
         const selectedIdPrevName = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).selectedName;
         const layerId = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).selectedNameId;
+
         if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRemoval) {
             if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).lastRemovalId === Number(id)) {
                 (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isRemoval = false;
@@ -373,6 +389,15 @@ export class Validation implements IFactory {
                 throw new Error("Validation Stop");
             }
             return this;
+    }
+
+    private isNumeric(name, id) {
+        if(~name.search(/^[\W\d_]+/)) {
+            const selectedIdPrevName = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).selectedName;
+            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
+                {id: id, name: selectedIdPrevName});
+            this.docEmitter.emit(pc.logger.logWarning, "Names Starting with Special characters are not allowed");
+        }
     }
 
     private isErrorFree(eventLayers, callback) {

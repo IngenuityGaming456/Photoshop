@@ -240,43 +240,44 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.modifyPathNames = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var bufferKeys, bufferKeysCount, i, layerValue;
+            var bufferKeys, bufferKeysCount, lastUniqueId, i, layerValue, i, layerValue;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         bufferKeys = __spread(this.layerMap.keys());
                         this.modelFactory.getPhotoshopModel().isRenamedFromLayout = true;
                         bufferKeysCount = bufferKeys.length;
+                        for (i = 0; i < bufferKeysCount; i++) {
+                            layerValue = this.layerMap.get(bufferKeys[i]);
+                            if (layerValue.frequency === 1) {
+                                lastUniqueId = bufferKeys[i];
+                            }
+                        }
+                        this.modelFactory.getPhotoshopModel().lastRename = lastUniqueId;
                         i = 0;
                         _a.label = 1;
                     case 1:
-                        if (!(i < bufferKeysCount)) return [3 /*break*/, 6];
+                        if (!(i < bufferKeysCount)) return [3 /*break*/, 4];
                         layerValue = this.layerMap.get(bufferKeys[i]);
-                        if (!(i === bufferKeysCount - 1)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.handleBufferValue(layerValue, bufferKeys[i], true)];
+                        return [4 /*yield*/, this.handleBufferValue(layerValue, bufferKeys[i])];
                     case 2:
                         _a.sent();
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, this.handleBufferValue(layerValue, bufferKeys[i])];
-                    case 4:
-                        _a.sent();
-                        _a.label = 5;
-                    case 5:
+                        _a.label = 3;
+                    case 3:
                         i++;
                         return [3 /*break*/, 1];
-                    case 6: return [2 /*return*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
     };
-    CreateLayoutStructure.prototype.handleBufferValue = function (layerValue, key, isLast) {
+    CreateLayoutStructure.prototype.handleBufferValue = function (layerValue, key) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
                         this.modifiedIds.push(key);
-                        this.modelFactory.getPhotoshopModel().lastRename = isLast ? Number(key) : null;
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:
                         _a.sent();
