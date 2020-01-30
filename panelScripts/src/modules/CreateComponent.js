@@ -48,6 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Restructure_1 = require("./Restructure");
 var path = require("path");
 var utils_1 = require("../utils/utils");
+var constants_1 = require("../constants");
 var packageJson = require("../../package.json");
 var CreateComponent = /** @class */ (function () {
     function CreateComponent(modelFactory) {
@@ -82,7 +83,7 @@ var CreateComponent = /** @class */ (function () {
                     case 1:
                         isValid = _a.sent();
                         if (!isValid) {
-                            this.docEmitter.emit("logWarning", "A component should always be made inside a view");
+                            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "A component should always be made inside a view");
                             return [2 /*return*/, Promise.resolve()];
                         }
                         this.subscribeListeners(this.executeCalls++);
@@ -139,10 +140,10 @@ var CreateComponent = /** @class */ (function () {
     CreateComponent.prototype.subscribeListeners = function (executeCalls) {
         var _this = this;
         if (executeCalls === 1) {
-            this._generator.on("layersDeleted", function (eventLayers) { return _this.handleChange(eventLayers); });
-            this._generator.on("layerRenamed", function (eventLayers) { return _this.handleChange(eventLayers); });
-            this._generator.on("paste", function () { return _this.onPaste(); });
-            this._generator.on("layersAdded", function (eventLayers) { return _this.onLayersAddition(eventLayers); });
+            this._generator.on(constants_1.photoshopConstants.generator.layersDeleted, function (eventLayers) { return _this.handleChange(eventLayers); });
+            this._generator.on(constants_1.photoshopConstants.generator.layerRenamed, function (eventLayers) { return _this.handleChange(eventLayers); });
+            this._generator.on(constants_1.photoshopConstants.generator.paste, function () { return _this.onPaste(); });
+            this._generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers) { return _this.onLayersAddition(eventLayers); });
         }
     };
     CreateComponent.prototype.controlJSXReturn = function (id, elementValue) {
@@ -223,20 +224,20 @@ var CreateComponent = /** @class */ (function () {
     };
     CreateComponent.prototype.isInvalidSpecialItem = function (id) {
         var returnArray = id.split(",");
-        if (returnArray[0] === "false") {
-            this.docEmitter.emit("logWarning", "Need to select " + returnArray[1] + " from the document tree");
+        if (returnArray[0] === constants_1.photoshopConstants.jsxReturn.falseType) {
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Need to select " + returnArray[1] + " from the document tree");
             throw new Error("Control Done");
         }
         return this;
     };
     CreateComponent.prototype.isInvalidBitmap = function (id) {
         var returnArray = id.split(",");
-        if (returnArray[0] === "bitmap") {
-            this.docEmitter.emit("logWarning", "No bitmap font is found at \"others/Bitmaps\"");
+        if (returnArray[0] === constants_1.photoshopConstants.jsxReturn.bitmapType) {
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "No bitmap font is found at \"others/Bitmaps\"");
             throw new Error("Control Done");
         }
-        if (returnArray[0] === "bitmaptrue") {
-            this.docEmitter.emit("logWarning", "png file corresponding to bitmap is not found");
+        if (returnArray[0] === constants_1.photoshopConstants.jsxReturn.bitmapTypeExtra) {
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "png file corresponding to bitmap is not found");
         }
     };
     CreateComponent.prototype.handleChange = function (eventLayers) {
@@ -284,7 +285,7 @@ var CreateComponent = /** @class */ (function () {
     };
     CreateComponent.prototype.onAddition = function (addedLayer) {
         var _this = this;
-        this._generator.once("documentResolved", function () {
+        this._generator.once(constants_1.photoshopConstants.generator.documentResolved, function () {
             var component = _this.isComponent(addedLayer.name);
             if (component) {
                 if (_this.isInLanguage(addedLayer)) {
@@ -303,7 +304,7 @@ var CreateComponent = /** @class */ (function () {
     };
     CreateComponent.prototype.isInLanguage = function (addedLayer) {
         var addedLayerRef = this.activeDocument.layers.findLayer(addedLayer.id);
-        return !!utils_1.utlis.getElementName(addedLayerRef, "languages");
+        return !!utils_1.utlis.getElementName(addedLayerRef, constants_1.photoshopConstants.languages);
     };
     CreateComponent.prototype.isComponent = function (layerName) {
         var componentValues = this.componentsMap.values();

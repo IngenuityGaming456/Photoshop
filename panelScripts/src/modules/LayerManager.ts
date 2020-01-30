@@ -2,6 +2,8 @@ import {Document} from "../../lib/dom/document.js";
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
+import {photoshopConstants as pc} from "../constants";
+
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
 
@@ -31,18 +33,18 @@ export class LayerManager implements IFactory{
     }
 
     private subscribeListeners() {
-        this._generator.on("layersAdded", (eventLayers, isNewDocument) => {
+        this._generator.on(pc.generator.layersAdded, (eventLayers, isNewDocument) => {
             this.onLayersAdded(eventLayers, isNewDocument);
         });
-        this._generator.on("select", async () => {
+        this._generator.on(pc.generator.select, async () => {
             this.eventName = Events.SELECT;
             let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
             this.selectedLayers = selectedLayersString.toString().split(",");
         });
-        this._generator.on("copy", () => {
+        this._generator.on(pc.generator.copy, () => {
             this.eventName = Events.COPY;
         });
-        this._generator.on("paste", () => {
+        this._generator.on(pc.generator.paste, () => {
             if(this.eventName === Events.COPY) {
                 this.eventName = Events.PASTE;
                 this.isPasteEvent = true;
@@ -50,15 +52,15 @@ export class LayerManager implements IFactory{
                 this.eventName = Events.OTHER;
             }
         });
-        this._generator.on("copyToLayer", () => {
+        this._generator.on(pc.generator.copyToLayer, () => {
             this.eventName = Events.COPYTOLAYER;
         });
-        this._generator.on("duplicate", () => {
+        this._generator.on(pc.generator.duplicate, () => {
             if(this.eventName !== Events.OTHER) {
                 this.eventName = Events.DUPLICATE;
             }
         });
-        this.docEmitter.on("localisation", localisedLayers => {
+        this.docEmitter.on(pc.localisation, localisedLayers => {
             this.localisedLayers = localisedLayers;
         });
     }
@@ -66,7 +68,7 @@ export class LayerManager implements IFactory{
     private async onLayersAdded(eventLayers, isNewDocument) {
         if(isNewDocument) {
             this.constructQueuedArray(eventLayers);
-            this.docEmitter.once("currentDocument", async ()=> {
+            this.docEmitter.once(pc.logger.currentDocument, async ()=> {
                 await this.handleImportEvent(this.queuedImageLayers, undefined);
                 this.queuedImageLayers = [];
             });
@@ -91,7 +93,7 @@ export class LayerManager implements IFactory{
                 });
                 if(inQuest) {
                     deletedLayers.push(item.id);
-                    this.docEmitter.emit("logWarning", `Not Allowed to duplicate a quest element, ${item.name} with id = ${item.id}`);
+                    this.docEmitter.emit(pc.logger.logWarning, `Not Allowed to duplicate a quest element, ${item.name} with id = ${item.id}`);
                     await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: item.id});
                     return;
                 }
@@ -158,8 +160,12 @@ export class LayerManager implements IFactory{
         for(let i=0;i<layersCount;i++) {
             const change = changedLayers[i];
             if(change.hasOwnProperty("added") && change.type === "layer") {
-                await this.getImageData(change.id, promiseArray);
-                console.log("Pixels Added");
+                try {
+                    await this.getImageData(change.id, promiseArray);
+                    console.log("Pixels Added");
+                } catch(err) {
+                    console.log("error occured while pixel update");
+                }
             }
             if(change.hasOwnProperty("layers")) {
                 await this.handleImportEvent(change.layers, promiseArray);

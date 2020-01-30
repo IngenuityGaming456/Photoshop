@@ -4,6 +4,8 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as layerClass from "../../lib/dom/layer";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
+import {photoshopConstants as pc} from "../constants";
+
 let packageJson = require("../../package.json");
 
 export class CreateComponent implements IFactory {
@@ -33,7 +35,7 @@ export class CreateComponent implements IFactory {
     private async validate(params) {
         const isValid = await this.isValid();
         if(!isValid) {
-            this.docEmitter.emit("logWarning", "A component should always be made inside a view");
+            this.docEmitter.emit(pc.logger.logWarning, "A component should always be made inside a view");
             return Promise.resolve();
         }
         this.subscribeListeners(this.executeCalls++);
@@ -75,10 +77,10 @@ export class CreateComponent implements IFactory {
 
     private subscribeListeners(executeCalls) {
         if(executeCalls === 1) {
-            this._generator.on("layersDeleted", (eventLayers) => this.handleChange(eventLayers));
-            this._generator.on("layerRenamed", (eventLayers) => this.handleChange(eventLayers));
-            this._generator.on("paste", () => this.onPaste());
-            this._generator.on("layersAdded", eventLayers => this.onLayersAddition(eventLayers));
+            this._generator.on(pc.generator.layersDeleted, (eventLayers) => this.handleChange(eventLayers));
+            this._generator.on(pc.generator.layerRenamed, (eventLayers) => this.handleChange(eventLayers));
+            this._generator.on(pc.generator.paste, () => this.onPaste());
+            this._generator.on(pc.generator.layersAdded, eventLayers => this.onLayersAddition(eventLayers));
         }
     }
 
@@ -119,8 +121,8 @@ export class CreateComponent implements IFactory {
 
     private isInvalidSpecialItem(id) {
         const returnArray = id.split(",");
-        if(returnArray[0] === "false") {
-            this.docEmitter.emit("logWarning", `Need to select ${returnArray[1]} from the document tree`);
+        if(returnArray[0] === pc.jsxReturn.falseType) {
+            this.docEmitter.emit(pc.logger.logWarning, `Need to select ${returnArray[1]} from the document tree`);
             throw new Error("Control Done");
         }
         return this;
@@ -128,12 +130,12 @@ export class CreateComponent implements IFactory {
 
     private isInvalidBitmap(id) {
         const returnArray = id.split(",");
-        if(returnArray[0] === "bitmap") {
-            this.docEmitter.emit("logWarning", `No bitmap font is found at "others/Bitmaps"`);
+        if(returnArray[0] === pc.jsxReturn.bitmapType) {
+            this.docEmitter.emit(pc.logger.logWarning, `No bitmap font is found at "others/Bitmaps"`);
             throw new Error("Control Done");
         }
-        if(returnArray[0] === "bitmaptrue") {
-            this.docEmitter.emit("logWarning", `png file corresponding to bitmap is not found`);
+        if(returnArray[0] === pc.jsxReturn.bitmapTypeExtra) {
+            this.docEmitter.emit(pc.logger.logWarning, `png file corresponding to bitmap is not found`);
         }
     }
 
@@ -168,7 +170,7 @@ export class CreateComponent implements IFactory {
     }
 
     private onAddition(addedLayer) {
-        this._generator.once("documentResolved", () => {
+        this._generator.once(pc.generator.documentResolved, () => {
             const component = this.isComponent(addedLayer.name);
             if(component) {
                 if(this.isInLanguage(addedLayer)) {
@@ -188,7 +190,7 @@ export class CreateComponent implements IFactory {
 
     private isInLanguage(addedLayer) {
         const addedLayerRef = this.activeDocument.layers.findLayer(addedLayer.id);
-        return !!utlis.getElementName(addedLayerRef, "languages");
+        return !!utlis.getElementName(addedLayerRef, pc.languages);
     }
 
     private isComponent(layerName) {

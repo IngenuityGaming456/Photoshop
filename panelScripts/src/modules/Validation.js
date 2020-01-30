@@ -34,9 +34,21 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
 var path = require("path");
+var constants_1 = require("../constants");
+var languagesJson = require("../res/languages.json");
 var Validation = /** @class */ (function () {
     function Validation(modelFactory) {
         this.alreadyRenamed = [];
@@ -52,17 +64,20 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("layerRenamed", function (eventLayers) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+        this.generator.on(constants_1.photoshopConstants.generator.layerRenamed, function (eventLayers) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, this.onLayersRename(eventLayers)];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         }); }); });
-        this.generator.on("layersDeleted", function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
+        this.generator.on(constants_1.photoshopConstants.generator.layersDeleted, function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
+        this.generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers) { return _this.waitForDocumentResolution(eventLayers); });
+        this.generator.on(constants_1.photoshopConstants.generator.layersMoved, function (eventLayers) { return _this.waitForDocumentResolution(eventLayers); });
+        this.docEmitter.on(constants_1.photoshopConstants.emitter.layersMovedMock, function (eventLayers) { return _this.onLayersLocalised(eventLayers, true); });
     };
     Validation.prototype.isInHTML = function (key, id, questArray, drawnQuestItems) {
         if (~questArray.indexOf(key) && !utils_1.utlis.isIDExists(id, drawnQuestItems) && !~this.alreadyRenamed.indexOf(id)) {
-            this.docEmitter.emit("logWarning", "Not allowed to create HTML Container, " + key + " with id = " + id);
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Not allowed to create HTML Container, " + key + " with id = " + id);
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: id });
         }
     };
@@ -85,6 +100,397 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.onLayersDeleted = function (eventLayers) {
         this.isErrorFree(eventLayers, this.errorFreeFromDeletion.bind(this));
+    };
+    Validation.prototype.waitForDocumentResolution = function (eventLayers, isOmit) {
+        var _this = this;
+        this.generator.once(constants_1.photoshopConstants.generator.documentResolved, function () { return _this.onLayersLocalised(eventLayers, isOmit); });
+    };
+    Validation.prototype.onLayersLocalised = function (eventLayers, isOmit) {
+        var _this = this;
+        var localisationStructure = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
+        var langIds = localisationStructure && Object.keys(localisationStructure);
+        if (!langIds) {
+            return;
+        }
+        langIds.forEach(function (langId) {
+            var langRef = utils_1.utlis.isIDExistsRec(langId, eventLayers);
+            if (langRef) {
+                var langStructArray = [];
+                _this.createLangStructArray(langStructArray, eventLayers, langRef);
+                var compareStruct = _this.makeCompareStruct(langStructArray);
+                _this.compareLocalisation(compareStruct, localisationStructure, langRef.id, isOmit);
+            }
+        });
+    };
+    Validation.prototype.createLangStructArray = function (langStructArray, eventLayers, langRef) {
+        var _this = this;
+        eventLayers.forEach(function (layer) {
+            if (layer.id > langRef.id) {
+                langStructArray.push(layer.id);
+            }
+            if (layer.layers) {
+                _this.createLangStructArray(langStructArray, layer.layers, langRef);
+            }
+            else {
+                langStructArray.push(true);
+            }
+        });
+    };
+    Validation.prototype.makeCompareStruct = function (langStructArray) {
+        var localisedObj = this.interpretLocalisedStruct(langStructArray);
+        var localisedLayers = localisedObj.localised;
+        var localisedStruct = localisedObj.struct;
+        return {
+            langId: langStructArray[0],
+            localisedLayers: localisedLayers,
+            localisedStruct: localisedStruct
+        };
+    };
+    Validation.prototype.interpretLocalisedStruct = function (langStructArray) {
+        var langStructLength = langStructArray.length;
+        var trueIndex = langStructLength + 1;
+        var localisedArray = [];
+        var structArray = [];
+        for (var index in langStructArray) {
+            if (langStructArray[index] === true) {
+                trueIndex = index;
+                break;
+            }
+        }
+        for (var i = trueIndex - 1; i < langStructLength; i = i + 2) {
+            localisedArray.push(langStructArray[i]);
+        }
+        for (var i = 1; i <= trueIndex - 2; i++) {
+            structArray.push(langStructArray[i]);
+        }
+        return {
+            localised: localisedArray,
+            struct: structArray
+        };
+    };
+    Validation.prototype.compareLocalisation = function (compareStruct, localisationStructure, langId, isOmit) {
+        return __awaiter(this, void 0, void 0, function () {
+            var langRef, langName, toCompareWith, _a, _b, item, localisedRef, localisedObj, e_1_1, e_1, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        langRef = this.activeDocument.layers.findLayer(compareStruct.langId);
+                        if (!langRef) {
+                            return [2 /*return*/];
+                        }
+                        langName = langRef.layer.name;
+                        toCompareWith = localisationStructure[langId][langName];
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 7, 8, 9]);
+                        _a = __values(compareStruct.localisedLayers), _b = _a.next();
+                        _d.label = 2;
+                    case 2:
+                        if (!!_b.done) return [3 /*break*/, 6];
+                        item = _b.value;
+                        localisedRef = this.activeDocument.layers.findLayer(item);
+                        if (!(!localisedRef && item === 100000)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.showLocalisationWarning(compareStruct.localisedStruct, langId, langName)];
+                    case 3:
+                        localisedObj = _d.sent();
+                        this.docEmitter.emit(constants_1.photoshopConstants.emitter.layersLocalised, localisedObj);
+                        return [2 /*return*/];
+                    case 4:
+                        if (!localisedRef) {
+                            return [2 /*return*/];
+                        }
+                        this.compareFromLocalisedName(localisedRef, toCompareWith, compareStruct.localisedStruct, langId, langName, isOmit);
+                        _d.label = 5;
+                    case 5:
+                        _b = _a.next();
+                        return [3 /*break*/, 2];
+                    case 6: return [3 /*break*/, 9];
+                    case 7:
+                        e_1_1 = _d.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 9];
+                    case 8:
+                        try {
+                            if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 9: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Validation.prototype.compareFromLocalisedName = function (localisedRef, toCompareWith, compareStruct, langId, langName, isOmit) {
+        var compareArray = [];
+        for (var key in toCompareWith) {
+            if (!toCompareWith.hasOwnProperty(key)) {
+                continue;
+            }
+            var struct = toCompareWith[key]["struct"];
+            var structNames = this.getStructNames(struct);
+            var compareStructNames = this.getCompareStructNames(compareStruct);
+            if (utils_1.utlis.containAll(structNames, compareStructNames).isTrue) {
+                var localisedCompare = this.activeDocument.layers.findLayer(toCompareWith[key]["localise"]);
+                var localisedCompareName = localisedCompare.layer.name;
+                var localisedCompareId = localisedCompare.layer.id;
+                if (localisedCompareName !== localisedRef.layer.name) {
+                    compareArray.push({ isTrue: false });
+                }
+                else {
+                    compareArray.push({ isTrue: true, id: localisedCompareId });
+                }
+            }
+        }
+        try {
+            for (var compareArray_1 = __values(compareArray), compareArray_1_1 = compareArray_1.next(); !compareArray_1_1.done; compareArray_1_1 = compareArray_1.next()) {
+                var item = compareArray_1_1.value;
+                if (item.isTrue === true) {
+                    console.log("Same Image Entered");
+                    this.docEmitter.emit(constants_1.photoshopConstants.emitter.layersLocalised, {
+                        toBeLocalised: [],
+                        notToBeLocalised: [item.id]
+                    });
+                    return;
+                }
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (compareArray_1_1 && !compareArray_1_1.done && (_a = compareArray_1.return)) _a.call(compareArray_1);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+        this.checkImageStatus(localisedRef, compareStruct, langId, langName, isOmit);
+        var e_2, _a;
+    };
+    Validation.prototype.getStructNames = function (struct) {
+        var structNames = [];
+        try {
+            for (var struct_1 = __values(struct), struct_1_1 = struct_1.next(); !struct_1_1.done; struct_1_1 = struct_1.next()) {
+                var item = struct_1_1.value;
+                structNames.push(item.name);
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (struct_1_1 && !struct_1_1.done && (_a = struct_1.return)) _a.call(struct_1);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        return structNames;
+        var e_3, _a;
+    };
+    Validation.prototype.getCompareStructNames = function (compareStruct) {
+        var compareStructNames = [];
+        try {
+            for (var compareStruct_1 = __values(compareStruct), compareStruct_1_1 = compareStruct_1.next(); !compareStruct_1_1.done; compareStruct_1_1 = compareStruct_1.next()) {
+                var item = compareStruct_1_1.value;
+                var layerName = this.activeDocument.layers.findLayer(item).layer.name;
+                compareStructNames.push(layerName);
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (compareStruct_1_1 && !compareStruct_1_1.done && (_a = compareStruct_1.return)) _a.call(compareStruct_1);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+        return compareStructNames;
+        var e_4, _a;
+    };
+    Validation.prototype.checkImageStatus = function (localisedRef, compareStruct, langId, langName, isOmit) {
+        return __awaiter(this, void 0, void 0, function () {
+            var localisedId, localisedObj;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        localisedId = localisedRef.layer.id;
+                        if (!isOmit) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.showLocalisationWarning(compareStruct, langId, langName)];
+                    case 1:
+                        localisedObj = _a.sent();
+                        this.docEmitter.emit(constants_1.photoshopConstants.emitter.layersLocalised, localisedObj);
+                        return [2 /*return*/];
+                    case 2:
+                        if (this.isInvalidImage(compareStruct, langId, langName)) {
+                            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Can't enter new image without localising old ones");
+                            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: localisedId });
+                        }
+                        if (this.isLocalisationSafe(compareStruct, langId, langName)) {
+                            console.log("add without any issues");
+                        }
+                        else {
+                            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: localisedId });
+                            this.showLocalisationWarning(compareStruct, langId, langName);
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Validation.prototype.isInvalidImage = function (compareStruct, langId, langName) {
+        var localisedLayers = this.getLocalisedLayers(compareStruct, langId, langName).localisedLayers;
+        var localisingLayers = this.getLocalisingLayers(compareStruct);
+        return !utils_1.utlis.containAll(localisedLayers, localisingLayers).isTrue;
+    };
+    Validation.prototype.isLocalisationSafe = function (compareStruct, langId, langName) {
+        var localisedLayers = this.getLocalisedLayers(compareStruct, langId, langName).localisedLayers;
+        var localisingLayers = this.getLocalisingLayers(compareStruct);
+        return utils_1.utlis.containAll(localisedLayers, localisingLayers).isTrue && (localisingLayers.length > localisedLayers.length);
+    };
+    Validation.prototype.showLocalisationWarning = function (compareStruct, langId, langName) {
+        return __awaiter(this, void 0, void 0, function () {
+            var localisedObj, localisingLayers, containObj, toBeLocalised, notToBeLocalised, delocalisedLayers, delocalisedLayers_1, delocalisedLayers_1_1, name_1, indexName, id, response, langStruct, langObj, deletionKey, item, deletedLayers, e_5_1, e_5, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        localisedObj = this.getLocalisedLayers(compareStruct, langId, langName);
+                        localisingLayers = this.getLocalisingLayers(compareStruct);
+                        containObj = utils_1.utlis.containAll(localisedObj.localisedLayers, localisingLayers);
+                        toBeLocalised = [];
+                        notToBeLocalised = [];
+                        if (!!containObj.isTrue) return [3 /*break*/, 8];
+                        delocalisedLayers = containObj.delocalisedLayers;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, 7, 8]);
+                        delocalisedLayers_1 = __values(delocalisedLayers), delocalisedLayers_1_1 = delocalisedLayers_1.next();
+                        _b.label = 2;
+                    case 2:
+                        if (!!delocalisedLayers_1_1.done) return [3 /*break*/, 5];
+                        name_1 = delocalisedLayers_1_1.value;
+                        indexName = localisedObj.localisedLayers.indexOf(name_1);
+                        id = localisedObj.localisedLayersIds[indexName];
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowOptionPanel.jsx"), { name: name_1 })];
+                    case 3:
+                        response = _b.sent();
+                        if (response === "no") {
+                            langStruct = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
+                            langObj = langStruct[langId][langName];
+                            deletionKey = void 0;
+                            for (item in langObj) {
+                                if (!langObj.hasOwnProperty(item)) {
+                                    continue;
+                                }
+                                if (langObj[item]["localise"] === id) {
+                                    deletionKey = item;
+                                    break;
+                                }
+                            }
+                            delete langObj[deletionKey];
+                            notToBeLocalised.push(id);
+                            deletedLayers = [];
+                            this.deleteLocalisedStructFromPhotoshop(compareStruct[compareStruct.length - 1], null, deletedLayers);
+                            this.deleteLayersFromPhotoshop(deletedLayers);
+                        }
+                        else if (response === "yes") {
+                            toBeLocalised.push(id);
+                        }
+                        _b.label = 4;
+                    case 4:
+                        delocalisedLayers_1_1 = delocalisedLayers_1.next();
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
+                        e_5_1 = _b.sent();
+                        e_5 = { error: e_5_1 };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        try {
+                            if (delocalisedLayers_1_1 && !delocalisedLayers_1_1.done && (_a = delocalisedLayers_1.return)) _a.call(delocalisedLayers_1);
+                        }
+                        finally { if (e_5) throw e_5.error; }
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/, {
+                            toBeLocalised: toBeLocalised,
+                            notToBeLocalised: notToBeLocalised
+                        }];
+                }
+            });
+        });
+    };
+    Validation.prototype.getLocalisingLayers = function (compareStruct) {
+        var localisingLayers = [];
+        var compLocalisedLength = compareStruct.length;
+        var localisationContainerId = compareStruct[compLocalisedLength - 1];
+        var containerRef = this.activeDocument.layers.findLayer(localisationContainerId);
+        var localisingPhotoshopLayers = containerRef && containerRef.layer.layers;
+        try {
+            for (var localisingPhotoshopLayers_1 = __values(localisingPhotoshopLayers), localisingPhotoshopLayers_1_1 = localisingPhotoshopLayers_1.next(); !localisingPhotoshopLayers_1_1.done; localisingPhotoshopLayers_1_1 = localisingPhotoshopLayers_1.next()) {
+                var item = localisingPhotoshopLayers_1_1.value;
+                localisingLayers.push(item.name);
+            }
+        }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        finally {
+            try {
+                if (localisingPhotoshopLayers_1_1 && !localisingPhotoshopLayers_1_1.done && (_a = localisingPhotoshopLayers_1.return)) _a.call(localisingPhotoshopLayers_1);
+            }
+            finally { if (e_6) throw e_6.error; }
+        }
+        return localisingLayers;
+        var e_6, _a;
+    };
+    Validation.prototype.getLocalisedLayers = function (compareStruct, langId, langName) {
+        var localisedLayers = [];
+        var localisedLayersIds = [];
+        var localisationStructure = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
+        var langStruct = localisationStructure[langId][langName];
+        for (var item in langStruct) {
+            if (!langStruct.hasOwnProperty(item)) {
+                continue;
+            }
+            var struct = langStruct[item]["struct"];
+            var structNames = this.getStructNames(struct);
+            var compareStructNames = this.getCompareStructNames(compareStruct);
+            if (utils_1.utlis.containAll(structNames, compareStructNames).isTrue) {
+                var localisedLayerId = langStruct[item]["localise"];
+                var localisedLayerName = this.activeDocument.layers.findLayer(localisedLayerId).layer.name;
+                localisedLayers.push(localisedLayerName);
+                localisedLayersIds.push(localisedLayerId);
+            }
+        }
+        return {
+            localisedLayers: localisedLayers,
+            localisedLayersIds: localisedLayersIds
+        };
+    };
+    Validation.prototype.deleteLocalisedStructFromPhotoshop = function (lastId, previousId, deletedLayers) {
+        var lastIdRef = this.activeDocument.layers.findLayer(lastId);
+        if (~languagesJson.languages.indexOf(lastIdRef.layer.name)) {
+            deletedLayers.push(lastIdRef.layer.id);
+            return;
+        }
+        if (!(lastIdRef.layer.layers && lastIdRef.layer.layers.length)) {
+            deletedLayers.push(lastId);
+            lastIdRef.layer.group && this.deleteLocalisedStructFromPhotoshop(lastIdRef.layer.group.id, lastId, deletedLayers);
+        }
+        else {
+            if (!utils_1.utlis.isLayerExists(lastIdRef, previousId)) {
+                deletedLayers.push(lastId);
+                previousId = lastId;
+                lastIdRef.layer.group && this.deleteLocalisedStructFromPhotoshop(lastIdRef.layer.group.id, previousId, deletedLayers);
+            }
+        }
+    };
+    Validation.prototype.deleteLayersFromPhotoshop = function (deletedLayers) {
+        try {
+            for (var deletedLayers_1 = __values(deletedLayers), deletedLayers_1_1 = deletedLayers_1.next(); !deletedLayers_1_1.done; deletedLayers_1_1 = deletedLayers_1.next()) {
+                var item = deletedLayers_1_1.value;
+                this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item });
+            }
+        }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        finally {
+            try {
+                if (deletedLayers_1_1 && !deletedLayers_1_1.done && (_a = deletedLayers_1.return)) _a.call(deletedLayers_1);
+            }
+            finally { if (e_7) throw e_7.error; }
+        }
+        var e_7, _a;
     };
     Validation.prototype.startValidationSequence = function (eventLayers, questArray, drawnQuestItems) {
         return __awaiter(this, void 0, void 0, function () {
@@ -109,44 +515,41 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.drawnQuestItemsRenamed = function (name, id, drawnQuestItems) {
         return __awaiter(this, void 0, void 0, function () {
-            var selectedLayersString, layerId, layerRef, questItem;
+            var selectedIdPrevName, layerId, layerRef, questItem;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
-                    case 1:
-                        selectedLayersString = _a.sent();
-                        layerId = selectedLayersString.toString().split(",")[0];
-                        if (this.modelFactory.getPhotoshopModel().isRemoval) {
-                            if (this.modelFactory.getPhotoshopModel().lastRemovalId === Number(id)) {
-                                this.modelFactory.getPhotoshopModel().isRemoval = false;
-                            }
-                            throw new Error("Validation Stop");
-                        }
-                        if (this.modelFactory.getPhotoshopModel().isRenamedFromLayout) {
-                            if (this.modelFactory.getPhotoshopModel().lastRename === Number(id)) {
-                                this.modelFactory.getPhotoshopModel().isRenamedFromLayout = false;
-                            }
-                            return [2 /*return*/, this];
-                        }
-                        layerRef = this.activeDocument.layers.findLayer(Number(layerId));
-                        questItem = drawnQuestItems.find(function (item) {
-                            if (item.id === id && item.name !== name) {
-                                return true;
-                            }
-                        });
-                        if (questItem && questItem.name !== "generic") {
-                            this.docEmitter.emit("logWarning", "Not allowed to rename Quest Item, " + questItem.name + " with id = " + id);
-                            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: questItem.id, name: questItem.name });
-                            throw new Error("Validation Stop");
-                        }
-                        if (utils_1.utlis.getElementName(layerRef, "languages") && !~this.alreadyRenamed.indexOf(id)) {
-                            this.alreadyRenamed.push(id);
-                            this.docEmitter.emit("logWarning", "Can't rename an item inside languages");
-                            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: layerRef.layer.id, name: layerRef.layer.name });
-                            throw new Error("Validation Stop");
-                        }
-                        return [2 /*return*/, this];
+                selectedIdPrevName = this.modelFactory.getPhotoshopModel().selectedName;
+                layerId = this.modelFactory.getPhotoshopModel().selectedNameId;
+                if (this.modelFactory.getPhotoshopModel().isRemoval) {
+                    if (this.modelFactory.getPhotoshopModel().lastRemovalId === Number(id)) {
+                        this.modelFactory.getPhotoshopModel().isRemoval = false;
+                    }
+                    throw new Error("Validation Stop");
                 }
+                if (this.modelFactory.getPhotoshopModel().isRenamedFromLayout) {
+                    if (this.modelFactory.getPhotoshopModel().lastRename === Number(id)) {
+                        this.modelFactory.getPhotoshopModel().isRenamedFromLayout = false;
+                    }
+                    return [2 /*return*/, this];
+                }
+                layerRef = this.activeDocument.layers.findLayer(Number(layerId));
+                questItem = drawnQuestItems.find(function (item) {
+                    if (item.id === id && item.name !== name) {
+                        return true;
+                    }
+                });
+                if (questItem && questItem.name !== "generic") {
+                    this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Not allowed to rename Quest Item, " + questItem.name + " with id = " + id);
+                    this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: questItem.id, name: questItem.name });
+                    throw new Error("Validation Stop");
+                }
+                if (utils_1.utlis.getElementName(layerRef, constants_1.photoshopConstants.languages)) {
+                    if (selectedIdPrevName != name) {
+                        this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Can't rename an item inside languages");
+                        this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: layerRef.layer.id, name: selectedIdPrevName });
+                    }
+                    throw new Error("Validation Stop");
+                }
+                return [2 /*return*/, this];
             });
         });
     };
@@ -154,7 +557,7 @@ var Validation = /** @class */ (function () {
         var errorData = callback(eventLayers);
         if (errorData) {
             utils_1.utlis.spliceFrom(errorData.id, this.layersErrorData);
-            this.docEmitter.emit("removeError", eventLayers[0].id);
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.removeError, eventLayers[0].id);
         }
     };
     Validation.prototype.errorFreeFromRename = function (eventLayers) {

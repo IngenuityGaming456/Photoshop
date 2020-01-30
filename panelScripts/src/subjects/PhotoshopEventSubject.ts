@@ -1,6 +1,7 @@
 import {IFactory, IModel, IParams, ISubjectEvent} from "../interfaces/IJsxParam";
 import * as fs from "fs";
 import * as fsExtra from "fs-extra/lib/empty/index.js";
+import {photoshopConstants as pc} from "../constants";
 
 let packageJson = require("../../package.json");
 
@@ -26,10 +27,10 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
     }
 
     public subscribeListeners() {
-        this.docEmitter.on("observerAdd", observer => this.add(observer));
-        this.docEmitter.on("observerRemove", observer => this.remove(observer));
-        this.generator.on("save", () => this.onPhotoshopClose());
-        this.generator.on("closedDocument", (closeId) => this.onDocumentClose(closeId));
+        this.docEmitter.on(pc.emitter.observerAdd, observer => this.add(observer));
+        this.docEmitter.on(pc.emitter.observerRemove, observer => this.remove(observer));
+        this.generator.on(pc.generator.save, () => this.onPhotoshopClose());
+        this.generator.on(pc.generator.closedDocument, (closeId) => this.onDocumentClose(closeId));
     }
 
     private onDocumentClose(closeId) {

@@ -12,11 +12,42 @@ var __values = (this && this.__values) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
+var constants_1 = require("../constants");
 var utlis = /** @class */ (function () {
     function utlis() {
     }
     utlis.isKeyExists = function (searchArray, key) {
         return ~searchArray.indexOf(key);
+    };
+    utlis.isIDExistsRec = function (id, idArray) {
+        var itemRef = idArray.find(function (item) {
+            if (item.id === Number(id)) {
+                return true;
+            }
+        });
+        if (itemRef) {
+            return itemRef;
+        }
+        try {
+            for (var idArray_1 = __values(idArray), idArray_1_1 = idArray_1.next(); !idArray_1_1.done; idArray_1_1 = idArray_1.next()) {
+                var item = idArray_1_1.value;
+                if (item.layers) {
+                    var itemRefRec = utlis.isIDExistsRec(id, item.layers);
+                    if (itemRefRec) {
+                        return itemRefRec;
+                    }
+                }
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (idArray_1_1 && !idArray_1_1.done && (_a = idArray_1.return)) _a.call(idArray_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return null;
+        var e_1, _a;
     };
     utlis.isIDExists = function (id, idArray) {
         return idArray.find(function (item) {
@@ -26,6 +57,13 @@ var utlis = /** @class */ (function () {
         });
     };
     ;
+    utlis.isNameExists = function (name, keyArray) {
+        return keyArray.find(function (item) {
+            if (item.name === name) {
+                return true;
+            }
+        });
+    };
     utlis.getConsecutiveIndexes = function (itemArray, index) {
         var itemLength = itemArray.length;
         var nextIndex = index + 1;
@@ -72,17 +110,17 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
                 if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
-            finally { if (e_1) throw e_1.error; }
+            finally { if (e_2) throw e_2.error; }
         }
         return map;
-        var e_1, _c;
+        var e_2, _c;
     };
-    utlis.traverseObject = function (arrayLayers, callback) {
+    utlis.traverseObject = function (arrayLayers, callback, callbackLayers) {
         var noOfLayers = arrayLayers.length;
         for (var i = 0; i < noOfLayers; i++) {
             if (arrayLayers[i].type === "layer") {
@@ -90,7 +128,8 @@ var utlis = /** @class */ (function () {
             }
             if (arrayLayers[i].type === "layerSection") {
                 if (arrayLayers[i].layers) {
-                    utlis.traverseObject(arrayLayers[i].layers, callback);
+                    callbackLayers && callbackLayers(arrayLayers[i]);
+                    utlis.traverseObject(arrayLayers[i].layers, callback, callbackLayers);
                 }
             }
         }
@@ -98,7 +137,7 @@ var utlis = /** @class */ (function () {
     utlis.traverseBaseFreeGame = function (arrayLayers, callback) {
         var noOfLayers = arrayLayers.length;
         for (var i = 0; i < noOfLayers; i++) {
-            if (arrayLayers[i].name === "baseGame" || arrayLayers[i].name === "freeGame") {
+            if (arrayLayers[i].name === constants_1.photoshopConstants.views.baseGame || arrayLayers[i].name === constants_1.photoshopConstants.views.freeGame) {
                 callback(arrayLayers[i]);
             }
             else if (arrayLayers[i].layers) {
@@ -203,6 +242,8 @@ var utlis = /** @class */ (function () {
     };
     utlis.getElementName = function (elementRef, keyName) {
         if ((elementRef.layer)) {
+            if (elementRef.layer.group.name === keyName)
+                return elementRef.layer.name;
             return utlis.getElementName(elementRef.layer.group, keyName);
         }
         if (elementRef.group && elementRef.group.name === keyName) {
@@ -238,6 +279,90 @@ var utlis = /** @class */ (function () {
                 utlis.traverseAddedLayers(item.layers, callback);
             }
         });
+    };
+    utlis.getAllLayersAtLevel = function (arrayLayers, level) {
+        var levelArray = arrayLayers;
+        var cumLevelArray = [];
+        levelArray.forEach(function (item) {
+            cumLevelArray.push([item]);
+        });
+        return utlis.getLayersAtLevel(cumLevelArray, level);
+    };
+    utlis.getLayersAtLevel = function (cumLevelArray, level) {
+        if (level <= -1) {
+            return cumLevelArray;
+        }
+        var allLayers = [];
+        cumLevelArray.forEach(function (item) {
+            var layerArray = [];
+            item.forEach(function (itemSub) {
+                itemSub.layers && itemSub.layers.forEach(function (layer) {
+                    layerArray.push(layer);
+                });
+            });
+            allLayers.push(layerArray);
+        });
+        return utlis.getLayersAtLevel(allLayers, --level);
+    };
+    utlis.getNextAvailableIndex = function (queryObject, index) {
+        if (!queryObject.hasOwnProperty(index)) {
+            return index;
+        }
+        return utlis.getNextAvailableIndex(queryObject, ++index);
+    };
+    utlis.addKeyToObject = function (queryObj, key) {
+        if (!queryObj.hasOwnProperty(key)) {
+            queryObj[key] = {};
+        }
+    };
+    utlis.containAll = function (array1, array2) {
+        var delocalisedLayers = [];
+        var compareMap2 = new Map();
+        var arrayLength2 = array2.length;
+        for (var i = 0; i < arrayLength2; i++) {
+            if (!compareMap2.get(array2[i])) {
+                compareMap2.set(array2[i], 1);
+            }
+            else {
+                var value = compareMap2.get(array2[i]);
+                compareMap2.set(array2[i], ++value);
+            }
+        }
+        var arrayLength1 = array1.length;
+        for (var i = 0; i < arrayLength1; i++) {
+            if (!compareMap2.get(array1[i])) {
+                delocalisedLayers.push(array1[i]);
+            }
+        }
+        if (delocalisedLayers.length) {
+            return {
+                isTrue: false,
+                delocalisedLayers: delocalisedLayers
+            };
+        }
+        return {
+            isTrue: true
+        };
+    };
+    utlis.isLayerExists = function (layerRef, idKey) {
+        var layerRefLayers = layerRef.layer.layers;
+        try {
+            for (var layerRefLayers_1 = __values(layerRefLayers), layerRefLayers_1_1 = layerRefLayers_1.next(); !layerRefLayers_1_1.done; layerRefLayers_1_1 = layerRefLayers_1.next()) {
+                var item = layerRefLayers_1_1.value;
+                if (item.id !== idKey) {
+                    return true;
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (layerRefLayers_1_1 && !layerRefLayers_1_1.done && (_a = layerRefLayers_1.return)) _a.call(layerRefLayers_1);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        return false;
+        var e_3, _a;
     };
     return utlis;
 }());

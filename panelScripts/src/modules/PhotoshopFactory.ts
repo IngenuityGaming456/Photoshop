@@ -3,6 +3,8 @@ import * as path from "path";
 import {JsonComponentsFactory} from "./JsonComponentsFactory";
 import {PhotoshopJsonComponent, QuestJsonComponent} from "./JsonComponents";
 import {ModelFactory} from "../models/ModelFactory";
+import {photoshopConstants as pc} from "../constants";
+
 let packageJson = require("../../package.json");
 
 export class PhotoshopFactory implements IFactory {
@@ -75,7 +77,7 @@ export class PhotoshopFactory implements IFactory {
     }
 
     private async insertBaseMetaData(insertionPoint) {
-        await this._generator.setLayerSettingsForPlugin("view", insertionPoint, this._pluginId);
+        await this._generator.setLayerSettingsForPlugin(pc.generatorIds.view, insertionPoint, this._pluginId);
     }
 
     private async findParentId(childName, parentId): Promise<string> {
@@ -135,7 +137,7 @@ export class PhotoshopFactory implements IFactory {
                 }
             });
             if(mappedLayer) {
-                jsxParams["mappedItem"] = mappedLayer;
+                jsxParams[pc.mappedItem] = mappedLayer;
                 return;
             }
         }

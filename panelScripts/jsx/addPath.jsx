@@ -5,6 +5,7 @@ var desc = new ActionDescriptor();
 desc.putReference(charIDToTypeID("null"), ref );
 executeAction(charIDToTypeID("slct"), desc, DialogModes.NO );
 var activeLayer = app.activeDocument.activeLayer;
+activeLayer.name = activeLayer.name.replace(/\s/g, "");
 var extIndex = activeLayer.name.search(/\.(png|jpg)/);
 if( extIndex === -1) {
     activeLayer.name = getPathName(activeLayer.parent,activeLayer.name + ".png", "", 1, "static");

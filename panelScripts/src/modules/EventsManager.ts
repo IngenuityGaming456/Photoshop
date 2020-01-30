@@ -1,4 +1,5 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
+import {photoshopConstants as pc} from "../constants";
 
 export class EventsManager implements IFactory{
     private generator;
@@ -21,19 +22,20 @@ export class EventsManager implements IFactory{
         this.isAddedEvent(event);
         this.isDeletionEvent(event);
         this.isRenameEvent(event);
+        this.isMovedEvent(event);
     }
 
     private subscribeListeners() {
-        this.generator.on("activeDocumentId", activeDocId => this.activeDocId = activeDocId);
-        this.generator.on("newDocument", () => this.isNewDocument = true);
-        this.generator.on("currentDocument", () => this.isNewDocument = false);
-        this.generator.on("eventProcessed", (event) => {
+        this.generator.on(pc.generator.activeDocumentId, activeDocId => this.activeDocId = activeDocId);
+        this.generator.on(pc.logger.newDocument, () => this.isNewDocument = true);
+        this.generator.on(pc.logger.currentDocument, () => this.isNewDocument = false);
+        this.generator.on(pc.generator.eventProcessed, (event) => {
             if(!this.isNewDocument) this.onHandleEvents(event);
         });
-        this.documentManager.on("openDocumentsChanged", (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) => {
+        this.documentManager.on(pc.documentEvents.openDocumentsChanged, (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) => {
             this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
         });
-        this.generator.on("activeDocumentClosed", () => this.isNewDocument = false);
+        this.generator.on(pc.generator.activeDocumentClosed, () => this.isNewDocument = false);
     }
 
     private handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments) {
@@ -71,17 +73,17 @@ export class EventsManager implements IFactory{
     }
 
     private handleOpenDocument(nowOpenDocuments) {
-        this.generator.emit("openedDocument", nowOpenDocuments[0])
+        this.generator.emit(pc.generator.openedDocument, nowOpenDocuments[0])
     }
 
     private handleCloseDocument(nowCloseDocuments) {
 
-        this.generator.emit("closedDocument", nowCloseDocuments[0]);
+        this.generator.emit(pc.generator.closedDocument, nowCloseDocuments[0]);
     }
 
     private isDocumentChange(event) {
         if(event.active) {
-            this.generator.emit("activeDocumentChanged", event.id);
+            this.generator.emit(pc.generator.activeDocumentChanged, event.id);
         }
     }
 
@@ -139,19 +141,25 @@ export class EventsManager implements IFactory{
 
     private isAddedEvent(event) {
         if(event.layers && this.isAdded(event.layers)) {
-            this.generator.emit("layersAdded", event.layers, this.isNewDocument);
+            this.generator.emit(pc.generator.layersAdded, event.layers, this.isNewDocument);
         }
     }
 
     private isDeletionEvent(event) {
         if(event.layers && this.isDeletion(event.layers)) {
-            this.generator.emit("layersDeleted", event.layers);
+            this.generator.emit(pc.generator.layersDeleted, event.layers);
         }
     }
 
     private isRenameEvent(event) {
         if(event.layers && event.layers.length && !event.layers[0].added && event.layers[0].name) {
-            this.generator.emit("layerRenamed", event.layers);
+            this.generator.emit(pc.generator.layerRenamed, event.layers);
+        }
+    }
+
+    private isMovedEvent(event) {
+        if(event.layers && this.isMoved(event.layers)) {
+            this.generator.emit(pc.generator.layersMoved, event.layers);
         }
     }
 
@@ -167,6 +175,20 @@ export class EventsManager implements IFactory{
             }
         }
         return false;
+    }
+
+    private isMoved(layers): boolean {
+        const layersCount = layers.length;
+        for(let i=0;i<layersCount;i++) {
+            const subLayer = layers[i];
+            if(subLayer.hasOwnProperty("added") || subLayer.hasOwnProperty("removed")) {
+                return false;
+            }
+            if(subLayer.hasOwnProperty("layers")) {
+                return this.isMoved(subLayer.layers);
+            }
+        }
+        return true;
     }
 
     private isDeletion(layers): boolean {

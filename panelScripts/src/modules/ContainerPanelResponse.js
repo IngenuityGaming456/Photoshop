@@ -46,6 +46,7 @@ var __values = (this && this.__values) || function (o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
+var constants_1 = require("../constants");
 var ContainerPanelResponse = /** @class */ (function () {
     function ContainerPanelResponse(modelFactory, photoshopFactory) {
         this.platformArray = [];
@@ -65,15 +66,15 @@ var ContainerPanelResponse = /** @class */ (function () {
     };
     ContainerPanelResponse.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("layersDeleted", function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
-        this.docEmitter.on("HandleSocketResponse", function () { return _this.getDataForChanges(); });
-        this.docEmitter.on("getUpdatedHTMLSocket", function (socket) { return _this.onSocketUpdate(socket); });
-        this.docEmitter.on("destroy", function () { return _this.onDestroy(); });
-        this.docEmitter.on("newDocument", function () { return _this.onNewDocument(); });
-        this.docEmitter.on("currentDocument", function () { return _this.onCurrentDocument(); });
+        this.generator.on(constants_1.photoshopConstants.generator.layersDeleted, function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
+        this.docEmitter.on(constants_1.photoshopConstants.emitter.handleSocketResponse, function () { return _this.getDataForChanges(); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, function (socket) { return _this.onSocketUpdate(socket); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.destroy, function () { return _this.onDestroy(); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.onNewDocument(); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.currentDocument, function () { return _this.onCurrentDocument(); });
     };
     ContainerPanelResponse.prototype.isReady = function () {
-        this.docEmitter.emit("containerPanelReady");
+        this.docEmitter.emit(constants_1.photoshopConstants.logger.containerPanelReady);
     };
     ContainerPanelResponse.prototype.onSocketUpdate = function (socket) {
         this.socket = socket;
@@ -94,7 +95,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         if (element) {
                             var elementView = utils_1.utlis.getElementView(element, _this.activeDocument.layers);
                             var elementPlatform = utils_1.utlis.getElementPlatform(element, _this.activeDocument.layers);
-                            _this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
+                            _this.socket.emit(constants_1.photoshopConstants.socket.uncheckFromContainerPanel, elementPlatform, elementView, element.name);
                         }
                     }
                 });
@@ -239,7 +240,7 @@ var ContainerPanelResponse = /** @class */ (function () {
         try {
             for (var _a = __values(platformRef.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
                 var layer = _b.value;
-                if (layer.name === "common") {
+                if (layer.name === constants_1.photoshopConstants.common) {
                     return layer.id;
                 }
             }
@@ -341,8 +342,8 @@ var ContainerPanelResponse = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        previousBaseChild = previousJson[Object.keys(previousJson)[0]];
-                        currentBaseChild = currentJson[Object.keys(currentJson)[0]];
+                        previousBaseChild = previousJson && previousJson[Object.keys(previousJson)[0]];
+                        currentBaseChild = currentJson && currentJson[Object.keys(currentJson)[0]];
                         if (!(currentBaseChild && currentBaseChild["base"] && previousBaseChild && !previousBaseChild["base"])) return [3 /*break*/, 2];
                         this.applyStartingLogs(key);
                         return [4 /*yield*/, this.makeViews(key, platform)];
@@ -392,19 +393,19 @@ var ContainerPanelResponse = /** @class */ (function () {
         return view.base.id;
     };
     ContainerPanelResponse.prototype.applyStartingLogs = function (keys) {
-        this.docEmitter.emit("logStatus", "Started making " + keys);
+        this.docEmitter.emit(constants_1.photoshopConstants.logger.logStatus, "Started making " + keys);
     };
     ContainerPanelResponse.prototype.applyEndingLogs = function (keys) {
-        this.docEmitter.emit("logStatus", keys + " done");
+        this.docEmitter.emit(constants_1.photoshopConstants.logger.logStatus, keys + " done");
     };
     ContainerPanelResponse.prototype.onDestroy = function () {
-        this.socket.emit("destroy");
+        this.socket.emit(constants_1.photoshopConstants.logger.destroy);
     };
     ContainerPanelResponse.prototype.onNewDocument = function () {
-        this.socket.emit("disablePage");
+        this.socket.emit(constants_1.photoshopConstants.socket.disablePage);
     };
     ContainerPanelResponse.prototype.onCurrentDocument = function () {
-        this.socket.emit("enablePage");
+        this.socket.emit(constants_1.photoshopConstants.socket.enablePage);
     };
     return ContainerPanelResponse;
 }());

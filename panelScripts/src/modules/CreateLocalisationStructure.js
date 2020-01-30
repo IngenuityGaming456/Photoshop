@@ -68,6 +68,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var layerClass = require("../../lib/dom/layer.js");
 var path = require("path");
 var utils_1 = require("../utils/utils");
+var constants_1 = require("../constants");
 var packageJson = require("../../package.json");
 var languagesStruct = require("../res/languages");
 var CreateLocalisationStructure = /** @class */ (function () {
@@ -171,7 +172,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         if (!idsArray.length) {
-                            this.docEmitter.emit("logWarning", "Can't Localise an empty Button");
+                            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Can't Localise an empty Button");
                             return [2 /*return*/];
                         }
                         idsMap = new Map();
@@ -235,10 +236,11 @@ var CreateLocalisationStructure = /** @class */ (function () {
                             langId: langId,
                             recordedResponse: this.recordedResponse
                         };
-                        this.docEmitter.emit("localisation", idsMapKeys);
+                        this.docEmitter.emit(constants_1.photoshopConstants.localisation, idsMapKeys);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params)];
                     case 1:
                         response = _a.sent();
+                        response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
                         return [4 /*yield*/, this.handleResponse(response)];
                     case 2:
                         _a.sent();
@@ -246,6 +248,22 @@ var CreateLocalisationStructure = /** @class */ (function () {
                 }
             });
         });
+    };
+    CreateLocalisationStructure.prototype.createLocalisationStruct = function (mapKeys, mapValues, langId, response) {
+        var localiseStruct = this.modelFactory.getPhotoshopModel().docLocalisationStruct || {};
+        utils_1.utlis.addKeyToObject(localiseStruct, langId);
+        var responseArray = response.split(":");
+        responseArray.forEach(function (response) {
+            utils_1.utlis.addKeyToObject(localiseStruct[langId], response.split(",")[0]);
+            var responseId = localiseStruct[langId][response.split(",")[0]];
+            mapKeys.forEach(function (mapItem, index) {
+                var nextAvailableIndex = utils_1.utlis.getNextAvailableIndex(responseId, index);
+                responseId[nextAvailableIndex] = {};
+                responseId[nextAvailableIndex]["localise"] = mapItem;
+                responseId[nextAvailableIndex]["struct"] = mapValues[index];
+            });
+        });
+        this.modelFactory.getPhotoshopModel().docLocalisationStruct = localiseStruct;
     };
     CreateLocalisationStructure.prototype.handleResponse = function (response) {
         return __awaiter(this, void 0, void 0, function () {
@@ -264,7 +282,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
                         item = responseArray_1_1.value;
                         responseSubArray = item.split(",");
                         this.recordedResponse.push(responseSubArray[0]);
-                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin("lang", Number(responseSubArray[1]), packageJson.name)];
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.lang, Number(responseSubArray[1]), packageJson.name)];
                     case 3:
                         _b.sent();
                         viewCount = responseSubArray.length;
@@ -272,7 +290,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
                         _b.label = 4;
                     case 4:
                         if (!(i < viewCount)) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin("view", Number(responseSubArray[i]), packageJson.name)];
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.view, Number(responseSubArray[i]), packageJson.name)];
                     case 5:
                         _b.sent();
                         _b.label = 6;
@@ -310,7 +328,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
         }
         var parentRef = docLayers.findLayer(parent.id);
         var languagesRef = parentRef.layer.layers.find(function (item) {
-            if (item.name === "languages") {
+            if (item.name === constants_1.photoshopConstants.languages) {
                 return true;
             }
         });
@@ -318,7 +336,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
     };
     CreateLocalisationStructure.prototype.safeToLocalise = function (parent, idsMapValues) {
         if (!parent) {
-            this.docEmitter.emit("logWarning", "Can't Localise a container");
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Can't Localise a container");
             return false;
         }
         var langItem = idsMapValues[0].find(function (item) {
@@ -327,7 +345,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
             }
         });
         if (langItem) {
-            this.docEmitter.emit("logWarning", "Can't Localise an already localised layer");
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Can't Localise an already localised layer");
             return false;
         }
         return true;
@@ -336,7 +354,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
         filterArray.forEach(function (item) {
             var keyIndex;
             item.forEach(function (key, index) {
-                if (key.name === "common") {
+                if (key.name === constants_1.photoshopConstants.common) {
                     keyIndex = index;
                 }
             });

@@ -1,5 +1,3 @@
-import {MenuManager} from "../modules/MenuManagers/MenuManager";
-
 export interface IJsxParam {
     parentId: string,
     childName: string,
@@ -39,14 +37,6 @@ export interface IParams {
     activeDocument?,
     storage?,
     events?
-}
-
-export interface IPhotoshopState {
-    onViewAddition(menuManager: MenuManager, generator, menuName: string): void;
-    onViewDeletion(menuManager: MenuManager, generator, menuName: string): void;
-    onPlatformAddition(menuManager: MenuManager, generator, menuName: string): void;
-    onAllPlatformsDeletion(menuManager: MenuManager, generator): void;
-    onPlatformDeletion(menuManager: MenuManager, generator, menuName: string): void;
 }
 
 export interface IModel extends IFactory{

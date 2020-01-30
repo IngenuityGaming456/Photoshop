@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var constants_1 = require("../constants");
 var path = require("path");
 var CreateView = /** @class */ (function () {
     function CreateView() {
@@ -52,11 +53,11 @@ var CreateView = /** @class */ (function () {
                         selectedLayerId = _a.sent();
                         selectedLayersArray = selectedLayers.split(",");
                         selectedLayersIdArray = selectedLayerId.toString().split(",");
-                        if (~selectedLayersArray.indexOf("common") && selectedLayersArray.length === 1
+                        if (~selectedLayersArray.indexOf(constants_1.photoshopConstants.common) && selectedLayersArray.length === 1
                             && (!this.isAlreadyMade(selectedLayersIdArray[0], getPlatform, menuName, viewDeletionObj))) {
                             return [2 /*return*/, Promise.resolve({ insertId: selectedLayersIdArray[0], platform: this.platform })];
                         }
-                        docEmitter.emit("logWarning", "Need to select only common to make " + menuName);
+                        docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Need to select only common to make " + menuName);
                         return [2 /*return*/, Promise.reject("invalid")];
                 }
             });
@@ -65,7 +66,7 @@ var CreateView = /** @class */ (function () {
     CreateView.prototype.isAlreadyMade = function (selectedLayerId, getPlatform, menuName, viewDeletionObj) {
         var platform = getPlatform(Number(selectedLayerId));
         this.platform = platform;
-        if (menuName === "AddGenericView") {
+        if (menuName === constants_1.photoshopConstants.views.genericView) {
             return false;
         }
         return !(viewDeletionObj[platform][menuName] === null || viewDeletionObj[platform][menuName]);
@@ -89,7 +90,7 @@ var CreatePlatform = /** @class */ (function () {
                         if (!selectedLayers.length) {
                             return [2 /*return*/, Promise.resolve({ insertId: null, platform: null })];
                         }
-                        docEmitter.emit("logWarning", "No layer should be selected in order to make a platform");
+                        docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "No layer should be selected in order to make a platform");
                         return [2 /*return*/, Promise.reject("invalid")];
                 }
             });

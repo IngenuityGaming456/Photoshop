@@ -11,6 +11,7 @@ var __values = (this && this.__values) || function (o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var menuLabels = require("../../res/menuLables");
+var constants_1 = require("../../constants");
 var NoDataPhotoshopModel = /** @class */ (function () {
     function NoDataPhotoshopModel() {
         this.questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
@@ -35,7 +36,7 @@ var NoDataPhotoshopModel = /** @class */ (function () {
                 if (!menuLabels.hasOwnProperty(menu)) {
                     continue;
                 }
-                if (menuLabels[menu].menuGroup === "Menu_View") {
+                if (menuLabels[menu].menuGroup === constants_1.photoshopConstants.menu.menuView) {
                     _this.viewDeletion[platformKey][menuLabels[menu].label] = null;
                 }
             }
@@ -53,6 +54,9 @@ var NoDataPhotoshopModel = /** @class */ (function () {
     };
     NoDataPhotoshopModel.prototype.accessDrawnQuestItems = function () {
         return [];
+    };
+    NoDataPhotoshopModel.prototype.accessDocLocalisationStruct = function () {
+        return null;
     };
     NoDataPhotoshopModel.prototype.makeElementalObject = function () {
         var elementalObj = {};

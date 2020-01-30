@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var packageJson = require("../../package.json");
+var constants_1 = require("../constants");
 var PhotoshopStartModel = /** @class */ (function () {
     function PhotoshopStartModel() {
         this.writeObj = {};
@@ -51,8 +52,8 @@ var PhotoshopStartModel = /** @class */ (function () {
     };
     PhotoshopStartModel.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("writeData", function (data, isComplete) { return _this.onWriteData(data, isComplete); });
-        this.generator.on("docId", function (docId) {
+        this.generator.on(constants_1.photoshopConstants.generator.writeData, function (data, isComplete) { return _this.onWriteData(data, isComplete); });
+        this.generator.on(constants_1.photoshopConstants.generator.docId, function (docId) {
             _this.docIdObj.docId = docId;
         });
     };

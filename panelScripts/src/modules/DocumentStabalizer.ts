@@ -1,6 +1,5 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
-import {utlis} from "../utils/utils";
 
 export class DocumentStabalizer implements IFactory {
     private generator;

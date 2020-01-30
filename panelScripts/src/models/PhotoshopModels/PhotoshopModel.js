@@ -6,6 +6,7 @@ var utils_1 = require("../../utils/utils");
 var NoDataPhotoshopModel_1 = require("./NoDataPhotoshopModel");
 var FactoryClass_1 = require("../../modules/FactoryClass");
 var menuLabels = require("../../res/menuLables");
+var constants_1 = require("../../constants");
 var PhotoshopModel = /** @class */ (function () {
     function PhotoshopModel() {
         this.writeData = {};
@@ -17,7 +18,7 @@ var PhotoshopModel = /** @class */ (function () {
         this.elementalMap = {};
         this.questViews = [];
         this.mappedPlatform = {};
-        this.questPlatforms = ["desktop", "portrait", "landscape"];
+        this.questPlatforms = [constants_1.photoshopConstants.platforms.desktop, constants_1.photoshopConstants.platforms.portrait, constants_1.photoshopConstants.platforms.landscape];
         this.layersErrorData = [];
         this.menuStates = [];
     }
@@ -35,10 +36,10 @@ var PhotoshopModel = /** @class */ (function () {
     };
     PhotoshopModel.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.onPhotoshopEvent("generatorMenuChanged", function (event) { return _this.onButtonMenuClicked(event); });
+        this.generator.onPhotoshopEvent(constants_1.photoshopConstants.photoshopEvents.generatorMenuChanged, function (event) { return _this.onButtonMenuClicked(event); });
     };
     PhotoshopModel.prototype.fireEvents = function () {
-        this.docEmitter.emit("observerAdd", this);
+        this.docEmitter.emit(constants_1.photoshopConstants.emitter.observerAdd, this);
     };
     PhotoshopModel.prototype.handleData = function () {
         this.executeSubModels();
@@ -92,8 +93,6 @@ var PhotoshopModel = /** @class */ (function () {
         this.prevContainerResponse = this.previousContainer;
         this.containerResponse = socketStorage;
         this.previousContainer = this.containerResponse;
-        console.log(this.prevContainerResponse);
-        console.log(this.prevContainerResponse === this.previousContainer);
     };
     PhotoshopModel.prototype.createStorage = function () {
         var _this = this;
@@ -137,10 +136,10 @@ var PhotoshopModel = /** @class */ (function () {
     };
     PhotoshopModel.prototype.constructViewMapping = function (itemV, index) {
         var nestedViewMap = {};
-        if (itemV === "FreeGame") {
+        if (itemV === constants_1.photoshopConstants.views.freeGame) {
             return {
                 mapping: (_a = {},
-                    _a[this.questPlatforms[index]] = "BaseGame",
+                    _a[this.questPlatforms[index]] = constants_1.photoshopConstants.views.baseGame,
                     _a)
             };
         }
@@ -268,6 +267,11 @@ var PhotoshopModel = /** @class */ (function () {
     PhotoshopModel.prototype.onPhotoshopStart = function () {
     };
     PhotoshopModel.prototype.onPhotoshopClose = function () {
+        this.getWriteData();
+        this.generator.emit(constants_1.photoshopConstants.generator.writeData, this.writeData, true);
+    };
+    PhotoshopModel.prototype.getWriteData = function () {
+        this.containerResponse = this.containerResponse || this.previousContainer;
         this.writeData = {
             elementalMap: this.elementalMap,
             clickedMenus: this.clickedMenus,
@@ -278,7 +282,6 @@ var PhotoshopModel = /** @class */ (function () {
             menuCurrentState: this.currentState,
             drawnQuestItems: this.drawnQuestItems
         };
-        this.generator.emit("writeData", this.writeData, true);
     };
     PhotoshopModel.prototype.getMenuStates = function () {
         for (var key in menuLabels) {

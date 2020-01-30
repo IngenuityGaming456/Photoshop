@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var constants_1 = require("../constants");
 var EventsManager = /** @class */ (function () {
     function EventsManager() {
         this.isNewDocument = false;
@@ -19,20 +20,21 @@ var EventsManager = /** @class */ (function () {
         this.isAddedEvent(event);
         this.isDeletionEvent(event);
         this.isRenameEvent(event);
+        this.isMovedEvent(event);
     };
     EventsManager.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on("activeDocumentId", function (activeDocId) { return _this.activeDocId = activeDocId; });
-        this.generator.on("newDocument", function () { return _this.isNewDocument = true; });
-        this.generator.on("currentDocument", function () { return _this.isNewDocument = false; });
-        this.generator.on("eventProcessed", function (event) {
+        this.generator.on(constants_1.photoshopConstants.generator.activeDocumentId, function (activeDocId) { return _this.activeDocId = activeDocId; });
+        this.generator.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.isNewDocument = true; });
+        this.generator.on(constants_1.photoshopConstants.logger.currentDocument, function () { return _this.isNewDocument = false; });
+        this.generator.on(constants_1.photoshopConstants.generator.eventProcessed, function (event) {
             if (!_this.isNewDocument)
                 _this.onHandleEvents(event);
         });
-        this.documentManager.on("openDocumentsChanged", function (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) {
+        this.documentManager.on(constants_1.photoshopConstants.documentEvents.openDocumentsChanged, function (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) {
             _this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
         });
-        this.generator.on("activeDocumentClosed", function () { return _this.isNewDocument = false; });
+        this.generator.on(constants_1.photoshopConstants.generator.activeDocumentClosed, function () { return _this.isNewDocument = false; });
     };
     EventsManager.prototype.handleDocumentOpenClose = function (nowOpenDocuments, nowClosedDocuments) {
         if (nowOpenDocuments.length) {
@@ -67,14 +69,14 @@ var EventsManager = /** @class */ (function () {
         }
     };
     EventsManager.prototype.handleOpenDocument = function (nowOpenDocuments) {
-        this.generator.emit("openedDocument", nowOpenDocuments[0]);
+        this.generator.emit(constants_1.photoshopConstants.generator.openedDocument, nowOpenDocuments[0]);
     };
     EventsManager.prototype.handleCloseDocument = function (nowCloseDocuments) {
-        this.generator.emit("closedDocument", nowCloseDocuments[0]);
+        this.generator.emit(constants_1.photoshopConstants.generator.closedDocument, nowCloseDocuments[0]);
     };
     EventsManager.prototype.isDocumentChange = function (event) {
         if (event.active) {
-            this.generator.emit("activeDocumentChanged", event.id);
+            this.generator.emit(constants_1.photoshopConstants.generator.activeDocumentChanged, event.id);
         }
     };
     EventsManager.prototype.removeUnwantedEvents = function (event) {
@@ -130,17 +132,22 @@ var EventsManager = /** @class */ (function () {
     };
     EventsManager.prototype.isAddedEvent = function (event) {
         if (event.layers && this.isAdded(event.layers)) {
-            this.generator.emit("layersAdded", event.layers, this.isNewDocument);
+            this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, event.layers, this.isNewDocument);
         }
     };
     EventsManager.prototype.isDeletionEvent = function (event) {
         if (event.layers && this.isDeletion(event.layers)) {
-            this.generator.emit("layersDeleted", event.layers);
+            this.generator.emit(constants_1.photoshopConstants.generator.layersDeleted, event.layers);
         }
     };
     EventsManager.prototype.isRenameEvent = function (event) {
         if (event.layers && event.layers.length && !event.layers[0].added && event.layers[0].name) {
-            this.generator.emit("layerRenamed", event.layers);
+            this.generator.emit(constants_1.photoshopConstants.generator.layerRenamed, event.layers);
+        }
+    };
+    EventsManager.prototype.isMovedEvent = function (event) {
+        if (event.layers && this.isMoved(event.layers)) {
+            this.generator.emit(constants_1.photoshopConstants.generator.layersMoved, event.layers);
         }
     };
     EventsManager.prototype.isAdded = function (layers) {
@@ -155,6 +162,19 @@ var EventsManager = /** @class */ (function () {
             }
         }
         return false;
+    };
+    EventsManager.prototype.isMoved = function (layers) {
+        var layersCount = layers.length;
+        for (var i = 0; i < layersCount; i++) {
+            var subLayer = layers[i];
+            if (subLayer.hasOwnProperty("added") || subLayer.hasOwnProperty("removed")) {
+                return false;
+            }
+            if (subLayer.hasOwnProperty("layers")) {
+                return this.isMoved(subLayer.layers);
+            }
+        }
+        return true;
     };
     EventsManager.prototype.isDeletion = function (layers) {
         var layersCount = layers.length;

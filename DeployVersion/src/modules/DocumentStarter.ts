@@ -16,9 +16,7 @@ import {DocumentLogger} from "../logger/DocumentLogger";
 import {CreateProxyLayout} from "./LayoutStructure/CreateProxyLayout";
 import {PhotoshopFactory} from "./PhotoshopFactory";
 import {EventEmitter} from "events";
-import {HandleUndo} from "./HandleUndo";
 import {DocumentStabalizer} from "./DocumentStabalizer";
-import * as path from "path";
 import * as fs from "fs";
 let packageJson = require("../../package.json");
 
@@ -257,8 +255,6 @@ export class DocumentStarter implements IFactory {
     }
 
     private createDependencies() {
-        const undoHandle = inject({ref: HandleUndo, dep: [ModelFactory]});
-        execute(undoHandle, {generator: this.generator});
         const layerManager = inject({ref: LayerManager, dep: [ModelFactory]});
         execute(layerManager, {generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument});
         const validation = inject({ref: Validation, dep: [ModelFactory]});

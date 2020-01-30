@@ -1,5 +1,6 @@
 import {IDataSubModel, IParams} from "../../interfaces/IJsxParam";
 let menuLabels = require("../../res/menuLables");
+import {photoshopConstants as pc} from "../../constants";
 
 export class NoDataPhotoshopModel implements IDataSubModel{
     private questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
@@ -29,7 +30,7 @@ export class NoDataPhotoshopModel implements IDataSubModel{
                 if(!menuLabels.hasOwnProperty(menu)) {
                     continue;
                 }
-                if(menuLabels[menu].menuGroup === "Menu_View") {
+                if(menuLabels[menu].menuGroup === pc.menu.menuView) {
                     this.viewDeletion[platformKey][menuLabels[menu].label] = null;
                 }
             }
@@ -51,6 +52,10 @@ export class NoDataPhotoshopModel implements IDataSubModel{
 
     accessDrawnQuestItems() {
         return [];
+    }
+
+    accessDocLocalisationStruct() {
+        return null;
     }
 
     private makeElementalObject() {

@@ -44,12 +44,33 @@ var __values = (this && this.__values) || function (o) {
         }
     };
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spread = (this && this.__spread) || function () {
+    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../../utils/utils");
 var path = require("path");
 var ModelFactory_1 = require("../../models/ModelFactory");
 var FactoryClass_1 = require("../FactoryClass");
 var CreateLayoutStructure_1 = require("./CreateLayoutStructure");
+var constants_1 = require("../../constants");
 var packageJson = require("../../../package.json");
 var CreateProxyLayout = /** @class */ (function () {
     function CreateProxyLayout(modelFactory) {
@@ -79,6 +100,9 @@ var CreateProxyLayout = /** @class */ (function () {
                         _b.sent();
                         this.checkSymbols();
                         this.checkImageFolder();
+                        return [4 /*yield*/, this.checkLocalisationStruct()];
+                    case 3:
+                        _b.sent();
                         this.checkIsLayoutSuccessful();
                         return [2 /*return*/];
                 }
@@ -198,6 +222,7 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.setToNameCache = function (layerName, key) {
         return __awaiter(this, void 0, void 0, function () {
+            var layerRef;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -205,6 +230,10 @@ var CreateProxyLayout = /** @class */ (function () {
                         this.nameCache.push(layerName);
                         return [3 /*break*/, 3];
                     case 1:
+                        layerRef = this.activeDocument.layers.findLayer(key);
+                        if (utils_1.utlis.getElementName(layerRef, constants_1.photoshopConstants.languages)) {
+                            return [2 /*return*/];
+                        }
                         this.logError(key, layerName, "Error in name of " + layerName + " with id " + key);
                         return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addErrorPath.jsx"), { id: key })];
                     case 2:
@@ -223,7 +252,7 @@ var CreateProxyLayout = /** @class */ (function () {
         try {
             for (var _a = __values(viewLayer.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
                 var item = _b.value;
-                if (item.name === "Symbols" && item.layers) {
+                if (item.name === constants_1.photoshopConstants.generatorButtons.symbols && item.layers) {
                     item.layers.forEach(function (itemS) {
                         _this.checkIfStaticEmpty(itemS);
                     });
@@ -243,7 +272,7 @@ var CreateProxyLayout = /** @class */ (function () {
         var _this = this;
         if (item.type === "layerSection") {
             item.layers.forEach(function (itemS) {
-                if (itemS.name === "Static") {
+                if (itemS.name === constants_1.photoshopConstants.static) {
                     if (!itemS.layers) {
                         _this.logError(itemS.id, itemS.name, "Symbol with name " + item.name + " has empty Static folder");
                     }
@@ -264,6 +293,189 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.isPluginEnabled = function () {
         return this.imageState.state;
+    };
+    CreateProxyLayout.prototype.checkLocalisationStruct = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var localisationStruct, langIds, langIds_1, langIds_1_1, id, idRef, e_3_1, e_3, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        localisationStruct = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
+                        if (!localisationStruct) {
+                            return [2 /*return*/];
+                        }
+                        langIds = localisationStruct && Object.keys(localisationStruct);
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, 7, 8]);
+                        langIds_1 = __values(langIds), langIds_1_1 = langIds_1.next();
+                        _b.label = 2;
+                    case 2:
+                        if (!!langIds_1_1.done) return [3 /*break*/, 5];
+                        id = langIds_1_1.value;
+                        idRef = this.activeDocument.layers.findLayer(Number(id));
+                        return [4 /*yield*/, this.createLocalisationResponse(idRef)];
+                    case 3:
+                        _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        langIds_1_1 = langIds_1.next();
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
+                        e_3_1 = _b.sent();
+                        e_3 = { error: e_3_1 };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        try {
+                            if (langIds_1_1 && !langIds_1_1.done && (_a = langIds_1.return)) _a.call(langIds_1);
+                        }
+                        finally { if (e_3) throw e_3.error; }
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateProxyLayout.prototype.createLocalisationResponse = function (idRef) {
+        return __awaiter(this, void 0, void 0, function () {
+            var platformId, wholeHierarchyStruct;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        platformId = idRef.layer.group.id;
+                        wholeHierarchyStruct = [];
+                        this.getHierarchyStructure(idRef.layer.layers, [], wholeHierarchyStruct);
+                        return [4 /*yield*/, this.sendLocalisationResponse(platformId, idRef.layer.id, wholeHierarchyStruct)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateProxyLayout.prototype.getHierarchyStructure = function (idLayers, hierarchyStruct, wholeHierarchy) {
+        var hierarchyClone = [];
+        try {
+            for (var idLayers_1 = __values(idLayers), idLayers_1_1 = idLayers_1.next(); !idLayers_1_1.done; idLayers_1_1 = idLayers_1.next()) {
+                var item = idLayers_1_1.value;
+                if (item.layers) {
+                    hierarchyClone = __spread(hierarchyStruct);
+                    hierarchyClone.push(item.id);
+                    if (!item.layers.length) {
+                        hierarchyClone.push(100000);
+                        hierarchyClone.push(true);
+                        break;
+                    }
+                    this.getHierarchyStructure(item.layers, hierarchyClone, wholeHierarchy);
+                }
+                else {
+                    hierarchyClone.push(item.id);
+                    hierarchyClone.push(true);
+                }
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (idLayers_1_1 && !idLayers_1_1.done && (_a = idLayers_1.return)) _a.call(idLayers_1);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+        if (~hierarchyClone.indexOf(true)) {
+            hierarchyClone = __spread(hierarchyStruct, hierarchyClone);
+            if (!~hierarchyClone.indexOf(100000)) {
+                hierarchyClone.push(100000);
+                hierarchyClone.push(true);
+            }
+            wholeHierarchy.push(hierarchyClone);
+        }
+        var e_4, _a;
+    };
+    CreateProxyLayout.prototype.sendLocalisationResponse = function (platfromId, langId, wholeHierarchyStruct) {
+        return __awaiter(this, void 0, void 0, function () {
+            var wholeHierarchyStruct_1, wholeHierarchyStruct_1_1, hierarchyStruct, hierarchyArray, trueIndex, responseObj, response, isTrue, e_5_1, e_5, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 5, 6, 7]);
+                        wholeHierarchyStruct_1 = __values(wholeHierarchyStruct), wholeHierarchyStruct_1_1 = wholeHierarchyStruct_1.next();
+                        _b.label = 1;
+                    case 1:
+                        if (!!wholeHierarchyStruct_1_1.done) return [3 /*break*/, 4];
+                        hierarchyStruct = wholeHierarchyStruct_1_1.value;
+                        hierarchyArray = __spread([platfromId, langId], hierarchyStruct);
+                        trueIndex = hierarchyArray.indexOf(true);
+                        responseObj = {};
+                        this.createObjectResponse(hierarchyArray, 0, trueIndex - 2, responseObj);
+                        response = [];
+                        response.push(responseObj);
+                        return [4 /*yield*/, this.sendResponse(response)];
+                    case 2:
+                        isTrue = _b.sent();
+                        if (!isTrue) {
+                            return [2 /*return*/];
+                        }
+                        _b.label = 3;
+                    case 3:
+                        wholeHierarchyStruct_1_1 = wholeHierarchyStruct_1.next();
+                        return [3 /*break*/, 1];
+                    case 4: return [3 /*break*/, 7];
+                    case 5:
+                        e_5_1 = _b.sent();
+                        e_5 = { error: e_5_1 };
+                        return [3 /*break*/, 7];
+                    case 6:
+                        try {
+                            if (wholeHierarchyStruct_1_1 && !wholeHierarchyStruct_1_1.done && (_a = wholeHierarchyStruct_1.return)) _a.call(wholeHierarchyStruct_1);
+                        }
+                        finally { if (e_5) throw e_5.error; }
+                        return [7 /*endfinally*/];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateProxyLayout.prototype.createObjectResponse = function (hierarchyArray, index, finalIndex, response) {
+        response = response || {};
+        if (index <= finalIndex) {
+            response["id"] = hierarchyArray[index];
+            response["layers"] = [];
+            response["layers"][0] = {};
+            if (index === finalIndex) {
+                this.createObjectResponse(hierarchyArray, ++index, finalIndex, response["layers"]);
+            }
+            else {
+                this.createObjectResponse(hierarchyArray, ++index, finalIndex, response["layers"][0]);
+            }
+        }
+        else {
+            var k = 0;
+            for (var i = index; i < hierarchyArray.length - 1; i = i + 2) {
+                response[k] = { id: hierarchyArray[i] };
+                k++;
+            }
+        }
+    };
+    CreateProxyLayout.prototype.sendResponse = function (response) {
+        var _this = this;
+        return new Promise(function (resolve) {
+            _this.docEmitter.once(constants_1.photoshopConstants.emitter.layersLocalised, function (localisedLayers) {
+                localisedLayers.toBeLocalised.forEach(function (id) {
+                    _this.logError(id, "local", "Need to localise the layer to continue");
+                });
+                localisedLayers.notToBeLocalised.forEach(function (id) {
+                    _this.removeError(id);
+                });
+                if (localisedLayers.toBeLocalised.length) {
+                    resolve(false);
+                }
+                else {
+                    resolve(true);
+                }
+            });
+            _this.docEmitter.emit(constants_1.photoshopConstants.emitter.layersMovedMock, response);
+        });
     };
     CreateProxyLayout.prototype.checkIsLayoutSuccessful = function () {
         if (!this.errorData.length) {
@@ -286,7 +498,7 @@ var CreateProxyLayout = /** @class */ (function () {
     CreateProxyLayout.prototype.logError = function (id, name, errorType) {
         if (!utils_1.utlis.isIDExists(id, this.errorData)) {
             this.errorData.push({ id: id, name: name });
-            this.docEmitter.emit("logError", id, name, errorType);
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.logError, id, name, errorType);
         }
     };
     CreateProxyLayout.prototype.removeError = function (id) {
@@ -294,7 +506,7 @@ var CreateProxyLayout = /** @class */ (function () {
         utils_1.utlis.spliceFrom(id, this.errorData);
         var afterLength = this.errorData.length;
         if (beforeLength > afterLength) {
-            this.docEmitter.emit("removeError", id);
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.removeError, id);
         }
     };
     return CreateProxyLayout;

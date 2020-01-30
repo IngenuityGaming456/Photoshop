@@ -1,6 +1,7 @@
 import {IModel, IParams} from "../interfaces/IJsxParam";
 import * as fs from "fs";
 let packageJson = require("../../package.json");
+import {photoshopConstants as pc} from "../constants";
 
 export class PhotoshopStartModel implements IModel {
 
@@ -20,8 +21,8 @@ export class PhotoshopStartModel implements IModel {
     }
 
     private subscribeListeners() {
-        this.generator.on("writeData", (data, isComplete?) => this.onWriteData(data, isComplete));
-        this.generator.on("docId", (docId) => {
+        this.generator.on(pc.generator.writeData, (data, isComplete?) => this.onWriteData(data, isComplete));
+        this.generator.on(pc.generator.docId, (docId) => {
             this.docIdObj.docId = docId;
         });
     }

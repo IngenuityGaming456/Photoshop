@@ -16,10 +16,10 @@ import {DocumentLogger} from "../logger/DocumentLogger";
 import {CreateProxyLayout} from "./LayoutStructure/CreateProxyLayout";
 import {PhotoshopFactory} from "./PhotoshopFactory";
 import {EventEmitter} from "events";
-import {HandleUndo} from "./HandleUndo";
 import {DocumentStabalizer} from "./DocumentStabalizer";
-import * as path from "path";
+import {photoshopConstants as pc} from "../constants";
 import * as fs from "fs";
+
 let packageJson = require("../../package.json");
 
 export class DocumentStarter implements IFactory {
@@ -59,31 +59,31 @@ export class DocumentStarter implements IFactory {
     }
 
     private subscribeListenersBeforeDocument() {
-        this.generator.on("activeDocumentChanged", (changeId) => {
+        this.generator.on(pc.generator.activeDocumentChanged, (changeId) => {
             this.activeId.id = changeId;
             this.onDocumentOpen(changeId);
         });
-        this.documentManager.on("documentResolved", () => {
-            this.generator.emit("documentResolved")
+        this.documentManager.on(pc.generator.documentResolved, () => {
+            this.generator.emit(pc.generator.documentResolved)
         });
-        this.generator.onPhotoshopEvent("generatorMenuChanged", (event) => this.onButtonMenuClicked(event));
+        this.generator.onPhotoshopEvent(pc.photoshopEvents.generatorMenuChanged, (event) => this.onButtonMenuClicked(event));
     }
 
     private async onDocumentOpen(openId) {
-        if(this.activeDocument && this.activeDocument.id !== openId) {
-            this.generator.emit("newDocument");
-            this.loggerEmitter.emit("newDocument");
-            this.docEmitter.emit("newDocument");
+        if (this.activeDocument && this.activeDocument.id !== openId) {
+            this.generator.emit(pc.logger.newDocument);
+            this.loggerEmitter.emit(pc.logger.newDocument);
+            this.docEmitter.emit(pc.logger.newDocument);
             return;
         }
-        if(this.activeDocument && this.activeDocument.id === openId) {
-            this.generator.emit("currentDocument");
-            this.loggerEmitter.emit("currentDocument");
-            this.docEmitter.emit("currentDocument");
+        if (this.activeDocument && this.activeDocument.id === openId) {
+            this.generator.emit(pc.logger.currentDocument);
+            this.loggerEmitter.emit(pc.logger.currentDocument);
+            this.docEmitter.emit(pc.logger.currentDocument);
             return;
         }
-        this.generator.on("closedDocument", (closeId) => this.onDocumentClose(closeId));
-        this.generator.on("save", () =>  {
+        this.generator.on(pc.generator.closedDocument, (closeId) => this.onDocumentClose(closeId));
+        this.generator.on(pc.generator.save, () => {
             this.start(openId);
         });
         this.stabalizeDocument();
@@ -91,7 +91,7 @@ export class DocumentStarter implements IFactory {
 
     private start(openId) {
         this.createSocket();
-        this.generator.once("PanelsConnected", () => {
+        this.generator.once(pc.generator.panelsConnected, () => {
             this.onPanelsConnected(openId);
         });
     }
@@ -112,10 +112,10 @@ export class DocumentStarter implements IFactory {
     }
 
     private createSocket() {
-        if(this.io) {
-            this.io.close()
+        if (this.io) {
+            this.io.close();
             this.io = null;
-            this.generator.removeAllListeners("PanelsConnected");
+            this.generator.removeAllListeners(pc.generator.panelsConnected);
         }
         this.io = require('socket.io')(8099);
         console.log("making a socket connection");
@@ -125,35 +125,35 @@ export class DocumentStarter implements IFactory {
     }
 
     private applySocketListeners(socket) {
-        socket.on("register", (name) => {
+        socket.on(pc.socket.register, (name) => {
             this.handleSocketClients(name, socket);
-            if(Object.keys(this.connectedSockets).length === 2) {
+            if (Object.keys(this.connectedSockets).length === 2) {
                 this.generator.emit("PanelsConnected");
             }
         });
     }
 
     private handleSocketClients(name, socket) {
-        if(name === "htmlPanel") {
+        if (name === pc.htmlPanel) {
             this.htmlSocket = socket;
-            if(this.activeDocument) {
-                this.docEmitter.emit("getUpdatedHTMLSocket", this.htmlSocket);
-                this.htmlSocket.emit("docOpen", this.activeDocument.directory, this.docId);
+            if (this.activeDocument) {
+                this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
+                this.htmlSocket.emit(pc.socket.docOpen, this.activeDocument.directory, this.docId);
             }
-            socket.on("getQuestJson", (storage, checkBoxes) => {
+            socket.on(pc.socket.getQuestJson, (storage, checkBoxes) => {
                 this.checkedBoxes = checkBoxes;
                 this.modelFactory.handleSocketStorage(storage);
                 this.setViewMap();
             });
         }
-        if(name === "validatorPanel") {
-            socket.emit("getStorage", this.docId);
-            this.loggerEmitter.emit("getUpdatedValidatorSocket", socket);
+        if (name === pc.validatorPanel) {
+            socket.emit(pc.socket.getStorage, this.docId);
+            this.loggerEmitter.emit(pc.logger.getUpdatedValidatorSocket, socket);
         }
-        if(this.activeId.id && this.activeDocument && this.activeId.id !== this.activeDocument.id) {
-            socket.emit("disablePage");
+        if (this.activeId.id && this.activeDocument && this.activeId.id !== this.activeDocument.id) {
+            socket.emit(pc.socket.disablePage);
         }
-        socket.on('disconnect', function(reason) {
+        socket.on('disconnect', function (reason) {
             console.log(reason);
         });
         this.connectedSockets[name] = true;
@@ -169,20 +169,25 @@ export class DocumentStarter implements IFactory {
 
     private onButtonMenuClicked(event) {
         const menu = event.generatorMenuChanged;
-        if(menu.name === "generator-assets") {
+        if (menu.name === "generator-assets") {
             this.imageState.state = this.generator.getMenuState(menu.name).checked;
-        } else if(!this.activeId.id || this.activeId.id && this.activeId.id === this.activeDocument.id){
+        } else if (!this.activeId.id || this.activeId.id && this.activeId.id === this.activeDocument.id) {
             const elementMap = this.getElementMap(menu.name);
             const classObj = this.structureMap.get(elementMap);
             if (classObj) {
                 let factoryObj;
-                if(classObj.ref === CreateComponent) {
+                if (classObj.ref === CreateComponent) {
                     factoryObj = inject({ref: classObj.ref, dep: classObj.dep});
                 } else {
                     factoryObj = inject({ref: classObj.ref, dep: classObj.dep, isNonSingleton: true});
                 }
-                execute(factoryObj, {generator: this.generator, docEmitter: this.docEmitter, menuName: menu.name, activeDocument: this.activeDocument,
-                    storage: {factoryMap: elementMap, menuState: this.imageState}});
+                execute(factoryObj, {
+                    generator: this.generator,
+                    docEmitter: this.docEmitter,
+                    menuName: menu.name,
+                    activeDocument: this.activeDocument,
+                    storage: {factoryMap: elementMap, menuState: this.imageState}
+                });
             }
         }
     }
@@ -197,7 +202,7 @@ export class DocumentStarter implements IFactory {
     }
 
     private sendToHTMLSocket() {
-        this.htmlSocket.emit("docOpen", this.activeDocument.directory, this.docId);
+        this.htmlSocket.emit(pc.socket.docOpen, this.activeDocument.directory, this.docId);
     }
 
     private restorePhotoshop() {
@@ -207,45 +212,47 @@ export class DocumentStarter implements IFactory {
 
     private removeListeners() {
         this.docEmitter.removeAllListeners();
-        this.generator.removeAllListeners("layersAdded");
-        this.generator.removeAllListeners("layerRenamed");
-        this.generator.removeAllListeners("layersDeleted");
-        this.generator.removeAllListeners("select");
-        this.generator.removeAllListeners("copy");
-        this.generator.removeAllListeners("paste");
-        this.generator.removeAllListeners("save");
-        this.generator.removeAllListeners("closedDocument");
-        this.generator.removeAllListeners("PanelsConnected");
-        this.generator.removeAllListeners("copyToLayer");
-        this.generator.removeAllListeners("duplicate");
-        this.generator.removeAllListeners("writeData");
-        this.generator.removeAllListeners("docId");
+        this.generator.removeAllListeners(pc.generator.layersAdded);
+        this.generator.removeAllListeners(pc.generator.layerRenamed);
+        this.generator.removeAllListeners(pc.generator.layersDeleted);
+        this.generator.removeAllListeners(pc.generator.select);
+        this.generator.removeAllListeners(pc.generator.copy);
+        this.generator.removeAllListeners(pc.generator.paste);
+        this.generator.removeAllListeners(pc.generator.save);
+        this.generator.removeAllListeners(pc.generator.closedDocument);
+        this.generator.removeAllListeners(pc.generator.panelsConnected);
+        this.generator.removeAllListeners(pc.generator.copyToLayer);
+        this.generator.removeAllListeners(pc.generator.duplicate);
+        this.generator.removeAllListeners(pc.generator.writeData);
+        this.generator.removeAllListeners(pc.generator.docId);
     }
 
     private applyDocumentListeners() {
-        this.docEmitter.on("logWarning", loggerType => {
-            this.loggerEmitter.emit("logWarning", loggerType);
+        this.docEmitter.on(pc.logger.logWarning, loggerType => {
+            this.loggerEmitter.emit(pc.logger.logWarning, loggerType);
         });
-        this.docEmitter.on("logError", (id, key, loggerType) => {
-            this.loggerEmitter.emit("logError", id, key, loggerType);
+        this.docEmitter.on(pc.logger.logError, (id, key, loggerType) => {
+            this.loggerEmitter.emit(pc.logger.logError, id, key, loggerType);
         });
-        this.docEmitter.on("logStatus", message => {
-            this.loggerEmitter.emit("logStatus", message);
+        this.docEmitter.on(pc.logger.logStatus, message => {
+            this.loggerEmitter.emit(pc.logger.logStatus, message);
         });
-        this.docEmitter.on("removeError", id => {
-            this.loggerEmitter.emit("removeError", id);
+        this.docEmitter.on(pc.logger.removeError, id => {
+            this.loggerEmitter.emit(pc.logger.removeError, id);
         });
-        this.docEmitter.on("containerPanelReady", () => {
-            this.docEmitter.emit("getUpdatedHTMLSocket", this.htmlSocket);
+        this.docEmitter.on(pc.logger.containerPanelReady, () => {
+            this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
         });
-        this.generator.on("closedDocument", (closeId) =>{
+        this.generator.on(pc.generator.closedDocument, (closeId) => {
             this.onDocumentClose(closeId);
         });
-        this.generator.on("save", () => {this.onSave()});
+        this.generator.on(pc.generator.save, () => {
+            this.onSave()
+        });
     }
 
     private async setDocumentMetaData() {
-        if(!this.openDocumentData) {
+        if (!this.openDocumentData) {
             this.docId = Math.floor(Math.random() * 5000);
             await this.generator.setDocumentSettingsForPlugin({docId: this.docId}, packageJson.name + "Document");
         } else {
@@ -253,21 +260,29 @@ export class DocumentStarter implements IFactory {
                 packageJson.name + "Document");
             this.docId = docIdObj.docId;
         }
-        this.generator.emit("docId", this.docId);
+        this.generator.emit(pc.generator.docId, this.docId);
     }
 
     private createDependencies() {
-        const undoHandle = inject({ref: HandleUndo, dep: [ModelFactory]});
-        execute(undoHandle, {generator: this.generator});
         const layerManager = inject({ref: LayerManager, dep: [ModelFactory]});
-        execute(layerManager, {generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument});
+        execute(layerManager, {
+            generator: this.generator,
+            docEmitter: this.docEmitter,
+            activeDocument: this.activeDocument
+        });
         const validation = inject({ref: Validation, dep: [ModelFactory]});
-        execute(validation, {generator: this.generator, docEmitter: this.docEmitter, activeDocument: this.activeDocument});
+        execute(validation, {
+            generator: this.generator,
+            docEmitter: this.docEmitter,
+            activeDocument: this.activeDocument
+        });
         const photoshopFactory = inject({ref: PhotoshopFactory, dep: [ModelFactory]});
         execute(photoshopFactory, {generator: this.generator, docEmitter: this.docEmitter});
         const containerResponse = inject({ref: ContainerPanelResponse, dep: [ModelFactory, PhotoshopFactory]});
-        execute(containerResponse, {generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
-                                            storage: {documentManager: this.documentManager}});
+        execute(containerResponse, {
+            generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
+            storage: {documentManager: this.documentManager}
+        });
     }
 
     private stabalizeDocument() {
@@ -286,20 +301,20 @@ export class DocumentStarter implements IFactory {
     }
 
     private async addDocumentStatus() {
-       // const menuState = await this.generator.getMenuState("generator-assets");
-       // this.imageState.state = menuState.checked;
-       this.generator.emit("activeDocumentId", this.activeDocument.id);
-       this.loggerEmitter.emit("activeDocument", this.docId);
-       this.loggerEmitter.emit("logStatus", "Document is Saved");
-       this.loggerEmitter.emit("logStatus", "The document file id is " + this.docId);
+        // const menuState = await this.generator.getMenuState("generator-assets");
+        // this.imageState.state = menuState.checked;
+        this.generator.emit(pc.generator.activeDocumentId, this.activeDocument.id);
+        this.loggerEmitter.emit(pc.logger.activeDocument, this.docId);
+        this.loggerEmitter.emit(pc.logger.logStatus, "Document is Saved");
+        this.loggerEmitter.emit(pc.logger.logStatus, "The document file id is " + this.docId);
     }
 
     private onSave() {
-        if(!this.activeDocument || this.activeDocument && this.activeId.id && this.activeId.id !== this.activeDocument.id) {
+        if (!this.activeDocument || this.activeDocument && this.activeId.id && this.activeId.id !== this.activeDocument.id) {
             return;
         }
-        this.loggerEmitter.emit("logStatus", "Document is Saved");
-        if(!this.checkedBoxes) {
+        this.loggerEmitter.emit(pc.logger.logStatus, "Document is Saved");
+        if (!this.checkedBoxes) {
             return;
         }
         const filteredPath = this.activeDocument.directory + "\\" + this.docId;
@@ -347,36 +362,36 @@ export class DocumentStarter implements IFactory {
 
     private instantiateStateEvent() {
         const eventSubject = inject({ref: PhotoshopEventSubject, dep: []});
-        execute(eventSubject, {generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
-                                      storage: {docId: this.docId, activeId: this.activeId}});
+        execute(eventSubject, {
+            generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
+            storage: {docId: this.docId, activeId: this.activeId}
+        });
     }
 
     private instantiateDocumentModel() {
-        this.modelFactory = inject({ref: ModelFactory, dep:[]});
-        execute(this.modelFactory, {generator: this.generator, activeDocument: this.activeDocument,
-                                           docEmitter: this.docEmitter, storage: {openDocumentData: this.openDocumentData}});
+        this.modelFactory = inject({ref: ModelFactory, dep: []});
+        execute(this.modelFactory, {
+            generator: this.generator, activeDocument: this.activeDocument,
+            docEmitter: this.docEmitter, storage: {openDocumentData: this.openDocumentData}
+        });
     };
 
     private onDocumentClose(closeId) {
-        if(this.activeDocument && closeId === this.activeDocument.id) {
+        if (this.activeDocument && closeId === this.activeDocument.id) {
             this.activeDocument = null;
             this.docId = null;
             FactoryClass.factoryInstance = null;
             this.checkedBoxes = null;
             this.connectedSockets = {};
+            this.loggerEmitter.emit(pc.logger.destroy);
+            this.docEmitter.emit(pc.logger.destroy);
+            this.generator.emit(pc.generator.activeDocumentClosed);
             this.removeListeners();
-            if(this.io) {
-                this.io.close();
-                this.io = null;
-            }
             this.startModel.onPhotoshopClose();
-            this.loggerEmitter.emit("destroy");
-            this.docEmitter.emit("destroy");
-            this.generator.emit("activeDocumentClosed");
         }
-        if(!this.activeDocument) {
-            this.generator.removeAllListeners("closedDocument");
-            this.generator.removeAllListeners("save");
+        if (!this.activeDocument) {
+            this.generator.removeAllListeners(pc.generator.closedDocument);
+            this.generator.removeAllListeners(pc.generator.save);
         }
     }
 

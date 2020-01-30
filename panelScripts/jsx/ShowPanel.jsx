@@ -144,7 +144,8 @@ function drawLayers(valueIndex, langIndex, selectedLangRef) {
 
 function duplicateItemLayer(itemId, parentRef) {
     var itemLayerRef = getInsertionReferenceById(itemId);
-    itemLayerRef.duplicate(parentRef);
+    var duplicateLayer = itemLayerRef.duplicate(parentRef);
+    duplicateLayer.name = itemLayerRef.name;
 }
 
 var selectedLayersResponse = "";

@@ -46,6 +46,7 @@ var __values = (this && this.__values) || function (o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
+var constants_1 = require("../constants");
 var LayerClass = require("../../lib/dom/layer.js");
 var packageJson = require("../../package.json");
 var LayerManager = /** @class */ (function () {
@@ -65,10 +66,10 @@ var LayerManager = /** @class */ (function () {
     };
     LayerManager.prototype.subscribeListeners = function () {
         var _this = this;
-        this._generator.on("layersAdded", function (eventLayers, isNewDocument) {
+        this._generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers, isNewDocument) {
             _this.onLayersAdded(eventLayers, isNewDocument);
         });
-        this._generator.on("select", function () { return __awaiter(_this, void 0, void 0, function () {
+        this._generator.on(constants_1.photoshopConstants.generator.select, function () { return __awaiter(_this, void 0, void 0, function () {
             var selectedLayersString;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -82,10 +83,10 @@ var LayerManager = /** @class */ (function () {
                 }
             });
         }); });
-        this._generator.on("copy", function () {
+        this._generator.on(constants_1.photoshopConstants.generator.copy, function () {
             _this.eventName = Events.COPY;
         });
-        this._generator.on("paste", function () {
+        this._generator.on(constants_1.photoshopConstants.generator.paste, function () {
             if (_this.eventName === Events.COPY) {
                 _this.eventName = Events.PASTE;
                 _this.isPasteEvent = true;
@@ -94,15 +95,15 @@ var LayerManager = /** @class */ (function () {
                 _this.eventName = Events.OTHER;
             }
         });
-        this._generator.on("copyToLayer", function () {
+        this._generator.on(constants_1.photoshopConstants.generator.copyToLayer, function () {
             _this.eventName = Events.COPYTOLAYER;
         });
-        this._generator.on("duplicate", function () {
+        this._generator.on(constants_1.photoshopConstants.generator.duplicate, function () {
             if (_this.eventName !== Events.OTHER) {
                 _this.eventName = Events.DUPLICATE;
             }
         });
-        this.docEmitter.on("localisation", function (localisedLayers) {
+        this.docEmitter.on(constants_1.photoshopConstants.localisation, function (localisedLayers) {
             _this.localisedLayers = localisedLayers;
         });
     };
@@ -112,7 +113,7 @@ var LayerManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 if (isNewDocument) {
                     this.constructQueuedArray(eventLayers);
-                    this.docEmitter.once("currentDocument", function () { return __awaiter(_this, void 0, void 0, function () {
+                    this.docEmitter.once(constants_1.photoshopConstants.logger.currentDocument, function () { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0: return [4 /*yield*/, this.handleImportEvent(this.queuedImageLayers, undefined)];
@@ -155,7 +156,7 @@ var LayerManager = /** @class */ (function () {
                                         });
                                         if (!inQuest) return [3 /*break*/, 2];
                                         deletedLayers.push(item.id);
-                                        this_1.docEmitter.emit("logWarning", "Not Allowed to duplicate a quest element, " + item.name + " with id = " + item.id);
+                                        this_1.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Not Allowed to duplicate a quest element, " + item.name + " with id = " + item.id);
                                         return [4 /*yield*/, this_1._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item.id })];
                                     case 1:
                                         _a.sent();
@@ -298,7 +299,7 @@ var LayerManager = /** @class */ (function () {
     };
     LayerManager.prototype.handleImportEvent = function (changedLayers, promiseArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var layersCount, i, change;
+            var layersCount, i, change, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -307,24 +308,31 @@ var LayerManager = /** @class */ (function () {
                         i = 0;
                         _a.label = 1;
                     case 1:
-                        if (!(i < layersCount)) return [3 /*break*/, 6];
+                        if (!(i < layersCount)) return [3 /*break*/, 8];
                         change = changedLayers[i];
-                        if (!(change.hasOwnProperty("added") && change.type === "layer")) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.getImageData(change.id, promiseArray)];
+                        if (!(change.hasOwnProperty("added") && change.type === "layer")) return [3 /*break*/, 5];
+                        _a.label = 2;
                     case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, this.getImageData(change.id, promiseArray)];
+                    case 3:
                         _a.sent();
                         console.log("Pixels Added");
-                        _a.label = 3;
-                    case 3:
-                        if (!change.hasOwnProperty("layers")) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this.handleImportEvent(change.layers, promiseArray)];
+                        return [3 /*break*/, 5];
                     case 4:
-                        _a.sent();
-                        _a.label = 5;
+                        err_1 = _a.sent();
+                        console.log("error occured while pixel update");
+                        return [3 /*break*/, 5];
                     case 5:
+                        if (!change.hasOwnProperty("layers")) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.handleImportEvent(change.layers, promiseArray)];
+                    case 6:
+                        _a.sent();
+                        _a.label = 7;
+                    case 7:
                         i++;
                         return [3 /*break*/, 1];
-                    case 6: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

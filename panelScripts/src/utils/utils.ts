@@ -1,11 +1,32 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as layerClass from "../../lib/dom/layer";
+import {photoshopConstants as pc} from "../constants";
 
 export class utlis {
 
     public static isKeyExists(searchArray, key) {
         return ~searchArray.indexOf(key);
+    }
+
+    public static isIDExistsRec(id, idArray) {
+        const itemRef = idArray.find(item => {
+            if(item.id === Number(id)) {
+                return true;
+            }
+        });
+        if(itemRef) {
+            return itemRef;
+        }
+        for(let item of idArray) {
+            if(item.layers) {
+                const itemRefRec = utlis.isIDExistsRec(id, item.layers);
+                    if(itemRefRec) {
+                        return itemRefRec;
+                    }
+                }
+            }
+        return null;
     }
 
     public static isIDExists(id, idArray) {
@@ -15,6 +36,14 @@ export class utlis {
             }
         });
     };
+
+    public static isNameExists(name, keyArray) {
+        return keyArray.find(item => {
+            if (item.name === name) {
+                return true;
+            }
+        });
+    }
 
     public static getConsecutiveIndexes(itemArray, index) {
         const itemLength = itemArray.length;
@@ -62,7 +91,7 @@ export class utlis {
         return map;
     }
 
-    public static traverseObject(arrayLayers, callback) {
+    public static traverseObject(arrayLayers, callback, callbackLayers?) {
         let noOfLayers = arrayLayers.length;
         for (let i = 0; i < noOfLayers; i++) {
             if (arrayLayers[i].type === "layer") {
@@ -70,7 +99,8 @@ export class utlis {
             }
             if (arrayLayers[i].type === "layerSection") {
                 if (arrayLayers[i].layers) {
-                    utlis.traverseObject(arrayLayers[i].layers, callback);
+                    callbackLayers && callbackLayers(arrayLayers[i]);
+                    utlis.traverseObject(arrayLayers[i].layers, callback, callbackLayers);
                 }
             }
         }
@@ -79,7 +109,7 @@ export class utlis {
     public static traverseBaseFreeGame(arrayLayers, callback) {
         let noOfLayers = arrayLayers.length;
         for (let i = 0; i < noOfLayers; i++) {
-            if (arrayLayers[i].name === "baseGame" || arrayLayers[i].name === "freeGame") {
+            if (arrayLayers[i].name === pc.views.baseGame || arrayLayers[i].name === pc.views.freeGame) {
                 callback(arrayLayers[i]);
             } else if (arrayLayers[i].layers) {
                 utlis.traverseBaseFreeGame(arrayLayers[i].layers, callback);
@@ -189,6 +219,7 @@ export class utlis {
 
     public static getElementName(elementRef, keyName) {
         if ((elementRef.layer)) {
+            if(elementRef.layer.group.name === keyName) return elementRef.layer.name;
             return utlis.getElementName(elementRef.layer.group, keyName);
         }
         if (elementRef.group && elementRef.group.name === keyName) {
@@ -226,5 +257,82 @@ export class utlis {
             }
         });
     }
-}
 
+    public static getAllLayersAtLevel(arrayLayers, level) {
+        const levelArray = arrayLayers;
+        const cumLevelArray = [];
+        levelArray.forEach(item => {
+            cumLevelArray.push([item]);
+        });
+        return utlis.getLayersAtLevel(cumLevelArray, level);
+    }
+
+    private static getLayersAtLevel(cumLevelArray, level) {
+        if(level <= -1) {
+            return cumLevelArray;
+        }
+        const allLayers = [];
+        cumLevelArray.forEach(item => {
+            const layerArray = [];
+            item.forEach(itemSub => {
+                itemSub.layers && itemSub.layers.forEach(layer => {
+                    layerArray.push(layer);
+                })
+            });
+            allLayers.push(layerArray);
+        });
+        return utlis.getLayersAtLevel(allLayers, --level);
+    }
+
+    public static getNextAvailableIndex(queryObject, index) {
+        if(!queryObject.hasOwnProperty(index)) {
+            return index;
+        }
+        return utlis.getNextAvailableIndex(queryObject, ++index);
+    }
+
+    public static addKeyToObject(queryObj, key) {
+        if(!queryObj.hasOwnProperty(key)) {
+            queryObj[key] = {};
+        }
+    }
+
+    public static containAll(array1, array2) {
+        const delocalisedLayers = [];
+        const compareMap2 = new Map();
+        const arrayLength2 = array2.length;
+        for(let i=0;i<arrayLength2;i++) {
+            if(!compareMap2.get(array2[i])) {
+                compareMap2.set(array2[i], 1);
+            } else {
+                let value = compareMap2.get(array2[i]);
+                compareMap2.set(array2[i], ++value);
+            }
+        }
+        const arrayLength1 = array1.length;
+        for(let i=0;i<arrayLength1;i++) {
+            if(!compareMap2.get(array1[i])) {
+                delocalisedLayers.push(array1[i]);
+            }
+        }
+        if(delocalisedLayers.length) {
+            return {
+                isTrue: false,
+                delocalisedLayers: delocalisedLayers
+            }
+        }
+        return {
+            isTrue: true
+        }
+    }
+
+    public static isLayerExists(layerRef, idKey) {
+        const layerRefLayers = layerRef.layer.layers;
+        for(let item of layerRefLayers) {
+            if(item.id !== idKey) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

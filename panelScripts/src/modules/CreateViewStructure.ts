@@ -1,9 +1,10 @@
-import {IFactory, IJsxParam, IParams, IViewStructure} from "../interfaces/IJsxParam";
+import {IFactory, IParams, IViewStructure} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
-import {CreatePlatform, CreateView} from "./CreateViewClasses";
 import {PhotoshopModel} from "../models/PhotoshopModels/PhotoshopModel";
 import * as layerClass from "../../lib/dom/layer";
 import {PhotoshopFactory} from "./PhotoshopFactory";
+import {photoshopConstants as pc} from "../constants";
+
 let packageJson = require("../../package.json");
 
 export class CreateViewStructure implements IFactory {
@@ -69,7 +70,7 @@ export class CreateViewStructure implements IFactory {
     }
 
     private emitValidCalls(menuName) {
-        if(menuName != "AddGenericView") {
+        if(menuName != pc.views.genericView) {
             this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
         }
     }

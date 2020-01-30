@@ -4,6 +4,9 @@ import * as path from "path";
 import {ModelFactory} from "../../models/ModelFactory";
 import {execute, inject} from "../FactoryClass";
 import {CreateLayoutStructure} from "./CreateLayoutStructure";
+import {photoshopConstants as pc} from "../../constants";
+import {PhotoshopModelApp} from "../../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
+
 let packageJson = require("../../../package.json");
 
 export class CreateProxyLayout implements IFactory {
@@ -34,6 +37,7 @@ export class CreateProxyLayout implements IFactory {
         await this.modifyParentNames();
         this.checkSymbols();
         this.checkImageFolder();
+        await this.checkLocalisationStruct();
         this.checkIsLayoutSuccessful();
     }
 
@@ -95,6 +99,10 @@ export class CreateProxyLayout implements IFactory {
         if(!~this.nameCache.indexOf(layerName)) {
             this.nameCache.push(layerName);
         } else {
+            const layerRef = this.activeDocument.layers.findLayer(key);
+            if(utlis.getElementName(layerRef, pc.languages)) {
+                return;
+            }
             this.logError(key, layerName, `Error in name of ${layerName} with id ${key}`);
             await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addErrorPath.jsx"), {id: key});
         }
@@ -106,7 +114,7 @@ export class CreateProxyLayout implements IFactory {
 
     private inspectSymbols(viewLayer) {
         for(let item of viewLayer.layers) {
-            if(item.name === "Symbols" && item.layers) {
+            if(item.name === pc.generatorButtons.symbols && item.layers) {
                 item.layers.forEach(itemS => {
                     this.checkIfStaticEmpty(itemS);
                 });
@@ -117,7 +125,7 @@ export class CreateProxyLayout implements IFactory {
     private checkIfStaticEmpty(item) {
         if(item.type === "layerSection") {
             item.layers.forEach(itemS => {
-                if(itemS.name === "Static") {
+                if(itemS.name === pc.static) {
                     if (!itemS.layers) {
                         this.logError(itemS.id, itemS.name, `Symbol with name ${item.name} has empty Static folder`);
                     } else {
@@ -141,7 +149,108 @@ export class CreateProxyLayout implements IFactory {
         return this.imageState.state;
     }
 
+    private async checkLocalisationStruct() {
+        const localisationStruct = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).docLocalisationStruct;
+        if(!localisationStruct) {
+            return;
+        }
+        const langIds = localisationStruct && Object.keys(localisationStruct);
+        for(let id of langIds) {
+            const idRef = this.activeDocument.layers.findLayer(Number(id));
+            await this.createLocalisationResponse(idRef);
+        }
+    }
+
+    private async createLocalisationResponse(idRef) {
+        const platformId = idRef.layer.group.id;
+        const wholeHierarchyStruct = [];
+        this.getHierarchyStructure(idRef.layer.layers, [], wholeHierarchyStruct);
+        await this.sendLocalisationResponse(platformId, idRef.layer.id, wholeHierarchyStruct);
+    }
+
+    private getHierarchyStructure(idLayers, hierarchyStruct, wholeHierarchy) {
+        let hierarchyClone = [];
+        for(let item of idLayers) {
+            if(item.layers) {
+                hierarchyClone = [...hierarchyStruct];
+                hierarchyClone.push(item.id);
+                if(!item.layers.length) {
+                    hierarchyClone.push(100000);
+                    hierarchyClone.push(true);
+                    break;
+                }
+                this.getHierarchyStructure(item.layers, hierarchyClone, wholeHierarchy);
+            } else {
+                hierarchyClone.push(item.id);
+                hierarchyClone.push(true);
+            }
+        }
+        if(~hierarchyClone.indexOf(true)) {
+            hierarchyClone = [...hierarchyStruct, ...hierarchyClone];
+            if(!~hierarchyClone.indexOf(100000)) {
+                hierarchyClone.push(100000);
+                hierarchyClone.push(true);
+            }
+            wholeHierarchy.push(hierarchyClone);
+        }
+    }
+
+    private async sendLocalisationResponse(platfromId, langId, wholeHierarchyStruct) {
+        for(let hierarchyStruct of wholeHierarchyStruct) {
+            const hierarchyArray = [platfromId, langId, ...hierarchyStruct];
+            const trueIndex = hierarchyArray.indexOf(true);
+            const responseObj = {};
+            this.createObjectResponse(hierarchyArray, 0, trueIndex-2, responseObj);
+            const response = [];
+            response.push(responseObj);
+            const isTrue = await this.sendResponse(response);
+            if(!isTrue) {
+                return;
+            }
+        }
+    }
+
+    private createObjectResponse(hierarchyArray, index, finalIndex, response) {
+        response = response || {};
+        if (index <= finalIndex) {
+            response["id"] = hierarchyArray[index];
+            response["layers"] = [];
+            response["layers"][0] = {};
+            if(index === finalIndex) {
+                this.createObjectResponse(hierarchyArray, ++index, finalIndex, response["layers"]);
+            } else {
+                this.createObjectResponse(hierarchyArray, ++index, finalIndex, response["layers"][0]);
+            }
+        } else {
+            let k=0;
+            for(let i=index;i<hierarchyArray.length-1;i=i+2) {
+                response[k] = {id: hierarchyArray[i]};
+                k++;
+            }
+        }
+    }
+
+    private sendResponse(response) {
+        return new Promise(resolve => {
+            this.docEmitter.once(pc.emitter.layersLocalised, localisedLayers => {
+                localisedLayers.toBeLocalised.forEach(id => {
+                    this.logError(id, "local", "Need to localise the layer to continue");
+                });
+                localisedLayers.notToBeLocalised.forEach(id => {
+                    this.removeError(id);
+                });
+                if(localisedLayers.toBeLocalised.length) {
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
+            });
+            this.docEmitter.emit(pc.emitter.layersMovedMock, response);
+        })
+    }
+
     private checkIsLayoutSuccessful() {
+
         if(!this.errorData.length) {
             this.initializeLayout();
         }
@@ -165,7 +274,7 @@ export class CreateProxyLayout implements IFactory {
     private logError(id, name, errorType) {
         if(!utlis.isIDExists(id, this.errorData)) {
             this.errorData.push({id: id, name: name});
-            this.docEmitter.emit("logError", id, name, errorType);
+            this.docEmitter.emit(pc.logger.logError, id, name, errorType);
         }
     }
 
@@ -174,7 +283,7 @@ export class CreateProxyLayout implements IFactory {
         utlis.spliceFrom(id, this.errorData);
         const afterLength = this.errorData.length;
         if (beforeLength > afterLength) {
-            this.docEmitter.emit("removeError", id);
+            this.docEmitter.emit(pc.logger.removeError, id);
         }
     }
 

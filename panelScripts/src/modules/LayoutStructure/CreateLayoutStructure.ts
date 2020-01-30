@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {utlis} from "../../utils/utils";
 import {ModelFactory} from "../../models/ModelFactory";
+import {photoshopConstants as pc} from "../../constants";
 
 let packageJson = require("../../../package.json");
 
@@ -47,13 +48,13 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private emitStartStatus() {
-        this.docEmitter.emit("logStatus", "Started generating layout");
+        this.docEmitter.emit(pc.logger.logStatus, "Started generating layout");
     }
 
     private async restructureTempLayers() {
-        await this.restructure("Symbols");
-        await this.restructure("WinFrames");
-        await this.restructure("Paylines");
+        await this.restructure(pc.generatorButtons.symbols);
+        await this.restructure(pc.generatorButtons.winFrames);
+        await this.restructure(pc.generatorButtons.paylines);
     }
 
     private async restructure(layerName) {
@@ -65,7 +66,7 @@ export class CreateLayoutStructure implements IFactory {
         });
         for (let item of items) {
             const structRef = this._activeDocument.layers.findLayer(item.id);
-            if(structRef.layer.group.name === "BaseGame") {
+            if(structRef.layer.group.name === pc.views.baseGame) {
                 return;
             }
             if(structRef.layer.layers) {
@@ -73,7 +74,7 @@ export class CreateLayoutStructure implements IFactory {
                 for(let i=0;i<structRefNestedLayers;i++) {
                     await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addSpecialPath.jsx"),
                         {id: structRef.layer.layers[i].layers[0].id, parentName: layerName,
-                            subLayerName: structRef.layer.layers[i].name});
+                    subLayerName: structRef.layer.layers[i].name});
                 }
             }
         }
@@ -163,7 +164,7 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private removeFiles(targetPath) {
-        const path = targetPath + "/common";
+        const path = targetPath + "/" + pc.common;
         if(!fs.existsSync(path)) {
             return;
         }
@@ -176,15 +177,15 @@ export class CreateLayoutStructure implements IFactory {
 
     private modifyJSON(resultLayers) {
         resultLayers.forEach(item => {
-            if (item.name === "freeGame") {
+            if (item.name === pc.views.freeGame) {
                 const freeGameLayers = item.layers;
                 const symbolRef = freeGameLayers.find(itemFG => {
-                    if (itemFG.name === "Symbols") {
+                    if (itemFG.name === pc.generatorButtons.symbols) {
                         return true;
                     }
                 });
                 if (symbolRef) {
-                    symbolRef.name += "FG";
+                    symbolRef.name += pc.fg;
                 }
             } else if (item.layers) {
                 this.modifyJSON(item.layers);
@@ -194,15 +195,15 @@ export class CreateLayoutStructure implements IFactory {
 
     private modifyBottomBar(resultLayers) {
         resultLayers.forEach(item => {
-            if (item.name === "baseGame") {
+            if (item.name === pc.views.baseGame) {
                 const freeGameLayers = item.layers;
                 const symbolRef = freeGameLayers.find(itemFG => {
-                    if (itemFG.name === "buttonsContainerBG") {
+                    if (itemFG.name === pc.buttonsContainerBg) {
                         return true;
                     }
                 });
                 if (symbolRef) {
-                    symbolRef.name = "buttonsContainer";
+                    symbolRef.name = pc.buttonsContainer;
                 }
             } else if (item.layers) {
                 this.modifyBottomBar(item.layers);
@@ -212,7 +213,7 @@ export class CreateLayoutStructure implements IFactory {
 
     private removeDuplicates(layers) {
         for(let item of layers) {
-            if(item.name === "common") {
+            if(item.name === pc.common) {
                 this.handleCommonLayers(item);
                 break;
             }
@@ -225,7 +226,7 @@ export class CreateLayoutStructure implements IFactory {
     private handleCommonLayers(item) {
         const commonLayers = item.layers;
         commonLayers && commonLayers.forEach(view => {
-            this.handleViewDuplicates(view.layers, null);
+             view.layers && this.handleViewDuplicates(view.layers, null);
         });
     }
 
@@ -268,7 +269,7 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private emitStopStatus() {
-        this.docEmitter.emit("logStatus", "Layout Generation done");
+        this.docEmitter.emit(pc.logger.logStatus, "Layout Generation done");
     }
 
 }

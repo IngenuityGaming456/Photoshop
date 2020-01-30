@@ -1,5 +1,6 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
+import {photoshopConstants as pc} from "../constants";
 
 export class DocumentLogger implements IFactory {
     private generator;
@@ -13,28 +14,28 @@ export class DocumentLogger implements IFactory {
     }
 
     private subscribeListener() {
-        this.loggerEmitter.on("logWarning", loggerType => {
+        this.loggerEmitter.on(pc.logger.logWarning, loggerType => {
             this.handleDocumentWarning(loggerType);
         });
-        this.loggerEmitter.on("getUpdatedValidatorSocket", socket => {
+        this.loggerEmitter.on(pc.logger.getUpdatedValidatorSocket, socket => {
             this.onSocketUpdate(socket);
-            this.loggerEmitter.emit("validatorSocketUpdated");
+            this.loggerEmitter.emit(pc.logger.validatorSocketUpdated);
         });
-        this.loggerEmitter.on("logError", (id, key, loggerType) => {
+        this.loggerEmitter.on(pc.logger.logError, (id, key, loggerType) => {
             this.handleDocumentError(id, key, loggerType);
         });
-        this.loggerEmitter.on("logStatus", message => {
+        this.loggerEmitter.on(pc.logger.logStatus, message => {
             this.onStatusMessage(message);
         });
-        this.loggerEmitter.on("removeError", id => {
+        this.loggerEmitter.on(pc.logger.removeError, id => {
             this.handleErrorRemoval(id);
         });
-        this.loggerEmitter.on("activeDocument", docId => {
+        this.loggerEmitter.on(pc.logger.activeDocument, docId => {
             this.onActiveDoc(docId);
         });
-        this.loggerEmitter.on("destroy", () => this.onDestroy());
-        this.loggerEmitter.on("newDocument", () => this.onNewDocument());
-        this.loggerEmitter.on("currentDocument", () => this.onCurrentDocument());
+        this.loggerEmitter.on(pc.logger.destroy, () => this.onDestroy());
+        this.loggerEmitter.on(pc.logger.newDocument, () => this.onNewDocument());
+        this.loggerEmitter.on(pc.logger.currentDocument, () => this.onCurrentDocument());
     }
 
     private onSocketUpdate(socket) {
@@ -42,11 +43,11 @@ export class DocumentLogger implements IFactory {
     }
 
     private onActiveDoc(docId) {
-        this.socket.emit("activeDocument", docId);
+        this.socket.emit(pc.logger.activeDocument, docId);
     }
 
     private handleDocumentWarning(loggerType) {
-        this.socket.emit("logWarning", loggerType);
+        this.socket.emit(pc.logger.logWarning, loggerType);
         this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
             panelName: "Warning",
             text: loggerType
@@ -54,7 +55,7 @@ export class DocumentLogger implements IFactory {
 }
 
     private handleDocumentError(id, key, loggerType) {
-        this.socket.emit("logError", id, key, loggerType);
+        this.socket.emit(pc.logger.logError, id, key, loggerType);
         this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowInterruptionPanel.jsx"), {
             panelName: "Error",
             text: loggerType
@@ -62,23 +63,23 @@ export class DocumentLogger implements IFactory {
     }
 
     private onStatusMessage(message) {
-        this.socket.emit("logStatus", message);
+        this.socket.emit(pc.logger.logStatus, message);
     }
 
     private handleErrorRemoval(id) {
-        this.socket.emit("removeError", id);
+        this.socket.emit(pc.logger.removeError, id);
     }
 
     private onDestroy() {
-        this.socket.emit("destroy");
+        this.socket.emit(pc.logger.destroy);
     }
 
     private onCurrentDocument() {
-        this.socket.emit("enablePage");
+        this.socket.emit(pc.socket.enablePage);
     }
 
     private onNewDocument() {
-        this.socket.emit("disablePage");
+        this.socket.emit(pc.socket.disablePage);
     }
 
 }

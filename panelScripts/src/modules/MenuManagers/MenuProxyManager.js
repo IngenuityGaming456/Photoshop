@@ -45,25 +45,12 @@ var __values = (this && this.__values) || function (o) {
     };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var FactoryClass_1 = require("../FactoryClass");
-var MenuManager_1 = require("./MenuManager");
-var NoPlatformState_1 = require("../../states/photoshopMenuStates/NoPlatformState");
-var AddedPlatformState_1 = require("../../states/photoshopMenuStates/AddedPlatformState");
-var AddedViewState_1 = require("../../states/photoshopMenuStates/AddedViewState");
-var DeletedViewsState_1 = require("../../states/photoshopMenuStates/DeletedViewsState");
-var ModelFactory_1 = require("../../models/ModelFactory");
-var DeletedPlatformState_1 = require("../../states/photoshopMenuStates/DeletedPlatformState");
+var constants_1 = require("../../constants");
 var menuLabels = require("../../res/menuLables");
 var MenuProxyManager = /** @class */ (function () {
     function MenuProxyManager(modelFactory) {
-        this.viewDeletion = {};
-        this.platformArray = [];
         this.menuStates = [];
         this.modelFactory = modelFactory;
-        this.menuManager = FactoryClass_1.inject({
-            ref: MenuManager_1.MenuManager, dep: [ModelFactory_1.ModelFactory, NoPlatformState_1.NoPlatformState,
-                AddedPlatformState_1.AddedPlatformState, AddedViewState_1.AddedViewState, DeletedViewsState_1.DeletedViewState, DeletedPlatformState_1.DeletedPlatformState]
-        });
     }
     MenuProxyManager.prototype.execute = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -72,15 +59,11 @@ var MenuProxyManager = /** @class */ (function () {
                     case 0:
                         this.generator = params.generator;
                         this.docEmitter = params.docEmitter;
-                        this.platformArray = this.modelFactory.getPhotoshopModel().allQuestPlatforms;
-                        this.viewDeletion = this.modelFactory.getPhotoshopModel().viewDeletion;
-                        this.platformDeletion = this.modelFactory.getPhotoshopModel().allPlatformDeletion;
                         this.menuStates = this.modelFactory.getPhotoshopModel().allMenuStates;
                         this.subscribeListeners();
                         return [4 /*yield*/, this.addMenuItems()];
                     case 1:
                         _a.sent();
-                        FactoryClass_1.execute(this.menuManager, { generator: this.generator });
                         return [2 /*return*/];
                 }
             });
@@ -88,14 +71,8 @@ var MenuProxyManager = /** @class */ (function () {
     };
     MenuProxyManager.prototype.subscribeListeners = function () {
         var _this = this;
-        this.docEmitter.on("validEntryStruct", function (currentMenuName, currentPlatform) {
-            _this.filterAllIncomingResults(currentMenuName, currentPlatform);
-        });
-        this.generator.on("layersDeleted", function (deletedLayers) {
-            _this.onLayersDeletion(deletedLayers);
-        });
-        this.docEmitter.on("currentDocument", function () { return _this.enableAllMenuItems(); });
-        this.docEmitter.on("newDocument", function () { return _this.disableAllMenuItems(); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.currentDocument, function () { return _this.enableAllMenuItems(); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.disableAllMenuItems(); });
     };
     MenuProxyManager.prototype.addMenuItems = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -153,157 +130,6 @@ var MenuProxyManager = /** @class */ (function () {
                 }
             });
         });
-    };
-    MenuProxyManager.prototype.filterAllIncomingResults = function (currentMenuName, currentPlatform) {
-        if (!currentPlatform) {
-            this.handlePlatformAddition(currentMenuName);
-        }
-        else {
-            this.handleViewAddition(currentMenuName, currentPlatform);
-        }
-    };
-    MenuProxyManager.prototype.handlePlatformAddition = function (currentMenuName) {
-        var _this = this;
-        var platformMap = this.modelFactory.getMappingModel().getPlatformMap();
-        var platformObj = platformMap.get(currentMenuName);
-        Object.keys(Object.values(platformObj)[0]).forEach(function (key) {
-            _this.platformDeletion[key] = false;
-        });
-        this.menuManager.onPlatformAddition(currentMenuName);
-    };
-    MenuProxyManager.prototype.handleViewAddition = function (currentMenuName, currentPlatform) {
-        this.viewDeletion[currentPlatform][currentMenuName] = false;
-        var count = 0;
-        for (var key in this.viewDeletion) {
-            if (this.viewDeletion[key][currentMenuName] === false) {
-                count++;
-            }
-        }
-        if (count === 3) {
-            this.menuManager.onViewAddition(currentMenuName);
-        }
-    };
-    MenuProxyManager.prototype.onLayersDeletion = function (eventLayers) {
-        var viewElementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
-        var callback = this.getCallback(eventLayers);
-        try {
-            this.handlePlatformDeletion(eventLayers, viewElementalMap, callback)
-                .handleViewDeletion(eventLayers, viewElementalMap, callback);
-        }
-        catch (err) {
-            console.log("Platform Deletion Detected");
-        }
-    };
-    MenuProxyManager.prototype.getCallback = function (eventLayers) {
-        if (this.responseIsArrayOfArrays(eventLayers)) {
-            return this.handleArrayResponse;
-        }
-        return this.handleNormalResponse;
-    };
-    MenuProxyManager.prototype.responseIsArrayOfArrays = function (eventLayers) {
-        for (var item in eventLayers) {
-            if (eventLayers[item] instanceof Array) {
-                return true;
-            }
-        }
-    };
-    MenuProxyManager.prototype.handleArrayResponse = function (baseId, eventLayers) {
-        var _this = this;
-        return eventLayers.some(function (item) {
-            if (item instanceof Array) {
-                return _this.handleArrayResponse(baseId, item);
-            }
-            else {
-                return _this.handleNormalResponse(baseId, item);
-            }
-        });
-    };
-    MenuProxyManager.prototype.handleNormalResponse = function (baseId, eventLayers) {
-        return eventLayers.some(function (item) {
-            if (item.id === baseId) {
-                return true;
-            }
-        });
-    };
-    MenuProxyManager.prototype.handlePlatformDeletion = function (eventLayers, viewElementalMap, callback) {
-        var _this = this;
-        this.platformArray.forEach(function (platformKey) {
-            var platformId = viewElementalMap[platformKey]["base"];
-            if (platformId) {
-                if (callback(platformId, eventLayers)) {
-                    _this.platformDeletion[platformKey] = true;
-                }
-            }
-        });
-        var allTrue = this.platformDeletion["desktop"] &&
-            this.platformDeletion["portrait"] &&
-            this.platformDeletion["landscape"];
-        if (allTrue) {
-            this.menuManager.onAllPlatformsDeletion();
-            throw new Error("No need to check for view deletion");
-        }
-        if (this.platformDeletion["portrait"] && this.platformDeletion["landscape"]) {
-            this.menuManager.onPlatformDeletion("MobileView");
-            throw new Error("No need to check for view deletion");
-        }
-        if (this.platformDeletion["desktop"]) {
-            this.menuManager.onPlatformDeletion("DesktopView");
-            throw new Error("No need to check for view deletion");
-        }
-        return this;
-    };
-    MenuProxyManager.prototype.handleViewDeletion = function (eventLayers, viewElementalMap, callback) {
-        var _this = this;
-        Object.keys(viewElementalMap).forEach(function (platformKey) {
-            var viewMap = _this.modelFactory.getMappingModel().getViewPlatformMap(platformKey);
-            if (viewMap) {
-                viewMap.forEach(function (value, key) {
-                    _this.checkElementKey(key, Object.keys(value), platformKey, eventLayers, callback, viewElementalMap);
-                });
-            }
-        });
-        this.checkViewDeletion();
-    };
-    MenuProxyManager.prototype.checkElementKey = function (viewKey, valueArray, platformKey, eventLayers, callback, viewElementalMap) {
-        if (this.viewDeletion[platformKey][viewKey]) {
-            return;
-        }
-        try {
-            for (var valueArray_1 = __values(valueArray), valueArray_1_1 = valueArray_1.next(); !valueArray_1_1.done; valueArray_1_1 = valueArray_1.next()) {
-                var value = valueArray_1_1.value;
-                var valueObj = viewElementalMap[platformKey][value]["base"];
-                if (!valueObj || !callback(valueObj.id, eventLayers)) {
-                    return;
-                }
-            }
-        }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
-        finally {
-            try {
-                if (valueArray_1_1 && !valueArray_1_1.done && (_a = valueArray_1.return)) _a.call(valueArray_1);
-            }
-            finally { if (e_2) throw e_2.error; }
-        }
-        this.viewDeletion[platformKey][viewKey] = true;
-        var e_2, _a;
-    };
-    MenuProxyManager.prototype.checkViewDeletion = function () {
-        for (var menu in menuLabels) {
-            if (!menuLabels.hasOwnProperty(menu)) {
-                continue;
-            }
-            if (menuLabels[menu].menuGroup === "Menu_View") {
-                this.checkViewForDeletion(menuLabels[menu].label);
-            }
-        }
-    };
-    MenuProxyManager.prototype.checkViewForDeletion = function (menuName) {
-        for (var key in this.viewDeletion) {
-            if (this.viewDeletion[key][menuName]) {
-                this.menuManager.onViewDeletion(menuName);
-                return;
-            }
-        }
     };
     MenuProxyManager.prototype.enableAllMenuItems = function () {
         return __awaiter(this, void 0, void 0, function () {

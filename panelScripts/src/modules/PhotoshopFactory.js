@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
 var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
+var constants_1 = require("../constants");
 var packageJson = require("../../package.json");
 var PhotoshopFactory = /** @class */ (function () {
     function PhotoshopFactory(modelFactory) {
@@ -157,7 +158,7 @@ var PhotoshopFactory = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin("view", insertionPoint, this._pluginId)];
+                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.view, insertionPoint, this._pluginId)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -245,7 +246,7 @@ var PhotoshopFactory = /** @class */ (function () {
                 }
             });
             if (mappedLayer) {
-                jsxParams["mappedItem"] = mappedLayer;
+                jsxParams[constants_1.photoshopConstants.mappedItem] = mappedLayer;
                 return;
             }
         }

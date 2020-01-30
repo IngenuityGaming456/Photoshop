@@ -68,6 +68,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
 var utils_1 = require("../../utils/utils");
+var constants_1 = require("../../constants");
 var packageJson = require("../../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
     function CreateLayoutStructure(modelFactory) {
@@ -118,19 +119,19 @@ var CreateLayoutStructure = /** @class */ (function () {
         });
     };
     CreateLayoutStructure.prototype.emitStartStatus = function () {
-        this.docEmitter.emit("logStatus", "Started generating layout");
+        this.docEmitter.emit(constants_1.photoshopConstants.logger.logStatus, "Started generating layout");
     };
     CreateLayoutStructure.prototype.restructureTempLayers = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.restructure("Symbols")];
+                    case 0: return [4 /*yield*/, this.restructure(constants_1.photoshopConstants.generatorButtons.symbols)];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.restructure("WinFrames")];
+                        return [4 /*yield*/, this.restructure(constants_1.photoshopConstants.generatorButtons.winFrames)];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.restructure("Paylines")];
+                        return [4 /*yield*/, this.restructure(constants_1.photoshopConstants.generatorButtons.paylines)];
                     case 3:
                         _a.sent();
                         return [2 /*return*/];
@@ -159,7 +160,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                         if (!!items_1_1.done) return [3 /*break*/, 7];
                         item = items_1_1.value;
                         structRef = this._activeDocument.layers.findLayer(item.id);
-                        if (structRef.layer.group.name === "BaseGame") {
+                        if (structRef.layer.group.name === constants_1.photoshopConstants.views.baseGame) {
                             return [2 /*return*/];
                         }
                         if (!structRef.layer.layers) return [3 /*break*/, 6];
@@ -334,7 +335,7 @@ var CreateLayoutStructure = /** @class */ (function () {
         });
     };
     CreateLayoutStructure.prototype.removeFiles = function (targetPath) {
-        var path = targetPath + "/common";
+        var path = targetPath + "/" + constants_1.photoshopConstants.common;
         if (!fs.existsSync(path)) {
             return;
         }
@@ -347,15 +348,15 @@ var CreateLayoutStructure = /** @class */ (function () {
     CreateLayoutStructure.prototype.modifyJSON = function (resultLayers) {
         var _this = this;
         resultLayers.forEach(function (item) {
-            if (item.name === "freeGame") {
+            if (item.name === constants_1.photoshopConstants.views.freeGame) {
                 var freeGameLayers = item.layers;
                 var symbolRef = freeGameLayers.find(function (itemFG) {
-                    if (itemFG.name === "Symbols") {
+                    if (itemFG.name === constants_1.photoshopConstants.generatorButtons.symbols) {
                         return true;
                     }
                 });
                 if (symbolRef) {
-                    symbolRef.name += "FG";
+                    symbolRef.name += constants_1.photoshopConstants.fg;
                 }
             }
             else if (item.layers) {
@@ -366,15 +367,15 @@ var CreateLayoutStructure = /** @class */ (function () {
     CreateLayoutStructure.prototype.modifyBottomBar = function (resultLayers) {
         var _this = this;
         resultLayers.forEach(function (item) {
-            if (item.name === "baseGame") {
+            if (item.name === constants_1.photoshopConstants.views.baseGame) {
                 var freeGameLayers = item.layers;
                 var symbolRef = freeGameLayers.find(function (itemFG) {
-                    if (itemFG.name === "buttonsContainerBG") {
+                    if (itemFG.name === constants_1.photoshopConstants.buttonsContainerBg) {
                         return true;
                     }
                 });
                 if (symbolRef) {
-                    symbolRef.name = "buttonsContainer";
+                    symbolRef.name = constants_1.photoshopConstants.buttonsContainer;
                 }
             }
             else if (item.layers) {
@@ -386,7 +387,7 @@ var CreateLayoutStructure = /** @class */ (function () {
         try {
             for (var layers_1 = __values(layers), layers_1_1 = layers_1.next(); !layers_1_1.done; layers_1_1 = layers_1.next()) {
                 var item = layers_1_1.value;
-                if (item.name === "common") {
+                if (item.name === constants_1.photoshopConstants.common) {
                     this.handleCommonLayers(item);
                     break;
                 }
@@ -408,7 +409,7 @@ var CreateLayoutStructure = /** @class */ (function () {
         var _this = this;
         var commonLayers = item.layers;
         commonLayers && commonLayers.forEach(function (view) {
-            _this.handleViewDuplicates(view.layers, null);
+            view.layers && _this.handleViewDuplicates(view.layers, null);
         });
     };
     CreateLayoutStructure.prototype.handleViewDuplicates = function (viewLayers, uiMap) {
@@ -452,7 +453,7 @@ var CreateLayoutStructure = /** @class */ (function () {
         }
     };
     CreateLayoutStructure.prototype.emitStopStatus = function () {
-        this.docEmitter.emit("logStatus", "Layout Generation done");
+        this.docEmitter.emit(constants_1.photoshopConstants.logger.logStatus, "Layout Generation done");
     };
     return CreateLayoutStructure;
 }());

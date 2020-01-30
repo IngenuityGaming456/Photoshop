@@ -5,12 +5,14 @@ import {utlis} from "../../utils/utils";
 import {NoDataPhotoshopModel} from "./NoDataPhotoshopModel";
 import {execute} from "../../modules/FactoryClass";
 let menuLabels = require("../../res/menuLables");
+import {photoshopConstants as pc} from "../../constants";
 
 export class PhotoshopModel implements IModel {
 
     protected generator;
+    protected subPhotoshopModel;
     private activeDocument;
-    private writeData = {};
+    protected writeData = {};
     private questItems = [];
     private drawnQuestItems = [];
     private viewObjStorage = [];
@@ -21,8 +23,7 @@ export class PhotoshopModel implements IModel {
     private containerResponse;
     private questViews = [];
     private mappedPlatform = {};
-    private questPlatforms = ["desktop", "portrait", "landscape"];
-    private subPhotoshopModel;
+    private questPlatforms = [pc.platforms.desktop, pc.platforms.portrait, pc.platforms.landscape];
     private layersErrorData = [];
     private viewDeletionObj;
     private platformDeletion;
@@ -44,14 +45,14 @@ export class PhotoshopModel implements IModel {
     }
 
     protected subscribeListeners() {
-        this.generator.onPhotoshopEvent("generatorMenuChanged", (event) => this.onButtonMenuClicked(event));
+        this.generator.onPhotoshopEvent(pc.photoshopEvents.generatorMenuChanged, (event) => this.onButtonMenuClicked(event));
     }
 
     private fireEvents() {
-        this.docEmitter.emit("observerAdd", this);
+        this.docEmitter.emit(pc.emitter.observerAdd, this);
     }
 
-    private handleData() {
+    protected handleData() {
         this.executeSubModels();
         this.elementalMap = this.createElementData();
         this.mappedPlatform = this.createPlatformMapping();
@@ -114,8 +115,6 @@ export class PhotoshopModel implements IModel {
         this.prevContainerResponse = this.previousContainer;
         this.containerResponse = socketStorage;
         this.previousContainer = this.containerResponse;
-        console.log(this.prevContainerResponse);
-        console.log(this.prevContainerResponse === this.previousContainer);
     }
 
     private createStorage() {
@@ -161,10 +160,10 @@ export class PhotoshopModel implements IModel {
 
     private constructViewMapping(itemV, index) {
         const nestedViewMap = {};
-        if (itemV === "FreeGame") {
+        if (itemV === pc.views.freeGame) {
             return {
                 mapping: {
-                    [this.questPlatforms[index]]: "BaseGame"
+                    [this.questPlatforms[index]]: pc.views.baseGame
                 }
             }
         }
@@ -262,6 +261,12 @@ export class PhotoshopModel implements IModel {
     }
 
     public onPhotoshopClose() {
+        this.getWriteData();
+        this.generator.emit(pc.generator.writeData, this.writeData, true);
+    }
+
+    protected getWriteData() {
+        this.containerResponse = this.containerResponse || this.previousContainer;
         this.writeData = {
             elementalMap: this.elementalMap,
             clickedMenus: this.clickedMenus,
@@ -272,7 +277,6 @@ export class PhotoshopModel implements IModel {
             menuCurrentState: this.currentState,
             drawnQuestItems: this.drawnQuestItems
         };
-        this.generator.emit("writeData", this.writeData, true);
     }
 
     private getMenuStates() {

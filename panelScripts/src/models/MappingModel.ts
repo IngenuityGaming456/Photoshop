@@ -1,5 +1,6 @@
 import {IFactory, IModel, IParams} from "../interfaces/IJsxParam";
 import {utlis} from "../utils/utils";
+import {photoshopConstants as pc} from "../constants";
 
 export class MappingModel implements IModel {
     deps?: IFactory[];
@@ -33,36 +34,36 @@ export class MappingModel implements IModel {
     }
 
     private fireEvents() {
-        this.docEmitter.emit("observerAdd", this);
+        this.docEmitter.emit(pc.emitter.observerAdd, this);
     }
 
     public handleSocketStorage(socketStorage) {
         this.makeViewMap(socketStorage);
-        this.docEmitter.emit("HandleSocketResponse");
+        this.docEmitter.emit(pc.emitter.handleSocketResponse);
     }
 
     private makeViewMap(responseObj) {
-        this.desktopViewMap = this.makeSubViewMap(responseObj["desktop"]);
-        this.landscapeViewMap = this.makeSubViewMap(responseObj["landscape"]);
-        this.portraitViewMap = this.makeSubViewMap(responseObj["portrait"]);
+        this.desktopViewMap = this.makeSubViewMap(responseObj[pc.platforms.desktop]);
+        this.landscapeViewMap = this.makeSubViewMap(responseObj[pc.platforms.landscape]);
+        this.portraitViewMap = this.makeSubViewMap(responseObj[pc.platforms.portrait]);
     };
 
     private makeSubViewMap(responseObj) {
         const viewMap = new Map();
-        viewMap.set("BaseGame", responseObj["BaseGame"])
-               .set("paytable", responseObj["paytable"])
-               .set("IntroOutro", responseObj["IntroOutro"])
-               .set("FreeGame", responseObj["FreeGame"])
-               .set("backgrounds", responseObj["backgrounds"])
-               .set("backgroundsFg", responseObj["backgroundsFg"])
-               .set("bigWin", responseObj["bigWin"])
-               .set("loader", responseObj["loader"]);
+        viewMap.set(pc.views.baseGame, responseObj[pc.views.baseGame])
+               .set(pc.views.paytable, responseObj[pc.views.paytable])
+               .set(pc.views.introOutro, responseObj[pc.views.introOutro])
+               .set(pc.views.freeGame, responseObj[pc.views.freeGame])
+               .set(pc.views.backgrounds, responseObj[pc.views.backgrounds])
+               .set(pc.views.backgroundsFg, responseObj[pc.views.backgroundsFg])
+               .set(pc.views.bigWin, responseObj[pc.views.bigWin])
+               .set(pc.views.loader, responseObj[pc.views.loader]);
         return viewMap;
     }
 
     private makeGenericViewMap(){
         this.genericViewMap = new Map();
-        this.genericViewMap.set("AddGenericView", {
+        this.genericViewMap.set(pc.views.genericView, {
             generic: {
                 generic: {}
             }});
@@ -72,7 +73,7 @@ export class MappingModel implements IModel {
         this.componentsMap = new Map();
         const menuLabels = this.params.storage.menuLabels;
         Object.keys(menuLabels).forEach(menu => {
-            if (menuLabels[menu].type === "comp") {
+            if (menuLabels[menu].type === pc.menu.components) {
                 this.componentsMap.set(menuLabels[menu].label,
                 {
                     label: menuLabels[menu].displayName,
@@ -88,24 +89,24 @@ export class MappingModel implements IModel {
             portraitPlatform = { portrait: this.params.storage.platformStruct.portrait },
             landscapePlatform = { landscape: this.params.storage.platformStruct.landscape };
         this.platformMap = new Map();
-        this.platformMap.set("desktop", desktopPlatform)
-                        .set("portrait", portraitPlatform)
-                        .set("landscape", landscapePlatform);
+        this.platformMap.set(pc.platforms.desktop, desktopPlatform)
+                        .set(pc.platforms.portrait, portraitPlatform)
+                        .set(pc.platforms.landscape, landscapePlatform);
     }
 
     private makeLayoutMap() {
         this.layoutMap = new Map();
-        this.layoutMap.set("LayoutEnabled", {});
+        this.layoutMap.set(pc.generatorButtons.layoutEnabled, {});
     }
 
     private makeTestingMap() {
         this.testingMap = new Map();
-        this.testingMap.set("Testing", {});
+        this.testingMap.set(pc.generatorButtons.removePath, {});
     }
 
     private makeLocalisationMap() {
         this.localisationMap = new Map();
-        this.localisationMap.set("Localise", {});
+        this.localisationMap.set(pc.generatorButtons.localise, {});
     }
 
     public getComponentsMap() {
@@ -151,7 +152,7 @@ export class MappingModel implements IModel {
             portraitViewMap: utlis.mapToObject(this.portraitViewMap),
             landscapeViewMap: utlis.mapToObject(this.landscapeViewMap),
         };
-        this.generator.emit("writeData", this.writeData);
+        this.generator.emit(pc.generator.writeData, this.writeData);
     }
 
     private handleOpenDocumentData(data) {

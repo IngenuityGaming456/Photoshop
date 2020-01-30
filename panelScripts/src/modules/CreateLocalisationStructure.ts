@@ -4,6 +4,9 @@ import * as layerClass from "../../lib/dom/layer.js"
 import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
+import {photoshopConstants as pc} from "../constants";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
+
 let packageJson = require("../../package.json");
 let languagesStruct = require("../res/languages");
 
@@ -60,7 +63,7 @@ export class CreateLocalisationStructure implements IFactory {
     
     private async getParents(idsArray: Array<string>) {
         if(!idsArray.length) {
-            this.docEmitter.emit("logWarning", "Can't Localise an empty Button");
+            this.docEmitter.emit(pc.logger.logWarning, "Can't Localise an empty Button");
             return;
         }
         const idsMap = new Map();
@@ -104,9 +107,27 @@ export class CreateLocalisationStructure implements IFactory {
             langId: langId,
             recordedResponse: this.recordedResponse
         };
-        this.docEmitter.emit("localisation", idsMapKeys);
+        this.docEmitter.emit(pc.localisation, idsMapKeys);
         const response = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
+        response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
         await this.handleResponse(response);
+    }
+
+    private createLocalisationStruct(mapKeys, mapValues, langId, response) {
+        const localiseStruct = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).docLocalisationStruct || {};
+        utlis.addKeyToObject(localiseStruct, langId);
+        const responseArray = response.split(":");
+        responseArray.forEach(response => {
+            utlis.addKeyToObject(localiseStruct[langId], response.split(",")[0]);
+            const responseId = localiseStruct[langId][response.split(",")[0]];
+                mapKeys.forEach((mapItem, index) => {
+                    const nextAvailableIndex = utlis.getNextAvailableIndex(responseId, index);
+                    responseId[nextAvailableIndex] = {};
+                    responseId[nextAvailableIndex]["localise"] = mapItem;
+                    responseId[nextAvailableIndex]["struct"] = mapValues[index];
+            })
+        });
+        (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).docLocalisationStruct = localiseStruct;
     }
 
     private async handleResponse(response) {
@@ -114,10 +135,10 @@ export class CreateLocalisationStructure implements IFactory {
         for(let item of responseArray) {
             const responseSubArray = item.split(",");
             this.recordedResponse.push(responseSubArray[0]);
-            await this._generator.setLayerSettingsForPlugin("lang", Number(responseSubArray[1]), packageJson.name);
+            await this._generator.setLayerSettingsForPlugin(pc.generatorIds.lang, Number(responseSubArray[1]), packageJson.name);
             const viewCount = responseSubArray.length;
             for(let i=2;i<viewCount;i++) {
-                await this._generator.setLayerSettingsForPlugin("view", Number(responseSubArray[i]), packageJson.name);
+                await this._generator.setLayerSettingsForPlugin(pc.generatorIds.view, Number(responseSubArray[i]), packageJson.name);
             }
         }
     }
@@ -134,7 +155,7 @@ export class CreateLocalisationStructure implements IFactory {
         }
         const parentRef = docLayers.findLayer(parent.id);
         const languagesRef = parentRef.layer.layers.find(item => {
-            if(item.name === "languages") {
+            if(item.name === pc.languages) {
                 return true;
             }
         });
@@ -143,7 +164,7 @@ export class CreateLocalisationStructure implements IFactory {
 
     private safeToLocalise(parent, idsMapValues) {
         if(!parent) {
-            this.docEmitter.emit("logWarning", "Can't Localise a container");
+            this.docEmitter.emit(pc.logger.logWarning, "Can't Localise a container");
             return false;
         }
         const langItem =  idsMapValues[0].find(item => {
@@ -152,7 +173,7 @@ export class CreateLocalisationStructure implements IFactory {
             }
         });
         if(langItem) {
-            this.docEmitter.emit("logWarning", "Can't Localise an already localised layer");
+            this.docEmitter.emit(pc.logger.logWarning, "Can't Localise an already localised layer");
             return false;
         }
         return true;
@@ -162,7 +183,7 @@ export class CreateLocalisationStructure implements IFactory {
         filterArray.forEach(item => {
             let keyIndex;
             item.forEach((key, index) => {
-                if(key.name === "common") {
+                if(key.name === pc.common) {
                     keyIndex = index;
                 }
             });

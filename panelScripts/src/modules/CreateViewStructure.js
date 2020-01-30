@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var constants_1 = require("../constants");
 var packageJson = require("../../package.json");
 var CreateViewStructure = /** @class */ (function () {
     function CreateViewStructure(viewClass, modelFactory, photoshopFactory) {
@@ -100,7 +101,7 @@ var CreateViewStructure = /** @class */ (function () {
         }
     };
     CreateViewStructure.prototype.emitValidCalls = function (menuName) {
-        if (menuName != "AddGenericView") {
+        if (menuName != constants_1.photoshopConstants.views.genericView) {
             this.docEmitter.emit("validEntryStruct", this.currentMenu, this.platform);
         }
     };

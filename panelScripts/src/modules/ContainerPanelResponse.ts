@@ -3,6 +3,7 @@ import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
 import * as layerClass from "../../lib/dom/layer";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
+import {photoshopConstants as pc} from "../constants";
 
 export class ContainerPanelResponse implements IFactory {
     private modelFactory: ModelFactory;
@@ -33,16 +34,16 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private subscribeListeners() {
-        this.generator.on("layersDeleted", (eventLayers) => this.onLayersDeleted(eventLayers));
-        this.docEmitter.on("HandleSocketResponse", () => this.getDataForChanges());
-        this.docEmitter.on("getUpdatedHTMLSocket", socket => this.onSocketUpdate(socket));
-        this.docEmitter.on("destroy", () => this.onDestroy());
-        this.docEmitter.on("newDocument", () => this.onNewDocument());
-        this.docEmitter.on("currentDocument", () => this.onCurrentDocument());
+        this.generator.on(pc.generator.layersDeleted, (eventLayers) => this.onLayersDeleted(eventLayers));
+        this.docEmitter.on(pc.emitter.handleSocketResponse, () => this.getDataForChanges());
+        this.docEmitter.on(pc.logger.getUpdatedHTMLSocket, socket => this.onSocketUpdate(socket));
+        this.docEmitter.on(pc.logger.destroy, () => this.onDestroy());
+        this.docEmitter.on(pc.logger.newDocument, () => this.onNewDocument());
+        this.docEmitter.on(pc.logger.currentDocument, () => this.onCurrentDocument());
     }
 
     private isReady() {
-        this.docEmitter.emit("containerPanelReady");
+        this.docEmitter.emit(pc.logger.containerPanelReady);
     }
 
     private onSocketUpdate(socket) {
@@ -61,7 +62,7 @@ export class ContainerPanelResponse implements IFactory {
                 if(element) {
                     const elementView = utlis.getElementView(element, this.activeDocument.layers);
                     const elementPlatform = utlis.getElementPlatform(element, this.activeDocument.layers);
-                    this.socket.emit("UncheckFromContainerPanel", elementPlatform, elementView, element.name);
+                    this.socket.emit(pc.socket.uncheckFromContainerPanel, elementPlatform, elementView, element.name);
                 }
             }
         });
@@ -123,7 +124,7 @@ export class ContainerPanelResponse implements IFactory {
 
     private getCommonId(platformRef: layerClass.LayerGroup) {
         for(let layer of platformRef.layers) {
-            if(layer.name === "common") {
+            if(layer.name === pc.common) {
                 return layer.id;
             }
         }
@@ -152,8 +153,8 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async sendViewJsonChanges(previousJson, currentJson, key, platform) {
-        const previousBaseChild = previousJson[Object.keys(previousJson)[0]];
-        const currentBaseChild = currentJson[Object.keys(currentJson)[0]];
+        const previousBaseChild = previousJson && previousJson[Object.keys(previousJson)[0]];
+        const currentBaseChild = currentJson && currentJson[Object.keys(currentJson)[0]];
         if(currentBaseChild && currentBaseChild["base"] && previousBaseChild && !previousBaseChild["base"]) {
             this.applyStartingLogs(key);
             await this.makeViews(key, platform);
@@ -181,23 +182,23 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private applyStartingLogs(keys) {
-        this.docEmitter.emit("logStatus", `Started making ${keys}`);
+        this.docEmitter.emit(pc.logger.logStatus, `Started making ${keys}`);
     }
 
     private applyEndingLogs(keys) {
-        this.docEmitter.emit("logStatus", `${keys} done`);
+        this.docEmitter.emit(pc.logger.logStatus, `${keys} done`);
     }
 
     private onDestroy() {
-        this.socket.emit("destroy");
+        this.socket.emit(pc.logger.destroy);
     }
 
     private onNewDocument() {
-        this.socket.emit("disablePage");
+        this.socket.emit(pc.socket.disablePage);
     }
 
     private onCurrentDocument() {
-        this.socket.emit("enablePage");
+        this.socket.emit(pc.socket.enablePage);
     }
 
 }
