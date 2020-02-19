@@ -13,6 +13,7 @@ let languagesStruct = require("../res/languages");
 export class CreateLocalisationStructure implements IFactory {
     private _generator;
     private _activeDocument: Document;
+    private documentManager;
     private docEmitter;
     private recordedResponse = [];
     private modelFactory;
@@ -24,10 +25,16 @@ export class CreateLocalisationStructure implements IFactory {
     public async execute(params: IParams) {
         this._generator = params.generator;
         this._activeDocument = params.activeDocument;
+        this.documentManager = params.storage.documentManager;
         this.docEmitter = params.docEmitter;
+        await this.updateActiveDocument();
         this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
         const idsArray = await this.modifySelectedResponse(await this.findSelectedLayers());
         this.getParents(idsArray);
+    }
+
+    private async updateActiveDocument() {
+        this._activeDocument = await this.documentManager.getDocument(this._activeDocument.id);
     }
 
     private async findSelectedLayers() {
@@ -100,17 +107,49 @@ export class CreateLocalisationStructure implements IFactory {
             return;
         }
         this.filterMapValues(idsMapValues);
+        const localisationStructure = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).docLocalisationStruct;
+        const alreadyLocalised = [];
+        this.getAlreadyLocalisedArray(idsMapKeys, localisationStructure, alreadyLocalised, null);
         const params = {
             languages: languagesStruct.languages,
             ids: idsMapKeys,
             values: idsMapValues,
             langId: langId,
-            recordedResponse: this.recordedResponse
+            recordedResponse: this.recordedResponse,
+            alreadyLocalised: alreadyLocalised
         };
         this.docEmitter.emit(pc.localisation, idsMapKeys);
         const response = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
         response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
         await this.handleResponse(response);
+    }
+
+    private getAlreadyLocalisedArray(idsMapKeys, localisationLayers, alreadyLocalised, langName) {
+        if(!localisationLayers) {
+            return;
+        }
+        for(let item in localisationLayers) {
+            if(!localisationLayers.hasOwnProperty(item)) {
+                continue;
+            }
+            if(~languagesStruct["languages"].indexOf(item)) {
+                langName = item;
+            }
+            if(localisationLayers[item].localise) {
+                if(~idsMapKeys.indexOf(localisationLayers[item].localise)) {
+                    const idKeyObj = utlis.hasKey(alreadyLocalised, localisationLayers[item].localise);
+                    if(!idKeyObj) {
+                        alreadyLocalised.push({
+                            [localisationLayers[item].localise] : [langName]
+                        });
+                    } else {
+                        idKeyObj[localisationLayers[item].localise].push(langName);
+                    }
+                }
+                return;
+            }
+            this.getAlreadyLocalisedArray(idsMapKeys, localisationLayers[item], alreadyLocalised, langName);
+        }
     }
 
     private createLocalisationStruct(mapKeys, mapValues, langId, response) {
@@ -120,8 +159,11 @@ export class CreateLocalisationStructure implements IFactory {
         responseArray.forEach(response => {
             utlis.addKeyToObject(localiseStruct[langId], response.split(",")[0]);
             const responseId = localiseStruct[langId][response.split(",")[0]];
+            if(response.split(",")[1] === "null") {
+                return;
+            }
                 mapKeys.forEach((mapItem, index) => {
-                    const nextAvailableIndex = utlis.getNextAvailableIndex(responseId, index);
+                const nextAvailableIndex = utlis.getNextAvailableIndex(responseId, index);
                     responseId[nextAvailableIndex] = {};
                     responseId[nextAvailableIndex]["localise"] = mapItem;
                     responseId[nextAvailableIndex]["struct"] = mapValues[index];

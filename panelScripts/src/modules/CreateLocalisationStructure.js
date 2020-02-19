@@ -84,14 +84,33 @@ var CreateLocalisationStructure = /** @class */ (function () {
                     case 0:
                         this._generator = params.generator;
                         this._activeDocument = params.activeDocument;
+                        this.documentManager = params.storage.documentManager;
                         this.docEmitter = params.docEmitter;
+                        return [4 /*yield*/, this.updateActiveDocument()];
+                    case 1:
+                        _b.sent();
                         this.recordedResponse = this.modelFactory.getPhotoshopModel().allRecordedResponse;
                         _a = this.modifySelectedResponse;
                         return [4 /*yield*/, this.findSelectedLayers()];
-                    case 1: return [4 /*yield*/, _a.apply(this, [_b.sent()])];
-                    case 2:
+                    case 2: return [4 /*yield*/, _a.apply(this, [_b.sent()])];
+                    case 3:
                         idsArray = _b.sent();
                         this.getParents(idsArray);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateLocalisationStructure.prototype.updateActiveDocument = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this;
+                        return [4 /*yield*/, this.documentManager.getDocument(this._activeDocument.id)];
+                    case 1:
+                        _a._activeDocument = _b.sent();
                         return [2 /*return*/];
                 }
             });
@@ -218,7 +237,7 @@ var CreateLocalisationStructure = /** @class */ (function () {
     };
     CreateLocalisationStructure.prototype.drawLayers = function (idsMap) {
         return __awaiter(this, void 0, void 0, function () {
-            var idsMapKeys, idsMapValues, langId, params, response;
+            var idsMapKeys, idsMapValues, langId, localisationStructure, alreadyLocalised, params, response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -229,12 +248,16 @@ var CreateLocalisationStructure = /** @class */ (function () {
                             return [2 /*return*/];
                         }
                         this.filterMapValues(idsMapValues);
+                        localisationStructure = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
+                        alreadyLocalised = [];
+                        this.getAlreadyLocalisedArray(idsMapKeys, localisationStructure, alreadyLocalised, null);
                         params = {
                             languages: languagesStruct.languages,
                             ids: idsMapKeys,
                             values: idsMapValues,
                             langId: langId,
-                            recordedResponse: this.recordedResponse
+                            recordedResponse: this.recordedResponse,
+                            alreadyLocalised: alreadyLocalised
                         };
                         this.docEmitter.emit(constants_1.photoshopConstants.localisation, idsMapKeys);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params)];
@@ -249,6 +272,35 @@ var CreateLocalisationStructure = /** @class */ (function () {
             });
         });
     };
+    CreateLocalisationStructure.prototype.getAlreadyLocalisedArray = function (idsMapKeys, localisationLayers, alreadyLocalised, langName) {
+        if (!localisationLayers) {
+            return;
+        }
+        for (var item in localisationLayers) {
+            if (!localisationLayers.hasOwnProperty(item)) {
+                continue;
+            }
+            if (~languagesStruct["languages"].indexOf(item)) {
+                langName = item;
+            }
+            if (localisationLayers[item].localise) {
+                if (~idsMapKeys.indexOf(localisationLayers[item].localise)) {
+                    var idKeyObj = utils_1.utlis.hasKey(alreadyLocalised, localisationLayers[item].localise);
+                    if (!idKeyObj) {
+                        alreadyLocalised.push((_a = {},
+                            _a[localisationLayers[item].localise] = [langName],
+                            _a));
+                    }
+                    else {
+                        idKeyObj[localisationLayers[item].localise].push(langName);
+                    }
+                }
+                return;
+            }
+            this.getAlreadyLocalisedArray(idsMapKeys, localisationLayers[item], alreadyLocalised, langName);
+        }
+        var _a;
+    };
     CreateLocalisationStructure.prototype.createLocalisationStruct = function (mapKeys, mapValues, langId, response) {
         var localiseStruct = this.modelFactory.getPhotoshopModel().docLocalisationStruct || {};
         utils_1.utlis.addKeyToObject(localiseStruct, langId);
@@ -256,6 +308,9 @@ var CreateLocalisationStructure = /** @class */ (function () {
         responseArray.forEach(function (response) {
             utils_1.utlis.addKeyToObject(localiseStruct[langId], response.split(",")[0]);
             var responseId = localiseStruct[langId][response.split(",")[0]];
+            if (response.split(",")[1] === "null") {
+                return;
+            }
             mapKeys.forEach(function (mapItem, index) {
                 var nextAvailableIndex = utils_1.utlis.getNextAvailableIndex(responseId, index);
                 responseId[nextAvailableIndex] = {};

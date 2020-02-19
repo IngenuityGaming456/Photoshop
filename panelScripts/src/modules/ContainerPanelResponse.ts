@@ -108,26 +108,9 @@ export class ContainerPanelResponse implements IFactory {
     private async makeViews(view, platform) {
         const viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
         const viewJson = viewMap.get(view);
-        const platformRef = this.getPlatformRef(platform);
-        const commonId = this.getCommonId(platformRef);
+        const platformRef = utlis.getPlatformRef(platform, this.activeDocument);
+        const commonId = utlis.getCommonId(platformRef);
         await this.photoshopFactory.makeStruct(viewJson, commonId, null, platform);
-    }
-
-    private getPlatformRef(platform) {
-        const activeLayers: layerClass.LayerGroup = this.activeDocument.layers.layers;
-        for(let layer of activeLayers) {
-            if(layer.name === platform) {
-                return layer;
-            }
-        }
-    }
-
-    private getCommonId(platformRef: layerClass.LayerGroup) {
-        for(let layer of platformRef.layers) {
-            if(layer.name === pc.common) {
-                return layer.id;
-            }
-        }
     }
 
     private async getChanges(previousResponseMap, responseMap) {

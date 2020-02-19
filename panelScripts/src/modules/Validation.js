@@ -118,21 +118,83 @@ var Validation = /** @class */ (function () {
         this.generator.once(constants_1.photoshopConstants.generator.documentResolved, function () { return _this.onLayersLocalised(eventLayers, isOmit); });
     };
     Validation.prototype.onLayersLocalised = function (eventLayers, isOmit) {
-        var _this = this;
-        var localisationStructure = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
-        var langIds = localisationStructure && Object.keys(localisationStructure);
-        if (!langIds) {
-            return;
-        }
-        langIds.forEach(function (langId) {
-            var langRef = utils_1.utlis.isIDExistsRec(langId, eventLayers);
-            if (langRef) {
-                var langStructArray = [];
-                _this.createLangStructArray(langStructArray, eventLayers, langRef);
-                var compareStruct = _this.makeCompareStruct(langStructArray);
-                _this.compareLocalisation(compareStruct, localisationStructure, langRef.id, isOmit);
-            }
+        return __awaiter(this, void 0, void 0, function () {
+            var localisationStructure, langIds, langIds_1, langIds_1_1, langId, langRef, langStructArray, langStructArrays, langStructArrays_1, langStructArrays_1_1, langArray, compareStruct, e_1_1, e_2_1, e_2, _a, e_1, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        localisationStructure = this.modelFactory.getPhotoshopModel().docLocalisationStruct;
+                        langIds = localisationStructure && Object.keys(localisationStructure);
+                        if (!langIds) {
+                            return [2 /*return*/];
+                        }
+                        _c.label = 1;
+                    case 1:
+                        _c.trys.push([1, 12, 13, 14]);
+                        langIds_1 = __values(langIds), langIds_1_1 = langIds_1.next();
+                        _c.label = 2;
+                    case 2:
+                        if (!!langIds_1_1.done) return [3 /*break*/, 11];
+                        langId = langIds_1_1.value;
+                        langRef = utils_1.utlis.isIDExistsRec(langId, eventLayers);
+                        if (!langRef) return [3 /*break*/, 10];
+                        langStructArray = [];
+                        this.createLangStructArray(langStructArray, eventLayers, langRef);
+                        langStructArrays = utils_1.utlis.breakArrayOnTrue(langStructArray);
+                        _c.label = 3;
+                    case 3:
+                        _c.trys.push([3, 8, 9, 10]);
+                        langStructArrays_1 = __values(langStructArrays), langStructArrays_1_1 = langStructArrays_1.next();
+                        _c.label = 4;
+                    case 4:
+                        if (!!langStructArrays_1_1.done) return [3 /*break*/, 7];
+                        langArray = langStructArrays_1_1.value;
+                        this.modifyLangArray(langArray);
+                        compareStruct = this.makeCompareStruct(langArray);
+                        return [4 /*yield*/, this.compareLocalisation(compareStruct, localisationStructure, langRef.id, isOmit)];
+                    case 5:
+                        _c.sent();
+                        _c.label = 6;
+                    case 6:
+                        langStructArrays_1_1 = langStructArrays_1.next();
+                        return [3 /*break*/, 4];
+                    case 7: return [3 /*break*/, 10];
+                    case 8:
+                        e_1_1 = _c.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 10];
+                    case 9:
+                        try {
+                            if (langStructArrays_1_1 && !langStructArrays_1_1.done && (_b = langStructArrays_1.return)) _b.call(langStructArrays_1);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 10:
+                        langIds_1_1 = langIds_1.next();
+                        return [3 /*break*/, 2];
+                    case 11: return [3 /*break*/, 14];
+                    case 12:
+                        e_2_1 = _c.sent();
+                        e_2 = { error: e_2_1 };
+                        return [3 /*break*/, 14];
+                    case 13:
+                        try {
+                            if (langIds_1_1 && !langIds_1_1.done && (_a = langIds_1.return)) _a.call(langIds_1);
+                        }
+                        finally { if (e_2) throw e_2.error; }
+                        return [7 /*endfinally*/];
+                    case 14: return [2 /*return*/];
+                }
+            });
         });
+    };
+    Validation.prototype.modifyLangArray = function (langArray) {
+        var langId = langArray[0];
+        var langIdRef = this.activeDocument.layers.findLayer(langId);
+        if (!(~languagesJson["languages"].indexOf(langIdRef.layer.name))) {
+            var actualLangId = langIdRef.layer.group.id;
+            langArray.unshift(actualLangId);
+        }
     };
     Validation.prototype.createLangStructArray = function (langStructArray, eventLayers, langRef) {
         var _this = this;
@@ -182,7 +244,7 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.compareLocalisation = function (compareStruct, localisationStructure, langId, isOmit) {
         return __awaiter(this, void 0, void 0, function () {
-            var langRef, langName, toCompareWith, _a, _b, item, localisedRef, localisedObj, e_1_1, e_1, _c;
+            var langRef, langName, toCompareWith, _a, _b, item, localisedRef, localisedObj, e_3_1, e_3, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -218,14 +280,14 @@ var Validation = /** @class */ (function () {
                         return [3 /*break*/, 2];
                     case 6: return [3 /*break*/, 9];
                     case 7:
-                        e_1_1 = _d.sent();
-                        e_1 = { error: e_1_1 };
+                        e_3_1 = _d.sent();
+                        e_3 = { error: e_3_1 };
                         return [3 /*break*/, 9];
                     case 8:
                         try {
                             if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                         }
-                        finally { if (e_1) throw e_1.error; }
+                        finally { if (e_3) throw e_3.error; }
                         return [7 /*endfinally*/];
                     case 9: return [2 /*return*/];
                 }
@@ -266,15 +328,15 @@ var Validation = /** @class */ (function () {
                 }
             }
         }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
         finally {
             try {
                 if (compareArray_1_1 && !compareArray_1_1.done && (_a = compareArray_1.return)) _a.call(compareArray_1);
             }
-            finally { if (e_2) throw e_2.error; }
+            finally { if (e_4) throw e_4.error; }
         }
         this.checkImageStatus(localisedRef, compareStruct, langId, langName, isOmit);
-        var e_2, _a;
+        var e_4, _a;
     };
     Validation.prototype.getStructNames = function (struct) {
         var structNames = [];
@@ -284,15 +346,15 @@ var Validation = /** @class */ (function () {
                 structNames.push(item.name);
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
         finally {
             try {
                 if (struct_1_1 && !struct_1_1.done && (_a = struct_1.return)) _a.call(struct_1);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_5) throw e_5.error; }
         }
         return structNames;
-        var e_3, _a;
+        var e_5, _a;
     };
     Validation.prototype.getCompareStructNames = function (compareStruct) {
         var compareStructNames = [];
@@ -303,15 +365,15 @@ var Validation = /** @class */ (function () {
                 compareStructNames.push(layerName);
             }
         }
-        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
         finally {
             try {
                 if (compareStruct_1_1 && !compareStruct_1_1.done && (_a = compareStruct_1.return)) _a.call(compareStruct_1);
             }
-            finally { if (e_4) throw e_4.error; }
+            finally { if (e_6) throw e_6.error; }
         }
         return compareStructNames;
-        var e_4, _a;
+        var e_6, _a;
     };
     Validation.prototype.checkImageStatus = function (localisedRef, compareStruct, langId, langName, isOmit) {
         return __awaiter(this, void 0, void 0, function () {
@@ -355,7 +417,7 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.showLocalisationWarning = function (compareStruct, langId, langName) {
         return __awaiter(this, void 0, void 0, function () {
-            var localisedObj, localisingLayers, containObj, toBeLocalised, notToBeLocalised, delocalisedLayers, delocalisedLayers_1, delocalisedLayers_1_1, name_1, indexName, id, response, langStruct, langObj, deletionKey, item, deletedLayers, e_5_1, e_5, _a;
+            var localisedObj, localisingLayers, containObj, toBeLocalised, notToBeLocalised, delocalisedLayers, delocalisedLayers_1, delocalisedLayers_1_1, name_1, indexName, id, response, langStruct, langObj, deletionKey, item, deletedLayers, e_7_1, e_7, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -407,14 +469,14 @@ var Validation = /** @class */ (function () {
                         return [3 /*break*/, 2];
                     case 5: return [3 /*break*/, 8];
                     case 6:
-                        e_5_1 = _b.sent();
-                        e_5 = { error: e_5_1 };
+                        e_7_1 = _b.sent();
+                        e_7 = { error: e_7_1 };
                         return [3 /*break*/, 8];
                     case 7:
                         try {
                             if (delocalisedLayers_1_1 && !delocalisedLayers_1_1.done && (_a = delocalisedLayers_1.return)) _a.call(delocalisedLayers_1);
                         }
-                        finally { if (e_5) throw e_5.error; }
+                        finally { if (e_7) throw e_7.error; }
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/, {
                             toBeLocalised: toBeLocalised,
@@ -436,15 +498,15 @@ var Validation = /** @class */ (function () {
                 localisingLayers.push(item.name);
             }
         }
-        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        catch (e_8_1) { e_8 = { error: e_8_1 }; }
         finally {
             try {
                 if (localisingPhotoshopLayers_1_1 && !localisingPhotoshopLayers_1_1.done && (_a = localisingPhotoshopLayers_1.return)) _a.call(localisingPhotoshopLayers_1);
             }
-            finally { if (e_6) throw e_6.error; }
+            finally { if (e_8) throw e_8.error; }
         }
         return localisingLayers;
-        var e_6, _a;
+        var e_8, _a;
     };
     Validation.prototype.getLocalisedLayers = function (compareStruct, langId, langName) {
         var localisedLayers = [];
@@ -495,14 +557,14 @@ var Validation = /** @class */ (function () {
                 this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item });
             }
         }
-        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        catch (e_9_1) { e_9 = { error: e_9_1 }; }
         finally {
             try {
                 if (deletedLayers_1_1 && !deletedLayers_1_1.done && (_a = deletedLayers_1.return)) _a.call(deletedLayers_1);
             }
-            finally { if (e_7) throw e_7.error; }
+            finally { if (e_9) throw e_9.error; }
         }
-        var e_7, _a;
+        var e_9, _a;
     };
     Validation.prototype.startValidationSequence = function (eventLayers, questArray, drawnQuestItems) {
         return __awaiter(this, void 0, void 0, function () {

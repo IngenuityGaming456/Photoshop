@@ -1,6 +1,9 @@
 import {PhotoshopModel} from "../../../src/models/PhotoshopModels/PhotoshopModel";
 import {IParams} from "../../../src/interfaces/IJsxParam";
 import * as path from "path";
+import {photoshopConstants as pc} from "../../../src/constants";
+import {utlis} from "../../../src/utils/utils";
+const languages = require("../../../src/res/languages.json");
 
 export class PhotoshopModelApp extends PhotoshopModel {
 
@@ -22,8 +25,63 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     protected subscribeListeners() {
         super.subscribeListeners();
+        this.generator.on(pc.generator.layersDeleted, eventLayers => this.onLayersDeleted(eventLayers));
         this.generator.on("select", () => this.storeSelectedName());
         this.generator.on("select", () => this.storeSelectedIds())
+    }
+
+    private onLayersDeleted(eventLayers) {
+        const activeDocumentNonUpdated  = {...this.activeDocument};
+        eventLayers.forEach(deletedLayers => {
+            const deletedRef = activeDocumentNonUpdated._layers.findLayer(deletedLayers.id);
+            if(!deletedRef) return;
+            if(utlis.getElementName(deletedRef, pc.languages)) {
+                const platformName = utlis.getElementName(deletedRef, null);
+                const platformRef = utlis.getPlatformRef(platformName, this.activeDocument);
+                const commonId = utlis.getCommonId(platformRef);
+                const commonRef = this.activeDocument.layers.findLayer(commonId);
+                const mappedView = utlis.getView(commonRef, deletedRef.layer.name);
+                if(mappedView) {
+                    this.deleteMappedViewFromLocalisationStruct(mappedView, this.localisationStruct);
+                } else if(~languages["languages"].indexOf(deletedRef.layer.name)) {
+                    this.deletedMappedLangIdFromLocalisationStruct(deletedRef.layer.name, this.localisationStruct);
+                }
+            }
+        })
+    }
+
+    private deleteMappedViewFromLocalisationStruct(mappedView, localisationLayers) {
+        for(let item in localisationLayers) {
+            if(!localisationLayers.hasOwnProperty(item)) {
+                continue;
+            }
+            const localisedStruct = localisationLayers[item];
+            if(localisedStruct.struct) {
+                for(let structLayers of localisedStruct.struct) {
+                    if(structLayers.id === mappedView) {
+                        delete localisationLayers[item];
+                        return;
+                    }
+                }
+            }
+            this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
+        }
+    }
+
+    private deletedMappedLangIdFromLocalisationStruct(deletedLangId, localisationLayers) {
+        for(let item in localisationLayers) {
+            if(!localisationLayers.hasOwnProperty(item)) {
+                continue;
+            }
+            if(localisationLayers[item].localise) {
+                return;
+            }
+            if(item === deletedLangId) {
+                delete localisationLayers[item];
+                return;
+            }
+            this.deletedMappedLangIdFromLocalisationStruct(deletedLangId, localisationLayers[item]);
+        }
     }
 
     protected handleData() {

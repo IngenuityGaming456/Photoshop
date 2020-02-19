@@ -1,5 +1,6 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {photoshopConstants as pc} from "../constants";
+import {utlis} from "../utils/utils";
 
 export class EventsManager implements IFactory{
     private generator;
@@ -14,15 +15,20 @@ export class EventsManager implements IFactory{
     }
 
     public onImageChanged(event) {
-        this.isDocumentChange(event);
-        if(this.activeDocId && this.activeDocId != event.id) {
+        const eventCopy = { ...event };
+        this.isDocumentChange(eventCopy);
+        if(this.activeDocId && this.activeDocId != eventCopy.id) {
             return;
         }
-        this.removeUnwantedEvents(event);
-        this.isAddedEvent(event);
-        this.isDeletionEvent(event);
-        this.isRenameEvent(event);
-        this.isMovedEvent(event);
+        this.removeUnwantedEvents(eventCopy);
+        try {
+            this.isAddedEvent(eventCopy)
+                .isDeletionEvent(eventCopy)
+                .isRenameEvent(eventCopy)
+                .isMovedEvent(eventCopy)
+        } catch(err) {
+            console.log("Event Dispatched");
+        }
     }
 
     private subscribeListeners() {
@@ -140,21 +146,36 @@ export class EventsManager implements IFactory{
     }
 
     private isAddedEvent(event) {
-        if(event.layers && this.isAdded(event.layers)) {
-            this.generator.emit(pc.generator.layersAdded, event.layers, this.isNewDocument);
+        if(event.layers) {
+            const addedPath = this.isAdded(event.layers, []);
+            if(!addedPath) {
+                return this;
+            }
+            if(!addedPath.length) {
+                this.generator.emit(pc.generator.layersAdded, event.layers, this.isNewDocument);
+            } else {
+                const parsedEvent = utlis.getParsedEvent(addedPath.reverse(), event.layers);
+                this.generator.emit(pc.generator.layersAdded, parsedEvent, this.isNewDocument);
+            }
+            throw new Error("Added Event Dispatched");
         }
+        return this;
     }
 
     private isDeletionEvent(event) {
         if(event.layers && this.isDeletion(event.layers)) {
             this.generator.emit(pc.generator.layersDeleted, event.layers);
+            throw new Error("Deletion Event Dispatched");
         }
+        return this;
     }
 
     private isRenameEvent(event) {
         if(event.layers && event.layers.length && !event.layers[0].added && event.layers[0].name) {
             this.generator.emit(pc.generator.layerRenamed, event.layers);
+            throw new Error("Rename Event Dispatched");
         }
+        return this;
     }
 
     private isMovedEvent(event) {
@@ -163,15 +184,39 @@ export class EventsManager implements IFactory{
         }
     }
 
-    private isAdded(layers): boolean {
-        const layersCount = layers.length;
-        for(let i=0;i<layersCount;i++) {
+    private isAdded(layers, pathArray) {
+            const subPathArray = [];
+            const layersCount = layers.length;
+            for(let i=0;i<layersCount;i++) {
+                const subLayer = layers[i];
+                if(subLayer.hasOwnProperty("added")) {
+                    subPathArray.push(i);
+                    continue;
+                }
+                const addedResult = subLayer.layers && this.isAtLevel(subLayer.layers, "added");
+                if(addedResult) {
+                    subPathArray.push(i);
+                    if(subLayer.layers) {
+                        this.isAdded(subLayer.layers, pathArray);
+                    }
+                }
+            }
+            if(!subPathArray.length) {
+                return null;
+            }
+            pathArray.push(subPathArray);
+            return pathArray;
+    }
+
+    private isAtLevel(layers, key) {
+        const layerLength = layers.length;
+        for(let i=0;i<layerLength;i++) {
             const subLayer = layers[i];
-            if(subLayer.hasOwnProperty("added")) {
+            if(subLayer.hasOwnProperty(key)) {
                 return true;
             }
             if(subLayer.hasOwnProperty("layers")) {
-                return this.isAdded(subLayer.layers);
+                return this.isAtLevel(subLayer.layers, key);
             }
         }
         return false;

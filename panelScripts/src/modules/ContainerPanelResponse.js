@@ -207,8 +207,8 @@ var ContainerPanelResponse = /** @class */ (function () {
                     case 0:
                         viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
                         viewJson = viewMap.get(view);
-                        platformRef = this.getPlatformRef(platform);
-                        commonId = this.getCommonId(platformRef);
+                        platformRef = utils_1.utlis.getPlatformRef(platform, this.activeDocument);
+                        commonId = utils_1.utlis.getCommonId(platformRef);
                         return [4 /*yield*/, this.photoshopFactory.makeStruct(viewJson, commonId, null, platform)];
                     case 1:
                         _a.sent();
@@ -217,46 +217,9 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.getPlatformRef = function (platform) {
-        var activeLayers = this.activeDocument.layers.layers;
-        try {
-            for (var activeLayers_1 = __values(activeLayers), activeLayers_1_1 = activeLayers_1.next(); !activeLayers_1_1.done; activeLayers_1_1 = activeLayers_1.next()) {
-                var layer = activeLayers_1_1.value;
-                if (layer.name === platform) {
-                    return layer;
-                }
-            }
-        }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
-        finally {
-            try {
-                if (activeLayers_1_1 && !activeLayers_1_1.done && (_a = activeLayers_1.return)) _a.call(activeLayers_1);
-            }
-            finally { if (e_2) throw e_2.error; }
-        }
-        var e_2, _a;
-    };
-    ContainerPanelResponse.prototype.getCommonId = function (platformRef) {
-        try {
-            for (var _a = __values(platformRef.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
-                var layer = _b.value;
-                if (layer.name === constants_1.photoshopConstants.common) {
-                    return layer.id;
-                }
-            }
-        }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
-        finally {
-            try {
-                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
-            }
-            finally { if (e_3) throw e_3.error; }
-        }
-        var e_3, _c;
-    };
     ContainerPanelResponse.prototype.getChanges = function (previousResponseMap, responseMap) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, platform, e_4_1, e_4, _c;
+            var _a, _b, platform, e_2_1, e_2, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -275,14 +238,14 @@ var ContainerPanelResponse = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 4: return [3 /*break*/, 7];
                     case 5:
-                        e_4_1 = _d.sent();
-                        e_4 = { error: e_4_1 };
+                        e_2_1 = _d.sent();
+                        e_2 = { error: e_2_1 };
                         return [3 /*break*/, 7];
                     case 6:
                         try {
                             if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                         }
-                        finally { if (e_4) throw e_4.error; }
+                        finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
                     case 7: return [2 /*return*/];
                 }

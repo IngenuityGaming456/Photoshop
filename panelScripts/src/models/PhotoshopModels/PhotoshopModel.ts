@@ -11,7 +11,7 @@ export class PhotoshopModel implements IModel {
 
     protected generator;
     protected subPhotoshopModel;
-    private activeDocument;
+    protected activeDocument;
     protected writeData = {};
     private questItems = [];
     private drawnQuestItems = [];

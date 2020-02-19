@@ -13,6 +13,7 @@ export class CreateProxyLayout implements IFactory {
     private generator;
     private document;
     private activeDocument;
+    private documentManager;
     private artLayers = [];
     private nameCache = [];
     private readonly errorData = [];
@@ -32,13 +33,19 @@ export class CreateProxyLayout implements IFactory {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
+        this.documentManager = params.storage.documentManager;
         this.imageState = params.storage.menuState;
         this.document = await this.generator.getDocumentInfo(undefined);
+        await this.updateActiveDocument();
         await this.modifyParentNames();
         this.checkSymbols();
         this.checkImageFolder();
         await this.checkLocalisationStruct();
         this.checkIsLayoutSuccessful();
+    }
+
+    private async updateActiveDocument() {
+        this.activeDocument = await this.documentManager.getDocument(this.activeDocument.id);
     }
 
     private async modifyParentNames() {

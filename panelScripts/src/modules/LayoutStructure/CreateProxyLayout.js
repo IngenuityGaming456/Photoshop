@@ -90,20 +90,39 @@ var CreateProxyLayout = /** @class */ (function () {
                         this.generator = params.generator;
                         this.docEmitter = params.docEmitter;
                         this.activeDocument = params.activeDocument;
+                        this.documentManager = params.storage.documentManager;
                         this.imageState = params.storage.menuState;
                         _a = this;
                         return [4 /*yield*/, this.generator.getDocumentInfo(undefined)];
                     case 1:
                         _a.document = _b.sent();
-                        return [4 /*yield*/, this.modifyParentNames()];
+                        return [4 /*yield*/, this.updateActiveDocument()];
                     case 2:
+                        _b.sent();
+                        return [4 /*yield*/, this.modifyParentNames()];
+                    case 3:
                         _b.sent();
                         this.checkSymbols();
                         this.checkImageFolder();
                         return [4 /*yield*/, this.checkLocalisationStruct()];
-                    case 3:
+                    case 4:
                         _b.sent();
                         this.checkIsLayoutSuccessful();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateProxyLayout.prototype.updateActiveDocument = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this;
+                        return [4 /*yield*/, this.documentManager.getDocument(this.activeDocument.id)];
+                    case 1:
+                        _a.activeDocument = _b.sent();
                         return [2 /*return*/];
                 }
             });

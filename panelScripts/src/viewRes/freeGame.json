@@ -10,9 +10,9 @@
             "text": "$00000000",
             "id": "totalwinMtrFG"
         },
-        "5OfAKindContainer": {
+        "fiveOfAKindContainer": {
             "type": "container",
-            "id": "5OfAKindContainer",
+            "id": "fiveOfAKindContainer",
             "leaf": true
         },
         "buttonsContainer": {

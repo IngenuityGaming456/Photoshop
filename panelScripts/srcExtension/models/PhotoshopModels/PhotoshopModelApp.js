@@ -9,6 +9,14 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -44,9 +52,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var PhotoshopModel_1 = require("../../../src/models/PhotoshopModels/PhotoshopModel");
 var path = require("path");
+var constants_1 = require("../../../src/constants");
+var utils_1 = require("../../../src/utils/utils");
+var languages = require("../../../src/res/languages.json");
 var PhotoshopModelApp = /** @class */ (function (_super) {
     __extends(PhotoshopModelApp, _super);
     function PhotoshopModelApp() {
@@ -68,8 +89,74 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
     PhotoshopModelApp.prototype.subscribeListeners = function () {
         var _this = this;
         _super.prototype.subscribeListeners.call(this);
+        this.generator.on(constants_1.photoshopConstants.generator.layersDeleted, function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
         this.generator.on("select", function () { return _this.storeSelectedName(); });
         this.generator.on("select", function () { return _this.storeSelectedIds(); });
+    };
+    PhotoshopModelApp.prototype.onLayersDeleted = function (eventLayers) {
+        var _this = this;
+        var activeDocumentNonUpdated = __assign({}, this.activeDocument);
+        eventLayers.forEach(function (deletedLayers) {
+            var deletedRef = activeDocumentNonUpdated._layers.findLayer(deletedLayers.id);
+            if (!deletedRef)
+                return;
+            if (utils_1.utlis.getElementName(deletedRef, constants_1.photoshopConstants.languages)) {
+                var platformName = utils_1.utlis.getElementName(deletedRef, null);
+                var platformRef = utils_1.utlis.getPlatformRef(platformName, _this.activeDocument);
+                var commonId = utils_1.utlis.getCommonId(platformRef);
+                var commonRef = _this.activeDocument.layers.findLayer(commonId);
+                var mappedView = utils_1.utlis.getView(commonRef, deletedRef.layer.name);
+                if (mappedView) {
+                    _this.deleteMappedViewFromLocalisationStruct(mappedView, _this.localisationStruct);
+                }
+                else if (~languages["languages"].indexOf(deletedRef.layer.name)) {
+                    _this.deletedMappedLangIdFromLocalisationStruct(deletedRef.layer.name, _this.localisationStruct);
+                }
+            }
+        });
+    };
+    PhotoshopModelApp.prototype.deleteMappedViewFromLocalisationStruct = function (mappedView, localisationLayers) {
+        for (var item in localisationLayers) {
+            if (!localisationLayers.hasOwnProperty(item)) {
+                continue;
+            }
+            var localisedStruct = localisationLayers[item];
+            if (localisedStruct.struct) {
+                try {
+                    for (var _a = __values(localisedStruct.struct), _b = _a.next(); !_b.done; _b = _a.next()) {
+                        var structLayers = _b.value;
+                        if (structLayers.id === mappedView) {
+                            delete localisationLayers[item];
+                            return;
+                        }
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                    }
+                    finally { if (e_1) throw e_1.error; }
+                }
+            }
+            this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
+        }
+        var e_1, _c;
+    };
+    PhotoshopModelApp.prototype.deletedMappedLangIdFromLocalisationStruct = function (deletedLangId, localisationLayers) {
+        for (var item in localisationLayers) {
+            if (!localisationLayers.hasOwnProperty(item)) {
+                continue;
+            }
+            if (localisationLayers[item].localise) {
+                return;
+            }
+            if (item === deletedLangId) {
+                delete localisationLayers[item];
+                return;
+            }
+            this.deletedMappedLangIdFromLocalisationStruct(deletedLangId, localisationLayers[item]);
+        }
     };
     PhotoshopModelApp.prototype.handleData = function () {
         _super.prototype.handleData.call(this);

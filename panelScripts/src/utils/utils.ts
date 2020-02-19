@@ -211,6 +211,14 @@ export class utlis {
         }
     }
 
+    public static getCommonId(platformRef: layerClass.LayerGroup) {
+        for(let layer of platformRef.layers) {
+            if(layer.name === pc.common) {
+                return layer.id;
+            }
+        }
+    }
+
     public static getElementView(element, activeDocumentLayers) {
         const layers: layerClass.LayerGroup = activeDocumentLayers;
         const elementRef = layers.findLayer(element.id);
@@ -336,7 +344,92 @@ export class utlis {
         return false;
     }
 
-    public static isNumeric() {
-
+    public static putComponentInGeneratorSettings(item, pluginId, component) {
+        if(item.hasOwnProperty("generatorSettings") && item["generatorSettings"] === false) {
+            item["generatorSettings"] = {};
+        }
+        utlis.addKeyToObject(item, "generatorSettings");
+        utlis.addKeyToObject(item["generatorSettings"], pluginId);
+        item["generatorSettings"][pluginId]["json"] = component;
     }
+
+    public static getParsedEvent(pathArray, layers) {
+        let eventLayers = [];
+        pathArray.forEach((item, index) => {
+            if(index === 0) {
+                eventLayers.push(layers[item[0]]);
+            } else {
+                const layerStructure = utlis.getLayersStructureAtLevel(index, 0, eventLayers);
+                utlis.spliceAllButItem(layerStructure, item);
+            }
+        });
+        return eventLayers;
+    }
+
+    public static getLayersStructureAtLevel(index, level, eventLayers) {
+        if(index === level) {
+            return eventLayers;
+        }
+        return utlis.getLayersStructureAtLevel(index, ++level, eventLayers[0].layers);
+    }
+
+    public static spliceAllButItem(spliceArray, itemArray) {
+        for(let i=0;i<spliceArray.length;i++) {
+            if(!(~itemArray.indexOf(i))) {
+                spliceArray.splice(i, 1);
+                itemArray.forEach((item,index) => {
+                    if(item > 0) {
+                        itemArray[index] = --item;
+                    }
+                });
+                i--;
+            }
+        }
+    }
+
+    public static getView(commonRef, viewName) {
+        const viewLayers = commonRef.layer.layers;
+        for(let item of viewLayers) {
+            if(item.name === viewName) {
+                return item.id;
+            }
+        }
+        return null;
+    }
+
+    public static getPlatformRef(platform, activeDocument) {
+        const activeLayers: layerClass.LayerGroup = activeDocument.layers.layers;
+        for(let layer of activeLayers) {
+            if(layer.name === platform) {
+                return layer;
+            }
+        }
+    }
+
+    public static hasKey(keyArray, key) {
+        for(let item of keyArray) {
+            if(item.hasOwnProperty(key)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    public static breakArrayOnTrue(breakArray) {
+        const splitIndexes = [];
+        for(let i=0;i<breakArray.length;i++) {
+            if(breakArray[i] === true && breakArray[i+1] !== true && breakArray[i+2] !== true) {
+                splitIndexes.push(i);
+            }
+        }
+        splitIndexes.unshift(0);
+        const breakArrays = [];
+        splitIndexes.forEach((splitIndex, index) => {
+            if(splitIndexes[index + 1]) {
+                breakArrays.push(breakArray.slice(splitIndexes[index] + Math.ceil(index/100000), splitIndexes[index + 1] + 1));
+            }
+        });
+        return breakArrays;
+    }
+
 }

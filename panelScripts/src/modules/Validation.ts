@@ -70,21 +70,34 @@ export class Validation implements IFactory {
         this.generator.once(pc.generator.documentResolved, () => this.onLayersLocalised(eventLayers, isOmit));
     }
 
-    private onLayersLocalised(eventLayers, isOmit?) {
+    private async onLayersLocalised(eventLayers, isOmit?) {
         const localisationStructure = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).docLocalisationStruct;
         const langIds = localisationStructure && Object.keys(localisationStructure);
         if(!langIds) {
             return;
         }
-        langIds.forEach(langId => {
+        for(let langId of langIds) {
             const langRef = utlis.isIDExistsRec(langId, eventLayers);
             if(langRef) {
                 const langStructArray = [];
                 this.createLangStructArray(langStructArray, eventLayers, langRef);
-                const compareStruct = this.makeCompareStruct(langStructArray);
-                this.compareLocalisation(compareStruct, localisationStructure, langRef.id, isOmit);
+                const langStructArrays = utlis.breakArrayOnTrue(langStructArray);
+                for(let langArray of langStructArrays) {
+                    this.modifyLangArray(langArray);
+                    const compareStruct = this.makeCompareStruct(langArray);
+                    await this.compareLocalisation(compareStruct, localisationStructure, langRef.id, isOmit);
+                }
             }
-        })
+        }
+    }
+
+    private modifyLangArray(langArray) {
+        const langId = langArray[0];
+        const langIdRef = this.activeDocument.layers.findLayer(langId);
+        if(!(~languagesJson["languages"].indexOf(langIdRef.layer.name))) {
+            const actualLangId = langIdRef.layer.group.id;
+            langArray.unshift(actualLangId);
+        }
     }
 
     private createLangStructArray(langStructArray, eventLayers, langRef) {

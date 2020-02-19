@@ -239,7 +239,7 @@ var DocumentStarter = /** @class */ (function () {
                     docEmitter: this.docEmitter,
                     menuName: menu.name,
                     activeDocument: this.activeDocument,
-                    storage: { factoryMap: elementMap, menuState: this.imageState }
+                    storage: { factoryMap: elementMap, menuState: this.imageState, documentManager: this.documentManager }
                 });
             }
         }

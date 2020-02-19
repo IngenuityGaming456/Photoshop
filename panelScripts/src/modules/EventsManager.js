@@ -1,6 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var constants_1 = require("../constants");
+var utils_1 = require("../utils/utils");
 var EventsManager = /** @class */ (function () {
     function EventsManager() {
         this.isNewDocument = false;
@@ -12,15 +21,21 @@ var EventsManager = /** @class */ (function () {
         this.subscribeListeners();
     };
     EventsManager.prototype.onImageChanged = function (event) {
-        this.isDocumentChange(event);
-        if (this.activeDocId && this.activeDocId != event.id) {
+        var eventCopy = __assign({}, event);
+        this.isDocumentChange(eventCopy);
+        if (this.activeDocId && this.activeDocId != eventCopy.id) {
             return;
         }
-        this.removeUnwantedEvents(event);
-        this.isAddedEvent(event);
-        this.isDeletionEvent(event);
-        this.isRenameEvent(event);
-        this.isMovedEvent(event);
+        this.removeUnwantedEvents(eventCopy);
+        try {
+            this.isAddedEvent(eventCopy)
+                .isDeletionEvent(eventCopy)
+                .isRenameEvent(eventCopy)
+                .isMovedEvent(eventCopy);
+        }
+        catch (err) {
+            console.log("Event Dispatched");
+        }
     };
     EventsManager.prototype.subscribeListeners = function () {
         var _this = this;
@@ -131,34 +146,73 @@ var EventsManager = /** @class */ (function () {
         this.sliceArray(rawChange, unwantedLayers);
     };
     EventsManager.prototype.isAddedEvent = function (event) {
-        if (event.layers && this.isAdded(event.layers)) {
-            this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, event.layers, this.isNewDocument);
+        if (event.layers) {
+            var addedPath = this.isAdded(event.layers, []);
+            if (!addedPath) {
+                return this;
+            }
+            if (!addedPath.length) {
+                this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, event.layers, this.isNewDocument);
+            }
+            else {
+                var parsedEvent = utils_1.utlis.getParsedEvent(addedPath.reverse(), event.layers);
+                this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, parsedEvent, this.isNewDocument);
+            }
+            throw new Error("Added Event Dispatched");
         }
+        return this;
     };
     EventsManager.prototype.isDeletionEvent = function (event) {
         if (event.layers && this.isDeletion(event.layers)) {
             this.generator.emit(constants_1.photoshopConstants.generator.layersDeleted, event.layers);
+            throw new Error("Deletion Event Dispatched");
         }
+        return this;
     };
     EventsManager.prototype.isRenameEvent = function (event) {
         if (event.layers && event.layers.length && !event.layers[0].added && event.layers[0].name) {
             this.generator.emit(constants_1.photoshopConstants.generator.layerRenamed, event.layers);
+            throw new Error("Rename Event Dispatched");
         }
+        return this;
     };
     EventsManager.prototype.isMovedEvent = function (event) {
         if (event.layers && this.isMoved(event.layers)) {
             this.generator.emit(constants_1.photoshopConstants.generator.layersMoved, event.layers);
         }
     };
-    EventsManager.prototype.isAdded = function (layers) {
+    EventsManager.prototype.isAdded = function (layers, pathArray) {
+        var subPathArray = [];
         var layersCount = layers.length;
         for (var i = 0; i < layersCount; i++) {
             var subLayer = layers[i];
             if (subLayer.hasOwnProperty("added")) {
+                subPathArray.push(i);
+                continue;
+            }
+            var addedResult = subLayer.layers && this.isAtLevel(subLayer.layers, "added");
+            if (addedResult) {
+                subPathArray.push(i);
+                if (subLayer.layers) {
+                    this.isAdded(subLayer.layers, pathArray);
+                }
+            }
+        }
+        if (!subPathArray.length) {
+            return null;
+        }
+        pathArray.push(subPathArray);
+        return pathArray;
+    };
+    EventsManager.prototype.isAtLevel = function (layers, key) {
+        var layerLength = layers.length;
+        for (var i = 0; i < layerLength; i++) {
+            var subLayer = layers[i];
+            if (subLayer.hasOwnProperty(key)) {
                 return true;
             }
             if (subLayer.hasOwnProperty("layers")) {
-                return this.isAdded(subLayer.layers);
+                return this.isAtLevel(subLayer.layers, key);
             }
         }
         return false;

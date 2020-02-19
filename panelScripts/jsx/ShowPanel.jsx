@@ -125,6 +125,9 @@ function insertSelectedStruct(selectedLangRef) {
 function drawLayers(valueIndex, langIndex, selectedLangRef) {
     var item = params.values[valueIndex];
     var itemId = params.ids[valueIndex];
+    if(alreadyLocalised(itemId, selectedLangRef[langIndex].name)) {
+        return;
+    }
     var itemL = item.length;
     var parentRefs = [];
     parentRefs.push(selectedLangRef[langIndex]);
@@ -140,6 +143,24 @@ function drawLayers(valueIndex, langIndex, selectedLangRef) {
         }
     }
     duplicateItemLayer(itemId, parentRefs[parentRefs.length - 1]);
+}
+
+function alreadyLocalised(itemId, langName) {
+    var alreadyLocalisedLength = params.alreadyLocalised.length;
+    for(var i=0;i<alreadyLocalisedLength;i++) {
+        var item = params.alreadyLocalised[i];
+        var itemLayerId = Object.keys(item)[0];
+        if(itemLayerId == itemId) {
+            var localisedArray = item[itemLayerId];
+            var localisedArrayLength = localisedArray.length;
+            for(var j=0;j<localisedArrayLength;j++) {
+                if(localisedArray[j] === langName) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 function duplicateItemLayer(itemId, parentRef) {

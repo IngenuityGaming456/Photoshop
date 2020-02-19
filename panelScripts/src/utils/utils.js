@@ -235,6 +235,24 @@ var utlis = /** @class */ (function () {
             }
         }
     };
+    utlis.getCommonId = function (platformRef) {
+        try {
+            for (var _a = __values(platformRef.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var layer = _b.value;
+                if (layer.name === constants_1.photoshopConstants.common) {
+                    return layer.id;
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        var e_3, _c;
+    };
     utlis.getElementView = function (element, activeDocumentLayers) {
         var layers = activeDocumentLayers;
         var elementRef = layers.findLayer(element.id);
@@ -354,17 +372,129 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
         finally {
             try {
                 if (layerRefLayers_1_1 && !layerRefLayers_1_1.done && (_a = layerRefLayers_1.return)) _a.call(layerRefLayers_1);
             }
-            finally { if (e_3) throw e_3.error; }
+            finally { if (e_4) throw e_4.error; }
         }
         return false;
-        var e_3, _a;
+        var e_4, _a;
     };
-    utlis.isNumeric = function () {
+    utlis.putComponentInGeneratorSettings = function (item, pluginId, component) {
+        if (item.hasOwnProperty("generatorSettings") && item["generatorSettings"] === false) {
+            item["generatorSettings"] = {};
+        }
+        utlis.addKeyToObject(item, "generatorSettings");
+        utlis.addKeyToObject(item["generatorSettings"], pluginId);
+        item["generatorSettings"][pluginId]["json"] = component;
+    };
+    utlis.getParsedEvent = function (pathArray, layers) {
+        var eventLayers = [];
+        pathArray.forEach(function (item, index) {
+            if (index === 0) {
+                eventLayers.push(layers[item[0]]);
+            }
+            else {
+                var layerStructure = utlis.getLayersStructureAtLevel(index, 0, eventLayers);
+                utlis.spliceAllButItem(layerStructure, item);
+            }
+        });
+        return eventLayers;
+    };
+    utlis.getLayersStructureAtLevel = function (index, level, eventLayers) {
+        if (index === level) {
+            return eventLayers;
+        }
+        return utlis.getLayersStructureAtLevel(index, ++level, eventLayers[0].layers);
+    };
+    utlis.spliceAllButItem = function (spliceArray, itemArray) {
+        for (var i = 0; i < spliceArray.length; i++) {
+            if (!(~itemArray.indexOf(i))) {
+                spliceArray.splice(i, 1);
+                itemArray.forEach(function (item, index) {
+                    if (item > 0) {
+                        itemArray[index] = --item;
+                    }
+                });
+                i--;
+            }
+        }
+    };
+    utlis.getView = function (commonRef, viewName) {
+        var viewLayers = commonRef.layer.layers;
+        try {
+            for (var viewLayers_1 = __values(viewLayers), viewLayers_1_1 = viewLayers_1.next(); !viewLayers_1_1.done; viewLayers_1_1 = viewLayers_1.next()) {
+                var item = viewLayers_1_1.value;
+                if (item.name === viewName) {
+                    return item.id;
+                }
+            }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (viewLayers_1_1 && !viewLayers_1_1.done && (_a = viewLayers_1.return)) _a.call(viewLayers_1);
+            }
+            finally { if (e_5) throw e_5.error; }
+        }
+        return null;
+        var e_5, _a;
+    };
+    utlis.getPlatformRef = function (platform, activeDocument) {
+        var activeLayers = activeDocument.layers.layers;
+        try {
+            for (var activeLayers_1 = __values(activeLayers), activeLayers_1_1 = activeLayers_1.next(); !activeLayers_1_1.done; activeLayers_1_1 = activeLayers_1.next()) {
+                var layer = activeLayers_1_1.value;
+                if (layer.name === platform) {
+                    return layer;
+                }
+            }
+        }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        finally {
+            try {
+                if (activeLayers_1_1 && !activeLayers_1_1.done && (_a = activeLayers_1.return)) _a.call(activeLayers_1);
+            }
+            finally { if (e_6) throw e_6.error; }
+        }
+        var e_6, _a;
+    };
+    utlis.hasKey = function (keyArray, key) {
+        try {
+            for (var keyArray_1 = __values(keyArray), keyArray_1_1 = keyArray_1.next(); !keyArray_1_1.done; keyArray_1_1 = keyArray_1.next()) {
+                var item = keyArray_1_1.value;
+                if (item.hasOwnProperty(key)) {
+                    return item;
+                }
+            }
+        }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        finally {
+            try {
+                if (keyArray_1_1 && !keyArray_1_1.done && (_a = keyArray_1.return)) _a.call(keyArray_1);
+            }
+            finally { if (e_7) throw e_7.error; }
+        }
+        return null;
+        var e_7, _a;
+    };
+    utlis.breakArrayOnTrue = function (breakArray) {
+        var splitIndexes = [];
+        for (var i = 0; i < breakArray.length; i++) {
+            if (breakArray[i] === true && breakArray[i + 1] !== true && breakArray[i + 2] !== true) {
+                splitIndexes.push(i);
+            }
+        }
+        splitIndexes.unshift(0);
+        var breakArrays = [];
+        splitIndexes.forEach(function (splitIndex, index) {
+            if (splitIndexes[index + 1]) {
+                breakArrays.push(breakArray.slice(splitIndexes[index] + Math.ceil(index / 100000), splitIndexes[index + 1] + 1));
+            }
+        });
+        return breakArrays;
     };
     return utlis;
 }());

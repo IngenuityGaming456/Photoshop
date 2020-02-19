@@ -234,29 +234,39 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private handleViewDuplicates(viewLayers, uiMap) {
-        uiMap = uiMap || {};
+        uiMap = uiMap || [];
         viewLayers.forEach(item => {
-            //Mocking a text layer as it does not have generator setting by default.
-            if(item.type === "textLayer") {
-                item["generatorSettings"] = {};
-                item["generatorSettings"][this._pluginId] = {};
-                item["generatorSettings"][this._pluginId]["json"] = "label";
+            if(~uiMap.indexOf(item.name)) {
+                const sequence = this.getCorrectSequence(uiMap, item.name, 1);
+                uiMap.push(item.name + sequence);
+                item.name = item.name + sequence;
+            }else {
+                uiMap.push(item.name);
             }
-            if(item.generatorSettings && item.generatorSettings[this._pluginId]) {
-                const genSettings = item.generatorSettings[this._pluginId].json;
-                if(!uiMap.hasOwnProperty(genSettings)) {
-                    uiMap[genSettings] = [];
-                    uiMap[genSettings].push(item.name);
-                } else {
-                    if(~uiMap[genSettings].indexOf(item.name)) {
-                        const sequence = this.getCorrectSequence(uiMap[genSettings], item.name, 1);
-                        uiMap[genSettings].push(item.name + sequence);
-                        item.name = item.name + sequence;
-                    } else {
-                        uiMap[genSettings].push(item.name);
-                    }
-                }
-            }
+            // //Mocking a text layer as it does not have generator setting by default.
+            // if(item.type === "textLayer") {
+            //     utlis.putComponentInGeneratorSettings(item, this._pluginId, "label");
+            //
+            // }
+            // if(item.type === "layerSection") {
+            //     utlis.putComponentInGeneratorSettings(item, this._pluginId, "container");
+            // }
+            // if(item.type === "layer") {
+            //     utlis.putComponentInGeneratorSettings(item, this._pluginId, "image");
+            // }
+            // if(item.generatorSettings && item.generatorSettings[this._pluginId]) {
+            //     const genSettings = item.generatorSettings[this._pluginId].json;
+            //     if(!uiMap.hasOwnProperty(genSettings)) {
+            //         uiMap[genSettings] = [];
+            //         uiMap[genSettings].push(item.name);
+            //     } else {
+            //         if(~uiMap[genSettings].indexOf(item.name)) {
+            //
+            //         } else {
+            //             uiMap[genSettings].push(item.name);
+            //         }
+            //     }
+            // }
             if(item.layers) {
                 this.handleViewDuplicates(item.layers, uiMap);
             }
