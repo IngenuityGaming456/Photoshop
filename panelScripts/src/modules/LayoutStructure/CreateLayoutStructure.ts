@@ -18,6 +18,8 @@ export class CreateLayoutStructure implements IFactory {
     private modelFactory;
     private assetsPath;
     private docEmitter;
+    //just for test
+    private overlook = ["Static", "Animation", "Animations", "Blur", "trigger", "landing", "win"]
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
@@ -236,6 +238,9 @@ export class CreateLayoutStructure implements IFactory {
     private handleViewDuplicates(viewLayers, uiMap) {
         uiMap = uiMap || [];
         viewLayers.forEach(item => {
+            if(~this.overlook.indexOf(item.name)) {
+                return;
+            }
             if(~uiMap.indexOf(item.name)) {
                 const sequence = this.getCorrectSequence(uiMap, item.name, 1);
                 uiMap.push(item.name + sequence);

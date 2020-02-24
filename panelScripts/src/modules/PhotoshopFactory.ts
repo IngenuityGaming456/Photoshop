@@ -4,6 +4,7 @@ import {JsonComponentsFactory} from "./JsonComponentsFactory";
 import {PhotoshopJsonComponent, QuestJsonComponent} from "./JsonComponents";
 import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 
 let packageJson = require("../../package.json");
 
@@ -38,8 +39,13 @@ export class PhotoshopFactory implements IFactory {
                 await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject);
             } else {
                 this.baseView = parentKey;
-                this.platform && this.modifyJSXParams(jsxParams, this.getMappedKey(), layerType);
+                const mappedKey = this.getMappedKey();
+                if(mappedKey) {
+                    (this.photoshopModel as PhotoshopModelApp).automationOn = true;
+                }
+                this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
                 await this.createElementTree(jsxParams, layerType, parentKey);
+                (this.photoshopModel as PhotoshopModelApp).automationOn = false;
             }
         }
     }

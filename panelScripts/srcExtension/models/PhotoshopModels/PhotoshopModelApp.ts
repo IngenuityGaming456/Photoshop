@@ -18,6 +18,7 @@ export class PhotoshopModelApp extends PhotoshopModel {
     private selectedIdName;
     private selectedId;
     private localisationStruct = null;
+    private isAutomationOn = false;
 
     execute(params: IParams) {
         super.execute(params);
@@ -94,11 +95,19 @@ export class PhotoshopModelApp extends PhotoshopModel {
     }
 
     private async storeSelectedName() {
+        if(this.isAutomationOn) {
+            return;
+        }
+        await Promise.resolve();
         let selectedLayersString = await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayers.jsx"));
         this.selectedIdName = selectedLayersString.toString().split(",")[0];
     }
 
     private async storeSelectedIds() {
+        if(this.isAutomationOn) {
+            return;
+        }
+        await Promise.resolve();
         let selectedLayersString = await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayersIds.jsx"));
         this.selectedId = selectedLayersString.toString().split(",")[0];
     }
@@ -174,6 +183,14 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     get docLocalisationStruct() {
         return this.localisationStruct;
+    }
+
+    set automationOn(value) {
+        this.isAutomationOn = value;
+    }
+
+    get automationOn() {
+        return this.isAutomationOn;
     }
 
 }

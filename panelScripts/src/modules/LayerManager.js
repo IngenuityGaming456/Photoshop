@@ -69,20 +69,7 @@ var LayerManager = /** @class */ (function () {
         this._generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers, isNewDocument) {
             _this.onLayersAdded(eventLayers, isNewDocument);
         });
-        this._generator.on(constants_1.photoshopConstants.generator.select, function () { return __awaiter(_this, void 0, void 0, function () {
-            var selectedLayersString;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.eventName = Events.SELECT;
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
-                    case 1:
-                        selectedLayersString = _a.sent();
-                        this.selectedLayers = selectedLayersString.toString().split(",");
-                        return [2 /*return*/];
-                }
-            });
-        }); });
+        this._generator.on(constants_1.photoshopConstants.generator.select, function () { return _this.onLayersSelected(); });
         this._generator.on(constants_1.photoshopConstants.generator.copy, function () {
             _this.eventName = Events.COPY;
         });
@@ -105,6 +92,25 @@ var LayerManager = /** @class */ (function () {
         });
         this.docEmitter.on(constants_1.photoshopConstants.localisation, function (localisedLayers) {
             _this.localisedLayers = localisedLayers;
+        });
+    };
+    LayerManager.prototype.onLayersSelected = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var selectedLayersString;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.eventName = Events.SELECT;
+                        if (this.modelFactory.getPhotoshopModel().automationOn) {
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
+                    case 1:
+                        selectedLayersString = _a.sent();
+                        this.selectedLayers = selectedLayersString.toString().split(",");
+                        return [2 /*return*/];
+                }
+            });
         });
     };
     LayerManager.prototype.onLayersAdded = function (eventLayers, isNewDocument) {

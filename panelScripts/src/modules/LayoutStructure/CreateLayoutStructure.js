@@ -74,6 +74,8 @@ var CreateLayoutStructure = /** @class */ (function () {
     function CreateLayoutStructure(modelFactory) {
         //dirty hack for test
         this.modifiedIds = [];
+        //just for test
+        this.overlook = ["Static", "Animation", "Animations", "Blur", "trigger", "landing", "win"];
         this.modelFactory = modelFactory;
         this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds;
         this.modifiedIds.length = 0;
@@ -417,6 +419,9 @@ var CreateLayoutStructure = /** @class */ (function () {
         var _this = this;
         uiMap = uiMap || [];
         viewLayers.forEach(function (item) {
+            if (~_this.overlook.indexOf(item.name)) {
+                return;
+            }
             if (~uiMap.indexOf(item.name)) {
                 var sequence = _this.getCorrectSequence(uiMap, item.name, 1);
                 uiMap.push(item.name + sequence);

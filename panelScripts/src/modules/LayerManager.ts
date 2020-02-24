@@ -3,6 +3,7 @@ import {IFactory, IParams} from "../interfaces/IJsxParam";
 import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
@@ -36,11 +37,7 @@ export class LayerManager implements IFactory{
         this._generator.on(pc.generator.layersAdded, (eventLayers, isNewDocument) => {
             this.onLayersAdded(eventLayers, isNewDocument);
         });
-        this._generator.on(pc.generator.select, async () => {
-            this.eventName = Events.SELECT;
-            let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
-            this.selectedLayers = selectedLayersString.toString().split(",");
-        });
+        this._generator.on(pc.generator.select, () => this.onLayersSelected());
         this._generator.on(pc.generator.copy, () => {
             this.eventName = Events.COPY;
         });
@@ -63,6 +60,15 @@ export class LayerManager implements IFactory{
         this.docEmitter.on(pc.localisation, localisedLayers => {
             this.localisedLayers = localisedLayers;
         });
+    }
+
+    private async onLayersSelected() {
+        this.eventName = Events.SELECT;
+        if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).automationOn) {
+            return;
+        }
+        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+        this.selectedLayers = selectedLayersString.toString().split(",");
     }
 
     private async onLayersAdded(eventLayers, isNewDocument) {

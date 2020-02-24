@@ -81,6 +81,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         _this.lastId = null;
         _this.lastRenameId = null;
         _this.localisationStruct = null;
+        _this.isAutomationOn = false;
         return _this;
     }
     PhotoshopModelApp.prototype.execute = function (params) {
@@ -170,8 +171,15 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
             var selectedLayersString;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayers.jsx"))];
+                    case 0:
+                        if (this.isAutomationOn) {
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, Promise.resolve()];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayers.jsx"))];
+                    case 2:
                         selectedLayersString = _a.sent();
                         this.selectedIdName = selectedLayersString.toString().split(",")[0];
                         return [2 /*return*/];
@@ -184,8 +192,15 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
             var selectedLayersString;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayersIds.jsx"))];
+                    case 0:
+                        if (this.isAutomationOn) {
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, Promise.resolve()];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayersIds.jsx"))];
+                    case 2:
                         selectedLayersString = _a.sent();
                         this.selectedId = selectedLayersString.toString().split(",")[0];
                         return [2 /*return*/];
@@ -288,6 +303,16 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         },
         set: function (value) {
             this.localisationStruct = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModelApp.prototype, "automationOn", {
+        get: function () {
+            return this.isAutomationOn;
+        },
+        set: function (value) {
+            this.isAutomationOn = value;
         },
         enumerable: true,
         configurable: true

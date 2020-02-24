@@ -50,7 +50,7 @@ var PhotoshopFactory = /** @class */ (function () {
     };
     PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform) {
         return __awaiter(this, void 0, void 0, function () {
-            var layerType, _a, _b, _i, keys, jsxParams;
+            var layerType, _a, _b, _i, keys, jsxParams, mappedKey;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -79,10 +79,15 @@ var PhotoshopFactory = /** @class */ (function () {
                         return [3 /*break*/, 6];
                     case 4:
                         this.baseView = parentKey;
-                        this.platform && this.modifyJSXParams(jsxParams, this.getMappedKey(), layerType);
+                        mappedKey = this.getMappedKey();
+                        if (mappedKey) {
+                            this.photoshopModel.automationOn = true;
+                        }
+                        this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
                         return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey)];
                     case 5:
                         _c.sent();
+                        this.photoshopModel.automationOn = false;
                         _c.label = 6;
                     case 6:
                         _i++;
