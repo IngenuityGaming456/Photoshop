@@ -4,6 +4,7 @@ import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
+import set = Reflect.set;
 
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
@@ -80,7 +81,7 @@ export class LayerManager implements IFactory{
             });
             return;
         }
-        this.addBufferData(eventLayers);
+        await this.addBufferData(eventLayers);
     }
 
     private constructQueuedArray(eventLayers) {
@@ -118,7 +119,12 @@ export class LayerManager implements IFactory{
                 await this.handleDuplicateEvent(changedLayers);
                 break;
             default :
-                await this.handleImportEvent(changedLayers, undefined);
+                const mappedIds = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).getMappedIds();
+                if(mappedIds.length) {
+                    await this.handleDuplicate(changedLayers, mappedIds, []);
+                } else {
+                    await this.handleImportEvent(changedLayers, undefined);
+                }
         }
     }
 
@@ -195,19 +201,29 @@ export class LayerManager implements IFactory{
         //console.log("Paste Image Pixel Data Addition Started");
         const layersCount = layersArray.length;
         for(let i=0;i<layersCount;i++) {
-            const copiedLayerRef = this.findLayerRef(this._activeDocument.layers.layers,
-                                                     parentLayers[i]);
+            const copiedLayerRef = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
             if(copiedLayerRef instanceof LayerClass.LayerGroup) {
-                await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
+                await this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id);
                 const pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
                 if(~deletedLayers.indexOf(pastedLayerRef.id)) {
                     continue;
                 }
                 await this.handleGroupEvent(copiedLayerRef, pastedLayerRef);
             } else {
-                await this.setBufferOnEvent(this._activeDocument.id, parentLayers[i], layersArray[i].id);
+                copiedLayerRef && await this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id);
             }
         }
+    }
+
+    private getCorrectCopiedLayerRef(layerName, parentLayers) {
+        for(let id of parentLayers) {
+            const ref = this.findLayerRef(this._activeDocument.layers.layers,
+                id);
+            if(ref && ref.layer && ref.layer.name === layerName || ref && ref.name && ref.name === layerName) {
+                return ref;
+            }
+        }
+        return null;
     }
 
     private async handleGroupEvent(copiedLayerGroup, pastedLayerGroup) {
@@ -219,6 +235,7 @@ export class LayerManager implements IFactory{
                 await this.handleGroupEvent(copiedLayers[i], pastedLayers[i]);
             } else {
                 await this.setBufferOnEvent(this._activeDocument.id, copiedLayers[i].id, pastedLayers[i].id);
+                console.log("Duplicate Image Pixel Data Added ", pastedLayers[i].id);
             }
         }
     }
@@ -226,7 +243,6 @@ export class LayerManager implements IFactory{
     private async setBufferOnEvent(documentId, copyId, pasteId) {
         let bufferPayload = await this._generator.getLayerSettingsForPlugin(documentId, copyId, this.pluginId);
         await this.setLayerSettings(bufferPayload, pasteId);
-        //console.log("Paste Image Pixel Data Added");
     }
 
     private findLayerRef(documentLayers, layerId) {

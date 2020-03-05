@@ -71,11 +71,10 @@ var utils_1 = require("../../utils/utils");
 var constants_1 = require("../../constants");
 var packageJson = require("../../../package.json");
 var CreateLayoutStructure = /** @class */ (function () {
+    //just for test
     function CreateLayoutStructure(modelFactory) {
         //dirty hack for test
         this.modifiedIds = [];
-        //just for test
-        this.overlook = ["Static", "Animation", "Animations", "Blur", "trigger", "landing", "win"];
         this.modelFactory = modelFactory;
         this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds;
         this.modifiedIds.length = 0;
@@ -106,6 +105,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                         return [4 /*yield*/, this.requestDocument()];
                     case 4:
                         result = _a.sent();
+                        this.result = result;
                         utils_1.utlis.traverseObject(result.layers, this.filterResult.bind(this));
                         this.modifyJSON(result.layers);
                         this.modifyBottomBar(result.layers);
@@ -351,6 +351,9 @@ var CreateLayoutStructure = /** @class */ (function () {
     CreateLayoutStructure.prototype.modifyJSON = function (resultLayers) {
         var _this = this;
         resultLayers.forEach(function (item) {
+            if (!item.layers) {
+                return;
+            }
             if (item.name === constants_1.photoshopConstants.views.freeGame) {
                 var freeGameLayers = item.layers;
                 var symbolRef = freeGameLayers.find(function (itemFG) {
@@ -419,7 +422,8 @@ var CreateLayoutStructure = /** @class */ (function () {
         var _this = this;
         uiMap = uiMap || [];
         viewLayers.forEach(function (item) {
-            if (~_this.overlook.indexOf(item.name)) {
+            if (item.type === "layerSection" && !(item.generatorSettings && item.generatorSettings[_this._pluginId])
+                && utils_1.utlis.isNotContainer(item, _this._activeDocument, _this.result.layers, _this._pluginId)) {
                 return;
             }
             if (~uiMap.indexOf(item.name)) {

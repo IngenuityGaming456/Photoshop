@@ -82,6 +82,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         _this.lastRenameId = null;
         _this.localisationStruct = null;
         _this.isAutomationOn = false;
+        _this.mappedIds = [];
         return _this;
     }
     PhotoshopModelApp.prototype.execute = function (params) {
@@ -317,6 +318,12 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
+    PhotoshopModelApp.prototype.setMappedIds = function (id) {
+        this.mappedIds.push(id);
+    };
+    PhotoshopModelApp.prototype.getMappedIds = function () {
+        return this.mappedIds;
+    };
     return PhotoshopModelApp;
 }(PhotoshopModel_1.PhotoshopModel));
 exports.PhotoshopModelApp = PhotoshopModelApp;

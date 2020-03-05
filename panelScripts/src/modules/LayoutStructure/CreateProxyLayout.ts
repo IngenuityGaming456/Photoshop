@@ -120,6 +120,9 @@ export class CreateProxyLayout implements IFactory {
     }
 
     private inspectSymbols(viewLayer) {
+        if(!viewLayer.layers) {
+            return;
+        }
         for(let item of viewLayer.layers) {
             if(item.name === pc.generatorButtons.symbols && item.layers) {
                 item.layers.forEach(itemS => {
@@ -131,7 +134,7 @@ export class CreateProxyLayout implements IFactory {
 
     private checkIfStaticEmpty(item) {
         if(item.type === "layerSection") {
-            item.layers.forEach(itemS => {
+            item.layers && item.layers.forEach(itemS => {
                 if(itemS.name === pc.static) {
                     if (!itemS.layers) {
                         this.logError(itemS.id, itemS.name, `Symbol with name ${item.name} has empty Static folder`);

@@ -144,6 +144,7 @@ export class PhotoshopFactory implements IFactory {
             });
             if(mappedLayer) {
                 jsxParams[pc.mappedItem] = mappedLayer;
+                (this.photoshopModel as PhotoshopModelApp).setMappedIds(mappedLayer.id);
                 return;
             }
         }

@@ -252,6 +252,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
             if (mappedLayer) {
                 jsxParams[constants_1.photoshopConstants.mappedItem] = mappedLayer;
+                this.photoshopModel.setMappedIds(mappedLayer.id);
                 return;
             }
         }

@@ -4,6 +4,7 @@ import {utlis} from "../utils/utils";
 import * as layerClass from "../../lib/dom/layer";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 import {photoshopConstants as pc} from "../constants";
+const cloneDeep = require('lodash/cloneDeep.js');
 
 export class ContainerPanelResponse implements IFactory {
     private modelFactory: ModelFactory;
@@ -51,33 +52,46 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async onLayersDeleted(eventLayers) {
+        const activeDocumentCopy = cloneDeep(this.activeDocument);
         if((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isDeletedFromLayout) {
             (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).isDeletedFromLayout = false;
             return;
         }
         const questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-        eventLayers.forEach(item => {
+        for(let item of eventLayers) {
             if(item.removed) {
                 const element = utlis.isIDExists(item.id, questArray);
                 if(element) {
-                    const elementView = utlis.getElementView(element, this.activeDocument.layers);
-                    const elementPlatform = utlis.getElementPlatform(element, this.activeDocument.layers);
-                    this.socket.emit(pc.socket.uncheckFromContainerPanel, elementPlatform, elementView, element.name);
+                    const elementView = utlis.getElementView(element, activeDocumentCopy._layers);
+                    const elementPlatform = utlis.getElementPlatform(element, activeDocumentCopy._layers);
+                    await this.sendResponseToPanel(elementView, elementPlatform, element.name);
                 }
             }
-        });
+        }
         utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap,
                               this.deletionHandler);
+    }
+
+    private sendResponseToPanel(elementView, elementPlatform, elementName) {
+        return new Promise(resolve => {
+            const eventNames = this.socket.eventNames();
+            if(~eventNames.indexOf("uncheckFinished")) {
+                this.socket.removeAllListeners("uncheckFinished");
+            }
+            this.socket.on("uncheckFinished", () => resolve());
+            this.socket.emit(pc.socket.uncheckFromContainerPanel, elementPlatform, elementView, elementName)
+        });
     }
 
     private async getDataForChanges() {
         const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse;
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
         if(previousResponse) {
-            this.getChanges(previousResponse, currentResponse);
+            await this.getChanges(previousResponse, currentResponse);
         } else {
             await this.construct(currentResponse);
         }
+        setTimeout(() => this.resetMappedIds(), 0);
     }
 
     private async construct(currentResponse) {
@@ -182,6 +196,11 @@ export class ContainerPanelResponse implements IFactory {
 
     private onCurrentDocument() {
         this.socket.emit(pc.socket.enablePage);
+    }
+
+    private resetMappedIds() {
+        const mappedIds = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).getMappedIds()
+        mappedIds.length = 0;
     }
 
 }

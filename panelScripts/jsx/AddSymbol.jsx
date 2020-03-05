@@ -10,8 +10,9 @@ var layerConfig = {
 
 var callObj = makeSpecials("Symbols", "Symbol", drawSymbols);
 
-function drawSymbols(symbolsRef, symbolName) {
+function drawSymbols(symbolsRef, symbolName, obj) {
     var symbolNameRef = insertLayer(symbolsRef, symbolName, "layerSection");
+    obj.specialIds += symbolNameRef.id;
     for (var i = 0; i < symbolStructLength; i++) {
         insertLayer(symbolNameRef, symbolStruct[i], "layerSection");
     }

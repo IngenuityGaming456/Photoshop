@@ -47,6 +47,7 @@ var __values = (this && this.__values) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../utils/utils");
 var constants_1 = require("../constants");
+var cloneDeep = require('lodash/cloneDeep.js');
 var ContainerPanelResponse = /** @class */ (function () {
     function ContainerPanelResponse(modelFactory, photoshopFactory) {
         this.platformArray = [];
@@ -81,52 +82,93 @@ var ContainerPanelResponse = /** @class */ (function () {
     };
     ContainerPanelResponse.prototype.onLayersDeleted = function (eventLayers) {
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            var questArray;
-            return __generator(this, function (_a) {
-                if (this.modelFactory.getPhotoshopModel().isDeletedFromLayout) {
-                    this.modelFactory.getPhotoshopModel().isDeletedFromLayout = false;
-                    return [2 /*return*/];
-                }
-                questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
-                eventLayers.forEach(function (item) {
-                    if (item.removed) {
-                        var element = utils_1.utlis.isIDExists(item.id, questArray);
-                        if (element) {
-                            var elementView = utils_1.utlis.getElementView(element, _this.activeDocument.layers);
-                            var elementPlatform = utils_1.utlis.getElementPlatform(element, _this.activeDocument.layers);
-                            _this.socket.emit(constants_1.photoshopConstants.socket.uncheckFromContainerPanel, elementPlatform, elementView, element.name);
+            var activeDocumentCopy, questArray, eventLayers_1, eventLayers_1_1, item, element, elementView, elementPlatform, e_1_1, e_1, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        activeDocumentCopy = cloneDeep(this.activeDocument);
+                        if (this.modelFactory.getPhotoshopModel().isDeletedFromLayout) {
+                            this.modelFactory.getPhotoshopModel().isDeletedFromLayout = false;
+                            return [2 /*return*/];
                         }
-                    }
-                });
-                utils_1.utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap, this.deletionHandler);
-                return [2 /*return*/];
+                        questArray = this.modelFactory.getPhotoshopModel().allDrawnQuestItems;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, 7, 8]);
+                        eventLayers_1 = __values(eventLayers), eventLayers_1_1 = eventLayers_1.next();
+                        _b.label = 2;
+                    case 2:
+                        if (!!eventLayers_1_1.done) return [3 /*break*/, 5];
+                        item = eventLayers_1_1.value;
+                        if (!item.removed) return [3 /*break*/, 4];
+                        element = utils_1.utlis.isIDExists(item.id, questArray);
+                        if (!element) return [3 /*break*/, 4];
+                        elementView = utils_1.utlis.getElementView(element, activeDocumentCopy._layers);
+                        elementPlatform = utils_1.utlis.getElementPlatform(element, activeDocumentCopy._layers);
+                        return [4 /*yield*/, this.sendResponseToPanel(elementView, elementPlatform, element.name)];
+                    case 3:
+                        _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        eventLayers_1_1 = eventLayers_1.next();
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
+                        e_1_1 = _b.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        try {
+                            if (eventLayers_1_1 && !eventLayers_1_1.done && (_a = eventLayers_1.return)) _a.call(eventLayers_1);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 8:
+                        utils_1.utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap, this.deletionHandler);
+                        return [2 /*return*/];
+                }
             });
+        });
+    };
+    ContainerPanelResponse.prototype.sendResponseToPanel = function (elementView, elementPlatform, elementName) {
+        var _this = this;
+        return new Promise(function (resolve) {
+            var eventNames = _this.socket.eventNames();
+            if (~eventNames.indexOf("uncheckFinished")) {
+                _this.socket.removeAllListeners("uncheckFinished");
+            }
+            _this.socket.on("uncheckFinished", function () { return resolve(); });
+            _this.socket.emit(constants_1.photoshopConstants.socket.uncheckFromContainerPanel, elementPlatform, elementView, elementName);
         });
     };
     ContainerPanelResponse.prototype.getDataForChanges = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
             var previousResponse, currentResponse;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse;
                         currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
-                        if (!previousResponse) return [3 /*break*/, 1];
-                        this.getChanges(previousResponse, currentResponse);
-                        return [3 /*break*/, 3];
-                    case 1: return [4 /*yield*/, this.construct(currentResponse)];
-                    case 2:
+                        if (!previousResponse) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.getChanges(previousResponse, currentResponse)];
+                    case 1:
                         _a.sent();
-                        _a.label = 3;
-                    case 3: return [2 /*return*/];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, this.construct(currentResponse)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4:
+                        setTimeout(function () { return _this.resetMappedIds(); }, 0);
+                        return [2 /*return*/];
                 }
             });
         });
     };
     ContainerPanelResponse.prototype.construct = function (currentResponse) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, platform, viewObj, _c, _d, _i, view, e_1_1, e_1, _e;
+            var _a, _b, platform, viewObj, _c, _d, _i, view, e_2_1, e_2, _e;
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
@@ -169,14 +211,14 @@ var ContainerPanelResponse = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 8: return [3 /*break*/, 11];
                     case 9:
-                        e_1_1 = _f.sent();
-                        e_1 = { error: e_1_1 };
+                        e_2_1 = _f.sent();
+                        e_2 = { error: e_2_1 };
                         return [3 /*break*/, 11];
                     case 10:
                         try {
                             if (_b && !_b.done && (_e = _a.return)) _e.call(_a);
                         }
-                        finally { if (e_1) throw e_1.error; }
+                        finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
                     case 11: return [2 /*return*/];
                 }
@@ -219,7 +261,7 @@ var ContainerPanelResponse = /** @class */ (function () {
     };
     ContainerPanelResponse.prototype.getChanges = function (previousResponseMap, responseMap) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, platform, e_2_1, e_2, _c;
+            var _a, _b, platform, e_3_1, e_3, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -238,14 +280,14 @@ var ContainerPanelResponse = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 4: return [3 /*break*/, 7];
                     case 5:
-                        e_2_1 = _d.sent();
-                        e_2 = { error: e_2_1 };
+                        e_3_1 = _d.sent();
+                        e_3 = { error: e_3_1 };
                         return [3 /*break*/, 7];
                     case 6:
                         try {
                             if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                         }
-                        finally { if (e_2) throw e_2.error; }
+                        finally { if (e_3) throw e_3.error; }
                         return [7 /*endfinally*/];
                     case 7: return [2 /*return*/];
                 }
@@ -369,6 +411,10 @@ var ContainerPanelResponse = /** @class */ (function () {
     };
     ContainerPanelResponse.prototype.onCurrentDocument = function () {
         this.socket.emit(constants_1.photoshopConstants.socket.enablePage);
+    };
+    ContainerPanelResponse.prototype.resetMappedIds = function () {
+        var mappedIds = this.modelFactory.getPhotoshopModel().getMappedIds();
+        mappedIds.length = 0;
     };
     return ContainerPanelResponse;
 }());

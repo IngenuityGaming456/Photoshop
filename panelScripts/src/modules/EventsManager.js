@@ -212,7 +212,10 @@ var EventsManager = /** @class */ (function () {
                 return true;
             }
             if (subLayer.hasOwnProperty("layers")) {
-                return this.isAtLevel(subLayer.layers, key);
+                var levelValue = this.isAtLevel(subLayer.layers, key);
+                if (levelValue) {
+                    return true;
+                }
             }
         }
         return false;

@@ -8,7 +8,9 @@ var layerConfig = {
 
 function makeSpecials(specialName, singular, callBack) {
     try {
-        specialIds = "";
+        var obj = {
+            specialIds : ""
+        };
         var isValid = false;
         var selectedLayersIds = $.evalFile("D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\SelectedLayersIds.jsx");
         var selectedLayersIdsArray = selectedLayersIds.toString().split(",");
@@ -19,23 +21,23 @@ function makeSpecials(specialName, singular, callBack) {
                 var startCount = getStartCount(layerRef);
                 var symbolCount = quickMaker(specialName);
                 for(var j=0;j<symbolCount;j++) {
-                    if(j > 0) specialIds += ",";
+                    if(j > 0) obj.specialIds += ",";
                     var addedSequence = Number(startCount) + j + 1;
-                    app.doForcedProgress("Making" + specialName, "callBack(layerRef, singular + addedSequence)");
+                    app.doForcedProgress("Making" + specialName, "callBack(layerRef, singular + addedSequence, obj)");
                 }
                 isValid = true;
                 break;
             }
         }
-        return isValid + "," + specialName + "," + specialIds;
+        return isValid + "," + specialName + "," + obj.specialIds;
     } catch(err) {
         return false + "," + specialName;
     }
 }
 
-function drawSpecials(specialRef, specialName) {
+function drawSpecials(specialRef, specialName, obj) {
     var specRef = insertLayer(specialRef, specialName, "layerSection");
-    specialIds += specRef.id;
+    obj.specialIds += specRef.id;
     for (var i = 0; i < specialStructLength; i++) {
         var layerRef = insertLayer(specRef, specialStruct[i], "layerSection");
         if(specialStruct[i] !== "Static") {

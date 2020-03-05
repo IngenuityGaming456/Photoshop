@@ -19,6 +19,7 @@ export class PhotoshopModelApp extends PhotoshopModel {
     private selectedId;
     private localisationStruct = null;
     private isAutomationOn = false;
+    private mappedIds = [];
 
     execute(params: IParams) {
         super.execute(params);
@@ -191,6 +192,14 @@ export class PhotoshopModelApp extends PhotoshopModel {
 
     get automationOn() {
         return this.isAutomationOn;
+    }
+
+    public setMappedIds(id) {
+        this.mappedIds.push(id);
+    }
+
+    public getMappedIds() {
+        return this.mappedIds;
     }
 
 }

@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as layerClass from "../../lib/dom/layer";
 import {photoshopConstants as pc} from "../constants";
+import {JsonComponentsFactory} from "../modules/JsonComponentsFactory";
 
 export class utlis {
 
@@ -430,6 +431,38 @@ export class utlis {
             }
         });
         return breakArrays;
+    }
+
+    public static isNotContainer(item, activeDocument, resultLayers, pluginId) {
+        if(!item) {
+            return true
+        }
+        const itemRef = activeDocument.layers.findLayer(item.id);
+        const itemRefResult = utlis.findLayerInResult(item.id, resultLayers);
+        if(itemRefResult && itemRefResult.generatorSettings && itemRefResult.generatorSettings[pluginId]) {
+            const genSettings = itemRefResult.generatorSettings[pluginId].json;
+            const jsonMap = JsonComponentsFactory.makeJsonComponentsMap();
+            const keysArray = [...jsonMap.keys(), ...["payline", "winframe", "symbol"]];
+            return keysArray.some(type => {
+                return !!(~genSettings.search(type));
+            });
+        }
+        return utlis.isNotContainer(itemRef.layer.group, activeDocument, resultLayers, pluginId);
+    }
+
+    public static findLayerInResult(id, resultLayers) {
+        for(let item of resultLayers) {
+            if(item.id === id) {
+                return item;
+            }
+            if(item.layers) {
+                const returnValue = utlis.findLayerInResult(id, item.layers);
+                if(returnValue) {
+                    return returnValue;
+                }
+            }
+        }
+        return null;
     }
 
 }

@@ -268,6 +268,9 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.inspectSymbols = function (viewLayer) {
         var _this = this;
+        if (!viewLayer.layers) {
+            return;
+        }
         try {
             for (var _a = __values(viewLayer.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
                 var item = _b.value;
@@ -290,7 +293,7 @@ var CreateProxyLayout = /** @class */ (function () {
     CreateProxyLayout.prototype.checkIfStaticEmpty = function (item) {
         var _this = this;
         if (item.type === "layerSection") {
-            item.layers.forEach(function (itemS) {
+            item.layers && item.layers.forEach(function (itemS) {
                 if (itemS.name === constants_1.photoshopConstants.static) {
                     if (!itemS.layers) {
                         _this.logError(itemS.id, itemS.name, "Symbol with name " + item.name + " has empty Static folder");

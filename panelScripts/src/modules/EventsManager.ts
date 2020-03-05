@@ -216,7 +216,10 @@ export class EventsManager implements IFactory{
                 return true;
             }
             if(subLayer.hasOwnProperty("layers")) {
-                return this.isAtLevel(subLayer.layers, key);
+                const levelValue = this.isAtLevel(subLayer.layers, key);
+                if (levelValue) {
+                    return true;
+                }
             }
         }
         return false;

@@ -40,7 +40,7 @@ export class PhotoshopEventSubject implements ISubjectEvent, IFactory {
                 console.log(err);
             });
         }
-    }
+}
 
     private async onPhotoshopClose() {
         if(this.currentId.id && this.currentId.id !== this.activeId) {

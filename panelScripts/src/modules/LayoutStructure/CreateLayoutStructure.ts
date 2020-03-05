@@ -18,8 +18,8 @@ export class CreateLayoutStructure implements IFactory {
     private modelFactory;
     private assetsPath;
     private docEmitter;
+    private result;
     //just for test
-    private overlook = ["Static", "Animation", "Animations", "Blur", "trigger", "landing", "win"]
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
@@ -40,6 +40,7 @@ export class CreateLayoutStructure implements IFactory {
         await this.restructureTempLayers();
         await this.modifyPathNames();
         const result = await this.requestDocument();
+        this.result = result;
         utlis.traverseObject(result.layers, this.filterResult.bind(this));
         this.modifyJSON(result.layers);
         this.modifyBottomBar(result.layers);
@@ -182,6 +183,9 @@ export class CreateLayoutStructure implements IFactory {
 
     private modifyJSON(resultLayers) {
         resultLayers.forEach(item => {
+            if(!item.layers) {
+                return;
+            }
             if (item.name === pc.views.freeGame) {
                 const freeGameLayers = item.layers;
                 const symbolRef = freeGameLayers.find(itemFG => {
@@ -238,7 +242,8 @@ export class CreateLayoutStructure implements IFactory {
     private handleViewDuplicates(viewLayers, uiMap) {
         uiMap = uiMap || [];
         viewLayers.forEach(item => {
-            if(~this.overlook.indexOf(item.name)) {
+            if(item.type === "layerSection" && !(item.generatorSettings && item.generatorSettings[this._pluginId])
+                && utlis.isNotContainer(item, this._activeDocument, this.result.layers, this._pluginId)) {
                 return;
             }
             if(~uiMap.indexOf(item.name)) {
