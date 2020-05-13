@@ -5,12 +5,12 @@ import {utils} from "../utils/utils";
 import {StateContext} from "../states/context";
 
 export class PanelModel {
-    private storage: Array<Object> = [];
-    private readonly eventsObj: EventEmitter;
+    protected storage: Array<Object> = [];
+    protected readonly eventsObj: EventEmitter;
     private jsonMap = new Map();
     private checkedBoxes: string;
-    private checkBoxArray = [];
-    private stateContext: StateContext;
+    protected checkBoxArray = [];
+    protected stateContext: StateContext;
     private docId;
 
     public constructor(eventsObj: EventEmitter) {
@@ -19,7 +19,7 @@ export class PanelModel {
         this.subscribeListeners();
     }
 
-    private fillStorage() {
+    protected fillStorage() {
         const folderPath = path.join(__dirname, "js/res");
         fs.readdirSync(folderPath).forEach(fileName => {
             const jsonObject = window.require(folderPath + "/" + fileName);

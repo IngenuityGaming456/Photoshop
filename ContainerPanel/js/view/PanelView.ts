@@ -20,8 +20,9 @@ export class PanelView {
     }
 
     private treeView(storage: Array<Object>) {
+        const baseDiv = this.createBaseDiv();
         ["desktop", "portrait", "landscape"].forEach(platform => {
-            this.createJSONForPlatform(platform, storage);
+            this.createJSONForPlatform(platform, storage, baseDiv);
         });
         this.createSubmitButton();
     }
@@ -32,9 +33,9 @@ export class PanelView {
         });
     }
 
-    private createJSONForPlatform(platform, storage) {
-        const parentUL = this.constructHtml();
-        this.insertParentULIntoPlatforms(parentUL, platform);
+    private createJSONForPlatform(platform, storage, baseDiv) {
+        const parentUL = utils.createUL();
+        this.insertParentULIntoPlatforms(parentUL, platform, baseDiv);
         this.leafsMap = new Map();
         storage.forEach(item => {
             this.makeJsonView(item, parentUL);
@@ -69,19 +70,19 @@ export class PanelView {
 
     private handleLeafs(item, key, liObj) {
         if(item[key].parent) {
-            this.handleLeafsWithParent(item[key].id, item[key].parent);
+            this.handleLeafsWithParent(item[key].id, item[key].parent, item[key].type);
             return;
         }
-        this.handleLeafsWithoutParent(item[key].id, liObj);
+        this.handleLeafsWithoutParent(item[key].id, liObj, item[key].type);
     }
 
-    private handleLeafsWithoutParent(key, liObj) {
-        this.checkBoxArray.push(this.insertCheckbox(key, liObj["elements"]));
+    private handleLeafsWithoutParent(key, liObj, type) {
+        this.checkBoxArray.push(this.insertCheckbox(key, liObj["elements"], type));
     }
 
-    private handleLeafsWithParent(key, parent) {
+    private handleLeafsWithParent(key, parent, type) {
         const refObj = this.leafsMap.get(parent);
-        this.checkBoxArray.push(this.insertCheckbox(key, refObj["elements"]));
+        this.checkBoxArray.push(this.insertCheckbox(key, refObj["elements"], type));
     }
 
     private handleBaseElement(item, key: string, parentUL) {
@@ -146,9 +147,9 @@ export class PanelView {
         };
     }
 
-    public addSpan(baseLI, key, className) {
+    public addSpan(baseLI, key, className, type?) {
         const spanLI = document.createElement("span");
-        spanLI.innerText = key;
+        spanLI.innerText = type? key + " [" + type + "]" : key;
         if(className) spanLI.className = className;
         baseLI.append(spanLI);
         return spanLI;
@@ -165,17 +166,22 @@ export class PanelView {
     }
 
     private createSubmitButton() {
-        const submitButton = document.createElement("button");
-        submitButton.type = "button";
-        submitButton.innerText = "Generate";
-        submitButton.className = "submit";
-        document.body.append(submitButton);
-        this.subscribeButtonListener(submitButton);
+        this.createButton("submitClick", "Generate", "submit");
     }
 
-    private subscribeButtonListener(submitButton) {
+    protected createButton(eventString, buttonName, className) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.innerText = buttonName;
+        button.className = className;
+        document.body.append(button);
+        this.subscribeButtonListener(button, eventString);
+        return button;
+    }
+
+    private subscribeButtonListener(submitButton, eventString) {
         submitButton.addEventListener("click", () => {
-            this.eventsObj.emit("submitClick");
+            this.eventsObj.emit(eventString);
         });
     }
 
@@ -189,9 +195,9 @@ export class PanelView {
         return childInput;
     }
 
-    private insertCheckbox(key, parentUL) {
+    private insertCheckbox(key, parentUL, type) {
         const childLI = document.createElement("li");
-        this.addSpan(childLI, key, null);
+        this.addSpan(childLI, key, null, type);
         const childInput = this.insertContainerCheckbox(childLI);
         parentUL.append(childLI);
         childInput.checked = this.stateContext.isChecked(childInput, key);
@@ -209,27 +215,19 @@ export class PanelView {
         }
     }
 
-    private insertParentULIntoPlatforms(parentUL, platform) {
+    private insertParentULIntoPlatforms(parentUL, platform, baseDiv) {
         const platformLI = document.createElement("li");
         const spanLI = this.addSpan(platformLI, platform, "cursor");
         this.subscribeListListener(spanLI);
         platformLI.append(parentUL);
         this.addContainerCheckbox(parentUL, true);
-        document.body.append(platformLI);
+        baseDiv.append(platformLI);
     }
 
-    private constructHtml() {
-        let body;
-        if(!document.body) {
-            body = document.createElement("body");
-        } else {
-            body = document.body;
-        }
-        body.className = "dark";
-        document.documentElement.appendChild(body);
-        const parentUL = document.createElement("ul");
-        parentUL.id = "parentUL";
-        parentUL.className = "nested";
-        return parentUL;
+    private createBaseDiv() {
+        const listDiv = document.createElement("div");
+        listDiv.className = "base";
+        document.body.append(listDiv);
+        return listDiv;
     }
 }

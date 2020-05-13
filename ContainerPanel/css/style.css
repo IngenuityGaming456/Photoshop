@@ -47,6 +47,17 @@ ul {
     color: #c6c8c8;
     cursor: pointer;
 }
+.refresh {
+    position: fixed;
+    bottom: 0;
+    right: 110px;
+    background-color: #595b5b;
+    box-shadow: inset 0 1px #737373;
+    border: 1px solid #333434;
+    border-radius: 4px;
+    color: #c6c8c8;
+    cursor: pointer;
+}
 .submit:hover {
     background-color: #626465;
 }
@@ -63,4 +74,16 @@ ul {
     left: 0px;
     opacity: .5; /* in FireFox */
     filter: alpha(opacity=50); /* in IE */
+}
+.panel {
+    border-style: solid;
+    height: 25%;
+    width: 40%;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+.base {
+    position: relative;
+    top: 120px;
 }

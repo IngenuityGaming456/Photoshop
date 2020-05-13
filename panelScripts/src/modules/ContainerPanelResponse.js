@@ -68,7 +68,7 @@ var ContainerPanelResponse = /** @class */ (function () {
     ContainerPanelResponse.prototype.subscribeListeners = function () {
         var _this = this;
         this.generator.on(constants_1.photoshopConstants.generator.layersDeleted, function (eventLayers) { return _this.onLayersDeleted(eventLayers); });
-        this.docEmitter.on(constants_1.photoshopConstants.emitter.handleSocketResponse, function () { return _this.getDataForChanges(); });
+        this.docEmitter.on(constants_1.photoshopConstants.emitter.handleSocketResponse, function (type) { return _this.getDataForChanges(type); });
         this.docEmitter.on(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, function (socket) { return _this.onSocketUpdate(socket); });
         this.docEmitter.on(constants_1.photoshopConstants.logger.destroy, function () { return _this.onDestroy(); });
         this.docEmitter.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.onNewDocument(); });
@@ -141,15 +141,15 @@ var ContainerPanelResponse = /** @class */ (function () {
             _this.socket.emit(constants_1.photoshopConstants.socket.uncheckFromContainerPanel, elementPlatform, elementView, elementName);
         });
     };
-    ContainerPanelResponse.prototype.getDataForChanges = function () {
+    ContainerPanelResponse.prototype.getDataForChanges = function (type) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             var previousResponse, currentResponse;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse;
-                        currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
+                        previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
+                        currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
                         if (!previousResponse) return [3 /*break*/, 2];
                         return [4 /*yield*/, this.getChanges(previousResponse, currentResponse)];
                     case 1:

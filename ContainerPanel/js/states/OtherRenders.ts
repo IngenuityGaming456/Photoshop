@@ -17,8 +17,10 @@ export class OtherRenders implements IState {
             key = utils.getLISpan(utils.getParentLI(ref)).childNodes[0].nodeValue;
         }
         return this.checkedBoxes.checkedBoxes.some(item => {
-            if(data.platform === item.platform && data.view === item.view && key === item.key) {
-                return true;
+            if(data.platform === item.platform && data.view === item.view) {
+                if(key === item.key || (item.key && ~item.key.search(key))) {
+                    return true;
+                }
             }
         });
     }

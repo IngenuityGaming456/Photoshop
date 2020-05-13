@@ -89,10 +89,20 @@ var PhotoshopModel = /** @class */ (function () {
     PhotoshopModel.prototype.onButtonMenuClicked = function (event) {
         this.clickedMenus.push(event.generatorMenuChanged.name);
     };
-    PhotoshopModel.prototype.handleSocketStorage = function (socketStorage) {
-        this.prevContainerResponse = this.previousContainer;
-        this.containerResponse = socketStorage;
-        this.previousContainer = this.containerResponse;
+    PhotoshopModel.prototype.handleSocketStorage = function (socketStorage, type) {
+        if (type === "quest") {
+            this.prevContainerResponse = this.previousContainer;
+            this.containerResponse = socketStorage;
+            this.previousContainer = this.containerResponse;
+        }
+        else {
+            this.selfPreviousResponse = this.selfPreviousContainer;
+            this.selfContainerResponse = socketStorage;
+            this.selfPreviousContainer = this.selfContainerResponse;
+        }
+    };
+    PhotoshopModel.prototype.setRefreshResponse = function (storage) {
+        this.selfPreviousContainer = storage;
     };
     PhotoshopModel.prototype.createStorage = function () {
         var _this = this;
@@ -208,13 +218,14 @@ var PhotoshopModel = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(PhotoshopModel.prototype, "currentContainerResponse", {
-        get: function () {
+    PhotoshopModel.prototype.currentContainerResponse = function (type) {
+        if (type === "quest") {
             return this.containerResponse;
-        },
-        enumerable: true,
-        configurable: true
-    });
+        }
+        else {
+            return this.selfContainerResponse;
+        }
+    };
     Object.defineProperty(PhotoshopModel.prototype, "mappedPlatformObj", {
         get: function () {
             return this.mappedPlatform;
@@ -222,13 +233,14 @@ var PhotoshopModel = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(PhotoshopModel.prototype, "previousContainerResponse", {
-        get: function () {
+    PhotoshopModel.prototype.previousContainerResponse = function (type) {
+        if (type === "quest") {
             return this.prevContainerResponse;
-        },
-        enumerable: true,
-        configurable: true
-    });
+        }
+        else {
+            return this.selfPreviousResponse;
+        }
+    };
     Object.defineProperty(PhotoshopModel.prototype, "allQuestPlatforms", {
         get: function () {
             return this.questPlatforms;

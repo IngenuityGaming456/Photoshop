@@ -30,6 +30,9 @@ export class PhotoshopModel implements IModel {
     private menuStates = [];
     private currentState: string;
     private docEmitter;
+    private selfPreviousResponse;
+    private selfContainerResponse;
+    private selfPreviousContainer;
 
     execute(params: IParams) {
         this.generator = params.generator;
@@ -111,10 +114,20 @@ export class PhotoshopModel implements IModel {
         this.clickedMenus.push(event.generatorMenuChanged.name);
     }
 
-    public handleSocketStorage(socketStorage) {
-        this.prevContainerResponse = this.previousContainer;
-        this.containerResponse = socketStorage;
-        this.previousContainer = this.containerResponse;
+    public handleSocketStorage(socketStorage, type) {
+        if(type === "quest") {
+            this.prevContainerResponse = this.previousContainer;
+            this.containerResponse = socketStorage;
+            this.previousContainer = this.containerResponse;
+        } else {
+            this.selfPreviousResponse = this.selfPreviousContainer;
+            this.selfContainerResponse = socketStorage;
+            this.selfPreviousContainer = this.selfContainerResponse;
+        }
+    }
+
+    public setRefreshResponse(storage) {
+        this.selfPreviousContainer = storage;
     }
 
     private createStorage() {
@@ -221,16 +234,24 @@ export class PhotoshopModel implements IModel {
         return this.questItems;
     }
 
-    get currentContainerResponse() {
-        return this.containerResponse;
+    public currentContainerResponse(type) {
+        if(type === "quest") {
+            return this.containerResponse;
+        } else {
+            return this.selfContainerResponse;
+        }
     }
 
     get mappedPlatformObj() {
         return this.mappedPlatform;
     }
 
-    get previousContainerResponse() {
-        return this.prevContainerResponse;
+    public previousContainerResponse(type) {
+        if(type === "quest") {
+            return this.prevContainerResponse;
+        } else {
+            return this.selfPreviousResponse;
+        }
     }
 
     get allQuestPlatforms() {

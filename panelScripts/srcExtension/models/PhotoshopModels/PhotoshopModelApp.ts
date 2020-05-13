@@ -62,11 +62,12 @@ export class PhotoshopModelApp extends PhotoshopModel {
                 for(let structLayers of localisedStruct.struct) {
                     if(structLayers.id === mappedView) {
                         delete localisationLayers[item];
-                        return;
+                        break;
                     }
                 }
+            } else {
+                this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
             }
-            this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
         }
     }
 

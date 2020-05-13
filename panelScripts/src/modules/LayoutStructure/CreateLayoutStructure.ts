@@ -134,7 +134,8 @@ export class CreateLayoutStructure implements IFactory {
     }
 
     private async handleBufferValue(layerValue, key) {
-        if (layerValue.frequency === 1) {
+        const layerRef = this._activeDocument.layers.findLayer(key);
+        if (layerValue.frequency === 1 || (layerRef && utlis.getElementName(layerRef, pc.languages))) {
             this.modifiedIds.push(key);
             await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"),
                 {id: key});

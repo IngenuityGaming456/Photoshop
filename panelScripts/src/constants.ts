@@ -108,5 +108,6 @@ export const photoshopConstants = {
     generatorIds: {
         lang: "lang",
         view: "view",
+        button: "button"
     }
 };

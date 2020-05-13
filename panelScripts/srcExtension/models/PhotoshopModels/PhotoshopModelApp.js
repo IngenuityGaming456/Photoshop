@@ -129,7 +129,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
                         var structLayers = _b.value;
                         if (structLayers.id === mappedView) {
                             delete localisationLayers[item];
-                            return;
+                            break;
                         }
                     }
                 }
@@ -141,7 +141,9 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
                     finally { if (e_1) throw e_1.error; }
                 }
             }
-            this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
+            else {
+                this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
+            }
         }
         var e_1, _c;
     };

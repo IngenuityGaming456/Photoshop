@@ -275,10 +275,12 @@ var CreateLayoutStructure = /** @class */ (function () {
     };
     CreateLayoutStructure.prototype.handleBufferValue = function (layerValue, key) {
         return __awaiter(this, void 0, void 0, function () {
+            var layerRef;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(layerValue.frequency === 1)) return [3 /*break*/, 2];
+                        layerRef = this._activeDocument.layers.findLayer(key);
+                        if (!(layerValue.frequency === 1 || (layerRef && utils_1.utlis.getElementName(layerRef, constants_1.photoshopConstants.languages)))) return [3 /*break*/, 2];
                         this.modifiedIds.push(key);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:

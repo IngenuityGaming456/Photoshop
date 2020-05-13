@@ -23,9 +23,9 @@ var MappingModel = /** @class */ (function () {
     MappingModel.prototype.fireEvents = function () {
         this.docEmitter.emit(constants_1.photoshopConstants.emitter.observerAdd, this);
     };
-    MappingModel.prototype.handleSocketStorage = function (socketStorage) {
+    MappingModel.prototype.handleSocketStorage = function (socketStorage, type) {
         this.makeViewMap(socketStorage);
-        this.docEmitter.emit(constants_1.photoshopConstants.emitter.handleSocketResponse);
+        this.docEmitter.emit(constants_1.photoshopConstants.emitter.handleSocketResponse, type);
     };
     MappingModel.prototype.makeViewMap = function (responseObj) {
         this.desktopViewMap = this.makeSubViewMap(responseObj[constants_1.photoshopConstants.platforms.desktop]);

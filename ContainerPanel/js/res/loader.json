@@ -1,0 +1,37 @@
+{
+    "loader": {
+        "loadingLogo": {
+            "type": "container",
+            "id": "loadingLogo",
+            "leaf": true
+        },
+        "percentBar": {
+            "type": "container",
+            "id": "percentBar"
+        },
+        "progress": {
+            "type": "container",
+            "id": "progress",
+            "parent": "percentBar",
+            "noElement": true
+        },
+        "loaderPercent": {
+            "type": "meter",
+            "id": "loaderPercent",
+            "parent": "percentBar"
+        },
+        "progressStatic": {
+            "type": "container",
+            "id": "progressStatic",
+            "parent": "progress",
+            "leaf": true
+        },
+        "progressDynamic": {
+            "type": "container",
+            "id": "progressDynamic",
+            "parent": "progress",
+            "leaf": true
+        },
+        "noElement": true
+    }
+}

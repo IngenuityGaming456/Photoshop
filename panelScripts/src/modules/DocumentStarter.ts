@@ -131,6 +131,10 @@ export class DocumentStarter implements IFactory {
                 this.generator.emit("PanelsConnected");
             }
         });
+        socket.on("getUpdatedDocument", async() => {
+            const result = await this.generator.getDocumentInfo(undefined);
+            socket.emit("updatedDocument", result);
+        });
     }
 
     private handleSocketClients(name, socket) {
@@ -140,11 +144,14 @@ export class DocumentStarter implements IFactory {
                 this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
                 this.htmlSocket.emit(pc.socket.docOpen, this.activeDocument.directory, this.docId);
             }
-            socket.on(pc.socket.getQuestJson, (storage, checkBoxes) => {
+            socket.on(pc.socket.getQuestJson, (storage, checkBoxes, type) => {
                 this.checkedBoxes = checkBoxes;
-                this.modelFactory.handleSocketStorage(storage);
+                this.modelFactory.handleSocketStorage(storage, type);
                 this.setViewMap();
             });
+            socket.on("getRefreshResponse", storage => {
+                this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
+            })
         }
         if (name === pc.validatorPanel) {
             socket.emit(pc.socket.getStorage, this.docId);

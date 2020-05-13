@@ -62,10 +62,10 @@ var ModelFactory = /** @class */ (function () {
     ModelFactory.prototype.getPhotoshopModel = function () {
         return this.photoshopModel;
     };
-    ModelFactory.prototype.handleSocketStorage = function (storage) {
+    ModelFactory.prototype.handleSocketStorage = function (storage, type) {
         this.socketStorageResponse = storage;
-        this.photoshopModel.handleSocketStorage(this.socketStorageResponse);
-        this.mappingModel.handleSocketStorage(this.socketStorageResponse);
+        this.photoshopModel.handleSocketStorage(this.socketStorageResponse, type);
+        this.mappingModel.handleSocketStorage(this.socketStorageResponse, type);
     };
     return ModelFactory;
 }());

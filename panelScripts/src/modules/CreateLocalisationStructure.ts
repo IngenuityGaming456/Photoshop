@@ -120,8 +120,8 @@ export class CreateLocalisationStructure implements IFactory {
         };
         this.docEmitter.emit(pc.localisation, idsMapKeys);
         const response = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params);
-        response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
         await this.handleResponse(response);
+        response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
     }
 
     private getAlreadyLocalisedArray(idsMapKeys, localisationLayers, alreadyLocalised, langName) {
@@ -175,12 +175,27 @@ export class CreateLocalisationStructure implements IFactory {
     private async handleResponse(response) {
         const responseArray = response.split(":");
         for(let item of responseArray) {
-            const responseSubArray = item.split(",");
-            this.recordedResponse.push(responseSubArray[0]);
-            await this._generator.setLayerSettingsForPlugin(pc.generatorIds.lang, Number(responseSubArray[1]), packageJson.name);
-            const viewCount = responseSubArray.length;
-            for(let i=2;i<viewCount;i++) {
-                await this._generator.setLayerSettingsForPlugin(pc.generatorIds.view, Number(responseSubArray[i]), packageJson.name);
+            const responseSubArray = utlis.makeResponse(item.split("-1"));
+            this.recordedResponse.push(responseSubArray[0][0]);
+            await this._generator.setLayerSettingsForPlugin(pc.generatorIds.lang, Number(responseSubArray[0][1]), packageJson.name);
+            responseSubArray[0].splice(0, 2);
+            await this.handleSubResponses(responseSubArray);
+        }
+    }
+
+    private async handleSubResponses(responseSubArray) {
+        const viewIds = [];
+        const buttonIds = [];
+        const responseLength = responseSubArray.length;
+        for(let i=0;i<responseLength;i++) {
+            const subArray = responseSubArray[i];
+            if(!~viewIds.indexOf(Number[subArray[0]])) {
+                await this._generator.setLayerSettingsForPlugin(pc.generatorIds.view, Number(subArray[0]), packageJson.name)
+            }
+            if((i + 1) < responseLength && utlis.isButton(subArray[i], subArray[i+1])
+            && !~buttonIds.indexOf(Number[subArray[subArray.length - 2]])) {
+                await this._generator.setLayerSettingsForPlugin(pc.generatorIds.button,
+                    Number(subArray[subArray.length - 2]), packageJson.name)
             }
         }
     }

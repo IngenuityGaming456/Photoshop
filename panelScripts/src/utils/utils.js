@@ -558,6 +558,30 @@ var utlis = /** @class */ (function () {
         return null;
         var e_8, _a;
     };
+    utlis.isButton = function (array1, array2) {
+        if (array1.length !== array2.length) {
+            return false;
+        }
+        var arrayLength = array1.length;
+        for (var i = 0; i < arrayLength; i++) {
+            if (i !== arrayLength - 1 && array1[i] !== array2[i]) {
+                return false;
+            }
+        }
+        return true;
+    };
+    utlis.makeResponse = function (responseArray) {
+        var responseSubArray = [];
+        responseArray.forEach(function (item) {
+            var multiples = item.split(",");
+            var multipleArray = [];
+            multiples.forEach(function (subItem) {
+                multipleArray.push(subItem);
+            });
+            responseSubArray.push(multipleArray);
+        });
+        return responseSubArray;
+    };
     return utlis;
 }());
 exports.utlis = utlis;

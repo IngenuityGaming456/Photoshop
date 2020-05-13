@@ -110,6 +110,7 @@ exports.photoshopConstants = {
     generatorIds: {
         lang: "lang",
         view: "view",
+        button: "button"
     }
 };
 //# sourceMappingURL=constants.js.map

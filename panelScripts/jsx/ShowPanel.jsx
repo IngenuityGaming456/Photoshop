@@ -117,12 +117,12 @@ function insertSelectedStruct(selectedLangRef) {
     var valuesCount = params.values.length;
     for(var i=0;i<selectedRefCount;i++) {
         for(var j=0;j<valuesCount;j++) {
-            drawLayers(j, i, selectedLangRef);
+            drawLayers(j, i, selectedLangRef, valuesCount);
         }
     }
 }
 
-function drawLayers(valueIndex, langIndex, selectedLangRef) {
+function drawLayers(valueIndex, langIndex, selectedLangRef, valuesCount) {
     var item = params.values[valueIndex];
     var itemId = params.ids[valueIndex];
     if(alreadyLocalised(itemId, selectedLangRef[langIndex].name)) {
@@ -138,9 +138,10 @@ function drawLayers(valueIndex, langIndex, selectedLangRef) {
         } else {
             parentRefs.push(insertLayer(parentRefs[i], item[i].name, "layerSection"));
         }
-        if(i === 0) {
-            selectedLayers[selectedLangRef[langIndex].name].viewArray.push(parentRefs[parentRefs.length - 1].id);
-        }
+        selectedLayers[selectedLangRef[langIndex].name].viewArray.push(parentRefs[parentRefs.length - 1].id);
+    }
+    if(valueIndex !== valuesCount - 1) {
+        selectedLayers[selectedLangRef[langIndex].name].viewArray.push(-1);
     }
     duplicateItemLayer(itemId, parentRefs[parentRefs.length - 1]);
 }
@@ -180,7 +181,7 @@ for(var i=0;i<keysCount;i++) {
     var viewArray = selectedLayers[keysArray[i]].viewArray;
     var viewCount = viewArray.length;
     for(var j=0;j<viewCount;j++) {
-        selectedLayersResponse += "," + viewArray[j];
+        selectedLayersResponse += (j > 0 && (viewArray[j-1] === -1 || viewArray[j] === -1)) ? viewArray[j] : "," + viewArray[j];
     }
 }
 selectedLayersResponse;

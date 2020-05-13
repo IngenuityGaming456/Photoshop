@@ -50,11 +50,11 @@ function getPathName(layerRef, pathName, baseName, level, type) {
         if(layerRef === app.activeDocument) {
             return pathName;
         }
-        pathName = setNameToStatic(layerRef, pathName)
+        pathName = setNameToStatic(layerRef, pathName);
         return getPathName(layerRef.parent, pathName, baseName, level, type);
     }
     if(level === 1) {
-        if(layerRef.parent.name === "common" || layerRef.parent.name === "languages") {
+        if(layerRef.parent.name === "common" || (layerRef.parent.parent && layerRef.parent.parent.name === "languages")) {
             if(type && type === "static") {
                 pathName = setNameToStatic(layerRef, pathName);
             } else {
@@ -67,7 +67,7 @@ function getPathName(layerRef, pathName, baseName, level, type) {
     if(layerRef.name === baseName) {
         level = 1;
     }
-    pathName = setNameToStatic(layerRef, pathName)
+    pathName = setNameToStatic(layerRef, pathName);
     return getPathName(layerRef.parent, pathName, baseName, level, type);
 }
 

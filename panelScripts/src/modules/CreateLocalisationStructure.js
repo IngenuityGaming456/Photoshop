@@ -263,10 +263,10 @@ var CreateLocalisationStructure = /** @class */ (function () {
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/ShowPanel.jsx"), params)];
                     case 1:
                         response = _a.sent();
-                        response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
                         return [4 /*yield*/, this.handleResponse(response)];
                     case 2:
                         _a.sent();
+                        response.length && this.createLocalisationStruct(idsMapKeys, idsMapValues, langId, response);
                         return [2 /*return*/];
                 }
             });
@@ -322,51 +322,78 @@ var CreateLocalisationStructure = /** @class */ (function () {
     };
     CreateLocalisationStructure.prototype.handleResponse = function (response) {
         return __awaiter(this, void 0, void 0, function () {
-            var responseArray, responseArray_1, responseArray_1_1, item, responseSubArray, viewCount, i, e_3_1, e_3, _a;
+            var responseArray, responseArray_1, responseArray_1_1, item, responseSubArray, e_3_1, e_3, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         responseArray = response.split(":");
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 9, 10, 11]);
+                        _b.trys.push([1, 7, 8, 9]);
                         responseArray_1 = __values(responseArray), responseArray_1_1 = responseArray_1.next();
                         _b.label = 2;
                     case 2:
-                        if (!!responseArray_1_1.done) return [3 /*break*/, 8];
+                        if (!!responseArray_1_1.done) return [3 /*break*/, 6];
                         item = responseArray_1_1.value;
-                        responseSubArray = item.split(",");
-                        this.recordedResponse.push(responseSubArray[0]);
-                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.lang, Number(responseSubArray[1]), packageJson.name)];
+                        responseSubArray = utils_1.utlis.makeResponse(item.split("-1"));
+                        this.recordedResponse.push(responseSubArray[0][0]);
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.lang, Number(responseSubArray[0][1]), packageJson.name)];
                     case 3:
                         _b.sent();
-                        viewCount = responseSubArray.length;
-                        i = 2;
-                        _b.label = 4;
+                        responseSubArray[0].splice(0, 2);
+                        return [4 /*yield*/, this.handleSubResponses(responseSubArray)];
                     case 4:
-                        if (!(i < viewCount)) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.view, Number(responseSubArray[i]), packageJson.name)];
-                    case 5:
                         _b.sent();
-                        _b.label = 6;
-                    case 6:
-                        i++;
-                        return [3 /*break*/, 4];
-                    case 7:
+                        _b.label = 5;
+                    case 5:
                         responseArray_1_1 = responseArray_1.next();
                         return [3 /*break*/, 2];
-                    case 8: return [3 /*break*/, 11];
-                    case 9:
+                    case 6: return [3 /*break*/, 9];
+                    case 7:
                         e_3_1 = _b.sent();
                         e_3 = { error: e_3_1 };
-                        return [3 /*break*/, 11];
-                    case 10:
+                        return [3 /*break*/, 9];
+                    case 8:
                         try {
                             if (responseArray_1_1 && !responseArray_1_1.done && (_a = responseArray_1.return)) _a.call(responseArray_1);
                         }
                         finally { if (e_3) throw e_3.error; }
                         return [7 /*endfinally*/];
-                    case 11: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CreateLocalisationStructure.prototype.handleSubResponses = function (responseSubArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var viewIds, buttonIds, responseLength, i, subArray;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        viewIds = [];
+                        buttonIds = [];
+                        responseLength = responseSubArray.length;
+                        i = 0;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < responseLength)) return [3 /*break*/, 6];
+                        subArray = responseSubArray[i];
+                        if (!!~viewIds.indexOf(Number[subArray[0]])) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.view, Number(subArray[0]), packageJson.name)];
+                    case 2:
+                        _a.sent();
+                        _a.label = 3;
+                    case 3:
+                        if (!((i + 1) < responseLength && utils_1.utlis.isButton(subArray[i], subArray[i + 1])
+                            && !~buttonIds.indexOf(Number[subArray[subArray.length - 2]]))) return [3 /*break*/, 5];
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.button, Number(subArray[subArray.length - 2]), packageJson.name)];
+                    case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

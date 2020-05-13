@@ -36,7 +36,7 @@ export class ContainerPanelResponse implements IFactory {
 
     private subscribeListeners() {
         this.generator.on(pc.generator.layersDeleted, (eventLayers) => this.onLayersDeleted(eventLayers));
-        this.docEmitter.on(pc.emitter.handleSocketResponse, () => this.getDataForChanges());
+        this.docEmitter.on(pc.emitter.handleSocketResponse, (type) => this.getDataForChanges(type));
         this.docEmitter.on(pc.logger.getUpdatedHTMLSocket, socket => this.onSocketUpdate(socket));
         this.docEmitter.on(pc.logger.destroy, () => this.onDestroy());
         this.docEmitter.on(pc.logger.newDocument, () => this.onNewDocument());
@@ -83,9 +83,9 @@ export class ContainerPanelResponse implements IFactory {
         });
     }
 
-    private async getDataForChanges() {
-        const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse;
-        const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse;
+    private async getDataForChanges(type) {
+        const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
+        const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
         if(previousResponse) {
             await this.getChanges(previousResponse, currentResponse);
         } else {

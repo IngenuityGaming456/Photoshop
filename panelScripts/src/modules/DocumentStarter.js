@@ -184,6 +184,18 @@ var DocumentStarter = /** @class */ (function () {
                 _this.generator.emit("PanelsConnected");
             }
         });
+        socket.on("getUpdatedDocument", function () { return __awaiter(_this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.generator.getDocumentInfo(undefined)];
+                    case 1:
+                        result = _a.sent();
+                        socket.emit("updatedDocument", result);
+                        return [2 /*return*/];
+                }
+            });
+        }); });
     };
     DocumentStarter.prototype.handleSocketClients = function (name, socket) {
         var _this = this;
@@ -193,10 +205,13 @@ var DocumentStarter = /** @class */ (function () {
                 this.docEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, this.htmlSocket);
                 this.htmlSocket.emit(constants_1.photoshopConstants.socket.docOpen, this.activeDocument.directory, this.docId);
             }
-            socket.on(constants_1.photoshopConstants.socket.getQuestJson, function (storage, checkBoxes) {
+            socket.on(constants_1.photoshopConstants.socket.getQuestJson, function (storage, checkBoxes, type) {
                 _this.checkedBoxes = checkBoxes;
-                _this.modelFactory.handleSocketStorage(storage);
+                _this.modelFactory.handleSocketStorage(storage, type);
                 _this.setViewMap();
+            });
+            socket.on("getRefreshResponse", function (storage) {
+                _this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
             });
         }
         if (name === constants_1.photoshopConstants.validatorPanel) {

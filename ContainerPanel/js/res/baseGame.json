@@ -1,5 +1,5 @@
 {
-  "baseGame": {
+  "BaseGame": {
     "buttonsContainerBG": {
       "type": "container",
       "id": "buttonsContainerBG"
@@ -92,9 +92,9 @@
       "id": "promoMessageContainer",
       "leaf": true
     },
-    "5OfAKindContainer": {
+    "fiveOfAKindContainer": {
       "type": "container",
-      "id": "5OfAKindContainer",
+      "id": "fiveOfAKindContainer",
       "leaf": true
     },
     "anticipationAnim": {

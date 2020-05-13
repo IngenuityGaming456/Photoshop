@@ -250,4 +250,22 @@ export class utils {
     public static isInContainer(childInput) {
         return utils.getLISpan(utils.getParentLI(childInput)).childNodes[0].nodeValue === "Containers";
     }
+
+    public static createBody() {
+        let body;
+        if(!document.body) {
+            body = document.createElement("body");
+        } else {
+            return;
+        }
+        body.className = "dark";
+        document.documentElement.appendChild(body);
+    }
+
+    public static createUL() {
+        const parentUL = document.createElement("ul");
+        parentUL.id = "parentUL";
+        parentUL.className = "nested";
+        return parentUL;
+    }
 }

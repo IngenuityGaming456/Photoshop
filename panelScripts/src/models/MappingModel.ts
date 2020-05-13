@@ -37,9 +37,9 @@ export class MappingModel implements IModel {
         this.docEmitter.emit(pc.emitter.observerAdd, this);
     }
 
-    public handleSocketStorage(socketStorage) {
+    public handleSocketStorage(socketStorage, type) {
         this.makeViewMap(socketStorage);
-        this.docEmitter.emit(pc.emitter.handleSocketResponse);
+        this.docEmitter.emit(pc.emitter.handleSocketResponse, type);
     }
 
     private makeViewMap(responseObj) {

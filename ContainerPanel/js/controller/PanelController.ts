@@ -21,6 +21,7 @@ export class PanelController {
         this.model = modelObj;
         this.stateContext = stateContext;
         this.instantiateCSInterface();
+        utils.createBody();
         this.subscribeListeners();
         this.ready();
         this.listenToConnection();
@@ -75,7 +76,8 @@ export class PanelController {
             }
         }
         if(item.tagName === "LI") {
-            const nodeValue = utils.getLISpan(item).childNodes[0].nodeValue;
+            let nodeValue = utils.getLISpan(item).childNodes[0].nodeValue;
+            nodeValue = utils.spliceFromFront(nodeValue, " ");
             if(utils.isInContainerOrElement(item)) {
                 return this.getHierarchy(item.parentElement, hierarchy);
             }
@@ -104,6 +106,7 @@ export class PanelController {
 
     private sendStorage(storage: Array<Object>) {
         this.view.onStorageFull(storage, this.stateContext);
+        this.eventsObj.emit("makePanelView");
     }
 
     protected listenToConnection() {
@@ -124,13 +127,14 @@ export class PanelController {
 
     private onUncheckFromPanel(platform, baseView, layerName) {
         const output = this.view.checkBoxArray.find(item => {
-            if(!platform && utils.getItem(item).childNodes[0].nodeValue === layerName) {
+            const nodeName = utils.spliceFromFront(utils.getItem(item).childNodes[0].nodeValue, " ");
+            if(!platform && nodeName === layerName) {
                 return true;
             }
-            if(!baseView && utils.isInPlatform(platform, item) && utils.getItem(item).childNodes[0].nodeValue === layerName) {
+            if(!baseView && utils.isInPlatform(platform, item) && nodeName === layerName) {
                 return true;
             }
-            if (utils.getItem(item).childNodes[0].nodeValue === layerName && utils.isInBaseView(baseView, item) &&
+            if (nodeName === layerName && utils.isInBaseView(baseView, item) &&
                utils.isInPlatform(platform, item)) {
                 return true;
             }
@@ -139,6 +143,7 @@ export class PanelController {
             this.handleOutputElement(output);
         }
         this.processSubmission();
+        this.socket.emit("uncheckFinished");
     }
 
     protected handleOutputElement(output) {
@@ -147,7 +152,7 @@ export class PanelController {
         }
         (output as HTMLInputElement).checked = false;
         (output as HTMLInputElement).disabled = !utils.getPlatformInput(output).disabled && output.parentElement.parentElement !== document.body;
-        this.onContainerClick({target: output});
+        this.onContainerClick({target: output}, true);
     }
 
     protected onElementClick(event) {
@@ -155,14 +160,14 @@ export class PanelController {
         this.stopBubbling(event);
     }
 
-    protected onContainerClick(event) {
+    protected onContainerClick(event, uncheck?) {
         const parentLI = utils.getParentLI(event.target);
         utils.setIntermediateState(event.target);
-        this.handleNestedContainers(parentLI, event.target);
+        this.handleNestedContainers(parentLI, event.target, uncheck);
         this.stopBubbling(event);
     }
 
-    private handleNestedContainers(itemRef, inputCheckbox) {
+    private handleNestedContainers(itemRef, inputCheckbox, uncheck?) {
         inputCheckbox = Array.from(itemRef.children)[0];
         const childUL = utils.getChildrenUL(itemRef);
         if(!childUL) {
@@ -170,16 +175,16 @@ export class PanelController {
         }
         const allULChildren = Array.from(childUL.children);
         allULChildren.forEach((item: HTMLElement) => {
-            this.checkNestedContainerCheckbox(item, inputCheckbox, utils.decideCheck(itemRef));
-            this.handleNestedContainers(item, inputCheckbox);
+            this.checkNestedContainerCheckbox(item, inputCheckbox, utils.decideCheck(itemRef), uncheck);
+            this.handleNestedContainers(item, inputCheckbox, uncheck);
         })
     }
 
-    private checkNestedContainerCheckbox(item, inputCheckbox, check) {
+    private checkNestedContainerCheckbox(item, inputCheckbox, check, uncheck?) {
         if(item.tagName === "LI") {
             const parentLI = utils.getParentLI(item);
             const input: HTMLElement = Array.from(item.children)[0] as HTMLElement;
-            if(!~this.lockedItems.indexOf(input)) {
+            if(!~this.lockedItems.indexOf(input) || uncheck) {
                 this.setCheckedState(input, inputCheckbox, check);
                 this.setCheckboxState(input, inputCheckbox.checked, parentLI);
             }
@@ -191,6 +196,9 @@ export class PanelController {
             (item as HTMLInputElement).checked = inputCheckbox.checked;
         } else {
             (item as HTMLInputElement).checked = check? inputCheckbox.checked : false;
+            if(!inputCheckbox.checked) {
+                (item as HTMLInputElement).indeterminate = false;
+            }
         }
     }
 

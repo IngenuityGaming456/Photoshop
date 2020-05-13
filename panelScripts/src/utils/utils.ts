@@ -465,4 +465,30 @@ export class utlis {
         return null;
     }
 
+    public static isButton(array1, array2) {
+        if (array1.length !== array2.length) {
+            return false;
+        }
+        const arrayLength = array1.length;
+        for(let i=0;i<arrayLength;i++) {
+            if(i !== arrayLength-1 && array1[i] !== array2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static makeResponse(responseArray) {
+        const responseSubArray = [];
+        responseArray.forEach(item => {
+            const multiples = item.split(",");
+            const multipleArray = [];
+            multiples.forEach(subItem => {
+                multipleArray.push(subItem)
+            });
+            responseSubArray.push(multipleArray);
+        });
+        return responseSubArray;
+    }
+
 }

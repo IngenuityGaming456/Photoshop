@@ -7,7 +7,7 @@ export class PanelControllerApp extends PanelController {
         super.processSubmission();
         this.view.checkBoxArray.forEach(item => {
             const parentLI = utils.getParentLI(item);
-            if(utils.isInContainerOrElement(parentLI)) {
+            if (utils.isInContainerOrElement(parentLI)) {
                 this.handleCheckbox(parentLI, item);
             }
         });
@@ -16,7 +16,7 @@ export class PanelControllerApp extends PanelController {
     protected handleOutputElement(output) {
         super.handleOutputElement(output);
         const parentLI = utils.getParentLI(utils.getParentLI(output));
-        if(utils.isInContainerOrElement(parentLI)) {
+        if (utils.isInContainerOrElement(parentLI)) {
             this.handleUncheck(parentLI);
             output.disabled = parentLI.children[0].disabled;
         }
@@ -29,7 +29,9 @@ export class PanelControllerApp extends PanelController {
 
     protected listenToConnection() {
         super.listenToConnection();
-        this.socket.on("destroy", () => this.onDestroy());
+        this.socket.on("destroy", () => {
+            this.onDestroy();
+        });
         this.socket.on("enablePage", () => this.onEnablePage());
         this.socket.on("disablePage", () => this.onDisablePage());
     }
@@ -41,14 +43,13 @@ export class PanelControllerApp extends PanelController {
 
     private handleUncheck(parentLI) {
         const checkBoxDeletionCount = utils.getCheckboxDeletion(parentLI);
-        if(checkBoxDeletionCount && utils.getParentLI(parentLI).children[0].checked) {
+        if (checkBoxDeletionCount && utils.getParentLI(parentLI).children[0].checked) {
             parentLI.children[0].disabled = false;
         }
         try {
             utils.setAllDeletedState(checkBoxDeletionCount, parentLI)
-                 .setInBetweenState(parentLI);
-        }
-        catch(err) {
+                .setInBetweenState(parentLI);
+        } catch (err) {
             console.log("Uncheck handled");
         }
     }
@@ -59,11 +60,11 @@ export class PanelControllerApp extends PanelController {
         const totalChildren = Array.from(baseUL.children).length;
         Array.from(baseUL.children).forEach(itemLI => {
             const input = itemLI.children[0];
-            if(this.isInLockedState(input)) {
+            if (this.isInLockedState(input)) {
                 checkboxCount++;
             }
         });
-        if(checkboxCount === totalChildren) {
+        if (checkboxCount === totalChildren) {
             itemCheckbox.disabled = true;
         }
     }
