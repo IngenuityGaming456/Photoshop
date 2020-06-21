@@ -1,9 +1,11 @@
 import {EventEmitter} from "events";
-let mapping = require("../res/panel.json");
+import {utils} from "../utils/utils";
+let mapping = require("../panel.json");
 
 
 export class MappingView {
     private eventsObj;
+    private panelDiv;
 
     public constructor(eventsObj: EventEmitter) {
         this.eventsObj = eventsObj;
@@ -15,10 +17,10 @@ export class MappingView {
     }
 
     private makePanel() {
-        const panelDiv = document.createElement("div");
-        panelDiv.className = "panel";
-        document.body.prepend(panelDiv);
-        this.addDivChildren(panelDiv);
+        this.panelDiv = document.createElement("div");
+        this.panelDiv.className = "panel";
+        document.body.prepend(this.panelDiv);
+        this.addDivChildren(this.panelDiv);
     }
 
     private addDivChildren(panelDiv) {
@@ -26,6 +28,8 @@ export class MappingView {
             const platformLI = this.makeLIStruct(item);
             panelDiv.append(platformLI);
         })
+        const noConnectionLI = this.makeNoConnection();
+        panelDiv.append(noConnectionLI);
     }
 
     private makeLIStruct(item) {
@@ -35,15 +39,53 @@ export class MappingView {
         rearSpan.innerText = item["rear"];
         const reverseButton = document.createElement("button");
         reverseButton.innerText = "<>";
-        const radioButton = document.createElement("input");
-        radioButton.type = "radio";
-        radioButton.name = "put";
+        reverseButton.className = "reverse";
+        const radioButton = utils.createRadio("put", false)
         const li = document.createElement("li");
         li.append(frontSpan);
         li.append(reverseButton);
         li.append(rearSpan);
         li.append(radioButton);
+        this.addListener(reverseButton, frontSpan, rearSpan);
         return li;
+    }
+
+    private makeNoConnection() {
+        const singleSpan = document.createElement("span");
+        singleSpan.innerText = "noConnection";
+        const radioButton = utils.createRadio("put", true);
+        const li = document.createElement("li");
+        li.append(singleSpan);
+        li.append(radioButton)
+        return li;
+    }
+
+    private addListener(reverseButton, frontSpan, rearSpan) {
+        reverseButton.addEventListener("click", event => {
+            const temp = frontSpan.innerText;
+            frontSpan.innerText = rearSpan.innerText;
+            rearSpan.innerText = temp;
+        })
+    }
+
+    public sendMappingResponse() {
+        const children = Array.from(this.panelDiv.children);
+        let response = {};
+        for(let child of children) {
+            const radioInput = (child as HTMLElement).querySelector("input");
+            if(radioInput.checked) {
+                const spanChildren = Array.from((child as HTMLElement).querySelectorAll("span"));
+                if (spanChildren.length === 1) {
+                    response["front"] = spanChildren[0].innerText;
+                    response["rear"] = spanChildren[0].innerText;
+                } else {
+                    response["front"] = spanChildren[0].innerText;
+                    response["rear"] = spanChildren[1].innerText;
+                }
+                break;
+            }
+        }
+        return response;
     }
 
 }

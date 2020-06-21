@@ -319,6 +319,28 @@ var utlis = /** @class */ (function () {
             }
         });
     };
+    utlis.getFirstAddedItem = function (addedLayers, callback) {
+        try {
+            for (var addedLayers_1 = __values(addedLayers), addedLayers_1_1 = addedLayers_1.next(); !addedLayers_1_1.done; addedLayers_1_1 = addedLayers_1.next()) {
+                var item = addedLayers_1_1.value;
+                if (item.added) {
+                    callback(item);
+                    return;
+                }
+                else if (item.layers) {
+                    utlis.getFirstAddedItem(item.layers, callback);
+                }
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (addedLayers_1_1 && !addedLayers_1_1.done && (_a = addedLayers_1.return)) _a.call(addedLayers_1);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+        var e_4, _a;
+    };
     utlis.getAllLayersAtLevel = function (arrayLayers, level) {
         var levelArray = arrayLayers;
         var cumLevelArray = [];
@@ -393,15 +415,15 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
         finally {
             try {
                 if (layerRefLayers_1_1 && !layerRefLayers_1_1.done && (_a = layerRefLayers_1.return)) _a.call(layerRefLayers_1);
             }
-            finally { if (e_4) throw e_4.error; }
+            finally { if (e_5) throw e_5.error; }
         }
         return false;
-        var e_4, _a;
+        var e_5, _a;
     };
     utlis.putComponentInGeneratorSettings = function (item, pluginId, component) {
         if (item.hasOwnProperty("generatorSettings") && item["generatorSettings"] === false) {
@@ -453,15 +475,15 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
         finally {
             try {
                 if (viewLayers_1_1 && !viewLayers_1_1.done && (_a = viewLayers_1.return)) _a.call(viewLayers_1);
             }
-            finally { if (e_5) throw e_5.error; }
+            finally { if (e_6) throw e_6.error; }
         }
         return null;
-        var e_5, _a;
+        var e_6, _a;
     };
     utlis.getPlatformRef = function (platform, activeDocument) {
         var activeLayers = activeDocument.layers.layers;
@@ -473,14 +495,14 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
         finally {
             try {
                 if (activeLayers_1_1 && !activeLayers_1_1.done && (_a = activeLayers_1.return)) _a.call(activeLayers_1);
             }
-            finally { if (e_6) throw e_6.error; }
+            finally { if (e_7) throw e_7.error; }
         }
-        var e_6, _a;
+        var e_7, _a;
     };
     utlis.hasKey = function (keyArray, key) {
         try {
@@ -491,15 +513,15 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        catch (e_8_1) { e_8 = { error: e_8_1 }; }
         finally {
             try {
                 if (keyArray_1_1 && !keyArray_1_1.done && (_a = keyArray_1.return)) _a.call(keyArray_1);
             }
-            finally { if (e_7) throw e_7.error; }
+            finally { if (e_8) throw e_8.error; }
         }
         return null;
-        var e_7, _a;
+        var e_8, _a;
     };
     utlis.breakArrayOnTrue = function (breakArray) {
         var splitIndexes = [];
@@ -548,15 +570,15 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_8_1) { e_8 = { error: e_8_1 }; }
+        catch (e_9_1) { e_9 = { error: e_9_1 }; }
         finally {
             try {
                 if (resultLayers_1_1 && !resultLayers_1_1.done && (_a = resultLayers_1.return)) _a.call(resultLayers_1);
             }
-            finally { if (e_8) throw e_8.error; }
+            finally { if (e_9) throw e_9.error; }
         }
         return null;
-        var e_8, _a;
+        var e_9, _a;
     };
     utlis.isButton = function (array1, array2) {
         if (array1.length !== array2.length) {
@@ -581,6 +603,75 @@ var utlis = /** @class */ (function () {
             responseSubArray.push(multipleArray);
         });
         return responseSubArray;
+    };
+    utlis.findParent = function (layer, activeDocument) {
+        var layerRef = activeDocument.layers.findLayer(layer.id);
+        if (layerRef.layer) {
+            return layerRef.layer.group.name;
+        }
+    };
+    utlis.findView = function (layer, activeDocument) {
+        var layerRef = activeDocument.layers.findLayer(layer.id);
+        return utlis.recurView(layerRef);
+    };
+    utlis.findPlatform = function (layer, activeDocument) {
+        var layerRef = activeDocument.layers.findLayer(layer.id);
+        return utlis.recurPlatform(layerRef);
+    };
+    utlis.recurView = function (layerRef) {
+        if (layerRef.layer && layerRef.layer.group.name === "common") {
+            return layerRef.layer.name;
+        }
+        else if (layerRef.group && layerRef.group.name === "common") {
+            return layerRef.name;
+        }
+        else if (layerRef.layer) {
+            return utlis.recurView(layerRef.layer.group);
+        }
+        else {
+            return utlis.recurView(layerRef.group);
+        }
+    };
+    utlis.recurPlatform = function (layerRef) {
+        if (layerRef.layer && layerRef.layer.group.name === "common") {
+            return layerRef.layer.group.group.name;
+        }
+        else if (layerRef.group && layerRef.group.name === "common") {
+            return layerRef.group.group.name;
+        }
+        else if (layerRef.layer) {
+            return utlis.recurPlatform(layerRef.layer.group);
+        }
+        else {
+            return utlis.recurPlatform(layerRef.group);
+        }
+    };
+    utlis.renameElementalMap = function (elementalMap, name, id) {
+        for (var platform in elementalMap) {
+            if (!elementalMap.hasOwnProperty(platform)) {
+                continue;
+            }
+            var viewObj = elementalMap[platform];
+            for (var view in viewObj) {
+                if (!viewObj.hasOwnProperty(view) || view === "base") {
+                    continue;
+                }
+                var elementalObj = viewObj[view];
+                utlis.renameElementalObj(elementalObj, name, id);
+            }
+        }
+    };
+    utlis.renameElementalObj = function (elementalObj, name, id) {
+        for (var element in elementalObj) {
+            if (!elementalObj.hasOwnProperty(element)) {
+                continue;
+            }
+            var component = elementalObj[element];
+            var item = utlis.isIDExists(id, component);
+            if (item) {
+                item.name = name;
+            }
+        }
     };
     return utlis;
 }());

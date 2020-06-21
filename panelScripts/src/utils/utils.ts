@@ -267,6 +267,17 @@ export class utlis {
         });
     }
 
+    public static getFirstAddedItem(addedLayers, callback) {
+        for(let item of addedLayers) {
+            if (item.added) {
+                callback(item);
+                return;
+            } else if (item.layers) {
+                utlis.getFirstAddedItem(item.layers, callback);
+            }
+        }
+    }
+
     public static getAllLayersAtLevel(arrayLayers, level) {
         const levelArray = arrayLayers;
         const cumLevelArray = [];
@@ -489,6 +500,76 @@ export class utlis {
             responseSubArray.push(multipleArray);
         });
         return responseSubArray;
+    }
+
+    public static findParent(layer, activeDocument) {
+        const layerRef = activeDocument.layers.findLayer(layer.id);
+        if(layerRef.layer) {
+            return layerRef.layer.group.name;
+        }
+    }
+
+    public static findView(layer, activeDocument) {
+        const layerRef = activeDocument.layers.findLayer(layer.id);
+        return utlis.recurView(layerRef);
+    }
+
+    public static findPlatform(layer, activeDocument) {
+        const layerRef = activeDocument.layers.findLayer(layer.id);
+        return utlis.recurPlatform(layerRef);
+    }
+
+    private static recurView(layerRef) {
+        if(layerRef.layer && layerRef.layer.group.name === "common") {
+            return layerRef.layer.name;
+        } else if(layerRef.group && layerRef.group.name === "common") {
+            return layerRef.name;
+        } else if(layerRef.layer) {
+            return utlis.recurView(layerRef.layer.group)
+        } else {
+            return utlis.recurView(layerRef.group);
+        }
+    }
+
+    private static recurPlatform(layerRef) {
+        if(layerRef.layer && layerRef.layer.group.name === "common") {
+            return layerRef.layer.group.group.name;
+        } else if(layerRef.group && layerRef.group.name === "common") {
+            return layerRef.group.group.name;
+        } else if(layerRef.layer) {
+            return utlis.recurPlatform(layerRef.layer.group)
+        } else {
+            return utlis.recurPlatform(layerRef.group);
+        }
+    }
+
+    public static renameElementalMap(elementalMap, name, id) {
+        for(let platform in elementalMap) {
+            if(!elementalMap.hasOwnProperty(platform)) {
+                continue;
+            }
+            const viewObj = elementalMap[platform];
+            for(let view in viewObj) {
+                if(!viewObj.hasOwnProperty(view) || view === "base") {
+                    continue;
+                }
+                const elementalObj = viewObj[view];
+                utlis.renameElementalObj(elementalObj, name, id);
+            }
+        }
+    }
+
+    private static renameElementalObj(elementalObj, name, id) {
+        for(let element in elementalObj) {
+            if(!elementalObj.hasOwnProperty(element)) {
+                continue;
+            }
+            const component = elementalObj[element];
+            const item = utlis.isIDExists(id, component);
+            if(item) {
+                item.name = name;
+            }
+        }
     }
 
 }

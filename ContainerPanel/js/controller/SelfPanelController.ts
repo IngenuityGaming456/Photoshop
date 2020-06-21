@@ -3,21 +3,25 @@ import {StateContext} from "../states/context";
 import {EventEmitter} from "events";
 import {SelfPanelView} from "../view/SelfPanelView";
 import {SelfPanelModel} from "../model/SelfPanelModel";
+import {utils} from "../utils/utils";
+import {MappingView} from "../view/MappingView";
+import * as io from "socket.io-client";
 
 
 export class SelfPanelController extends PanelControllerApp {
 
-    public constructor(eventsObj: EventEmitter, viewObj: SelfPanelView, modelObj: SelfPanelModel, stateContext: StateContext) {
-        super(eventsObj, viewObj, modelObj as SelfPanelModel, stateContext)
+    public constructor(eventsObj: EventEmitter, viewObj: SelfPanelView, mappingView: MappingView, modelObj: SelfPanelModel, stateContext: StateContext) {
+        super(eventsObj, viewObj, mappingView, modelObj as SelfPanelModel, stateContext)
     }
 
     protected subscribeListeners() {
         super.subscribeListeners();
-        this.eventsObj.on("refreshClick", () => this.refresh())
+        this.eventsObj.on("refreshClick", () => this.refresh());
+        this.eventsObj.on("refreshResponse", (response) => this.sendResponse(response));
     }
 
     private refresh() {
-        this.socket.on("updatedDocument", (activeDocument) => this.activeDocumentRecieved(activeDocument));
+        this.socket.once("updatedDocument", (activeDocument) => this.activeDocumentRecieved(activeDocument));
         this.socket.emit("getUpdatedDocument");
     }
 
@@ -26,8 +30,28 @@ export class SelfPanelController extends PanelControllerApp {
     }
 
     protected listenToConnection() {
-        super.listenToConnection();
-        this.socket.removeAllListeners("docOpen");
+        this.socket = io.connect('http://localhost:8099', {reconnect:true});
+        this.socket.on("connect", () => {
+            console.log("a user just connected");
+            this.socket.emit("register", "SelfHtmlPanel");
+        });
+    }
+
+    protected sendStorage(storage: Array<Object>) {
+        (this.view as SelfPanelView).destroyDiv();
+        this.view.onStorageFull(storage, this.stateContext, "Self Made Strutures");
+        this.processRefreshSubmission();
+    }
+
+    private processRefreshSubmission() {
+        const checkedBoxes = [];
+        const responseArray = [];
+        this.makeSubmission(checkedBoxes, responseArray);
+        (this.model as SelfPanelModel).processRefreshResponse(responseArray);
+    }
+
+    private sendResponse(responseMap) {
+        this.socket.emit("getRefreshResponse", utils.mapToObject(responseMap));
     }
 
 }

@@ -63,10 +63,7 @@ export class MappingModel implements IModel {
 
     private makeGenericViewMap(){
         this.genericViewMap = new Map();
-        this.genericViewMap.set(pc.views.genericView, {
-            generic: {
-                generic: {}
-            }});
+        this.genericViewMap.set(pc.views.genericView, { });
     }
     
     private makeComponentsMap() {

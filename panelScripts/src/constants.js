@@ -100,6 +100,7 @@ exports.photoshopConstants = {
     localisation: "localisation",
     htmlPanel: "htmlPanel",
     validatorPanel: "validatorPanel",
+    selfHtmlPanel: "SelfHtmlPanel",
     mappedItem: "mappedItem",
     generic: "generic",
     jsxReturn: {

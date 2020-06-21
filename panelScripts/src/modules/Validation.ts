@@ -359,7 +359,8 @@ export class Validation implements IFactory {
         try {
             (await this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems))
                 .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems)
-                .isNumeric(eventLayers[0].name, eventLayers[0].id);
+                .isNumeric(eventLayers[0].name, eventLayers[0].id)
+                .renameSelfStructures(eventLayers[0].name, eventLayers[0].id)
         } catch(err) {
             console.log("Validation Stopped");
         }
@@ -410,7 +411,9 @@ export class Validation implements IFactory {
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
                 {id: id, name: selectedIdPrevName});
             this.docEmitter.emit(pc.logger.logWarning, "Names Starting with Special characters are not allowed");
+            throw new Error("Validation Stop");
         }
+        return this;
     }
 
     private isErrorFree(eventLayers, callback) {
@@ -438,4 +441,8 @@ export class Validation implements IFactory {
         })
     }
 
+    private renameSelfStructures(name, id) {
+        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        utlis.renameElementalMap(elementalMap, name, id);
+    }
 }

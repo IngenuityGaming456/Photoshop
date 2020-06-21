@@ -24,7 +24,7 @@ export class PhotoshopFactory implements IFactory {
         this._pluginId = packageJson.name;
     }
 
-    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform) {
+    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?) {
         let layerType: string;
         this.platform = platform;
         for(let keys in parserObject) {
@@ -36,7 +36,7 @@ export class PhotoshopFactory implements IFactory {
             await this.setParams(jsxParams, parserObject, keys, insertionPoint);
             if(!layerType && !jsxParams.childName) {
                 this.baseView = keys;
-                await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject);
+                await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type);
             } else {
                 this.baseView = parentKey;
                 const mappedKey = this.getMappedKey();
@@ -44,7 +44,7 @@ export class PhotoshopFactory implements IFactory {
                     (this.photoshopModel as PhotoshopModelApp).automationOn = true;
                 }
                 this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                await this.createElementTree(jsxParams, layerType, parentKey);
+                await this.createElementTree(jsxParams, layerType, parentKey, type);
                 (this.photoshopModel as PhotoshopModelApp).automationOn = false;
             }
         }
@@ -52,7 +52,7 @@ export class PhotoshopFactory implements IFactory {
 
     private getMappedKey() {
         const mappedPlatform = this.photoshopModel.mappedPlatformObj;
-        if(this.platform) {
+        if(this.platform && this.platform in mappedPlatform) {
             return mappedPlatform[this.platform][this.baseView]["mapping"];
         }
         return null;
@@ -64,22 +64,24 @@ export class PhotoshopFactory implements IFactory {
         jsxParams.parentId = parserObject[keys].parent ? await this.findParentId(parserObject[keys].parent, insertionPoint) : insertionPoint;
     }
 
-    private async createBaseChild(jsxParams, keys, insertionPoint, parserObject) {
+    private async createBaseChild(jsxParams, keys, insertionPoint, parserObject, type?) {
         jsxParams.childName = keys;
         jsxParams.type = "layerSection";
         insertionPoint = await this.createBaseStruct(jsxParams);
-        this.setBaseIds(keys, insertionPoint);
+        this.setBaseIds(keys, insertionPoint, type);
         await this.insertBaseMetaData(insertionPoint);
-        await this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform);
+        await this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type);
     }
 
-    private setBaseIds(keys, insertionPoint) {
+    private setBaseIds(keys, insertionPoint, type?) {
         if(!this.platform) {
             this.photoshopModel.setPlatformMenuIds(Number(insertionPoint), keys);
         } else {
             this.photoshopModel.setBaseMenuIds(this.platform, Number(insertionPoint), keys);
         }
-        this.photoshopModel.setDrawnQuestItems(Number(insertionPoint), keys);
+        if(type === "quest") {
+            this.photoshopModel.setDrawnQuestItems(Number(insertionPoint), keys);
+        }
     }
 
     private async insertBaseMetaData(insertionPoint) {
@@ -96,7 +98,7 @@ export class PhotoshopFactory implements IFactory {
             jsxParams);
     }
 
-    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string) {
+    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?) {
         let jsonMap = JsonComponentsFactory.makeJsonComponentsMap();
         let element = jsonMap.get(layerType);
         let childId;
@@ -108,16 +110,18 @@ export class PhotoshopFactory implements IFactory {
         if (element instanceof QuestJsonComponent) {
             childId = await element.setJsx(this._generator, jsxParams);
         }
-        this.setChildIds(childId, jsxParams, layerType, parentKey);
+        this.setChildIds(childId, jsxParams, layerType, parentKey, type);
     }
 
-    private setChildIds(childId, jsxParams, layerType, parentKey) {
+    private setChildIds(childId, jsxParams, layerType, parentKey, type?) {
         if(!this.platform) {
             this.photoshopModel.setPlatformMenuIds(childId, jsxParams.childName);
         } else {
             this.photoshopModel.setChildMenuIds(this.platform, childId, jsxParams.childName, layerType, parentKey);
         }
-        this.photoshopModel.setDrawnQuestItems(childId, jsxParams.childName);
+        if(type === "quest") {
+            this.photoshopModel.setDrawnQuestItems(childId, jsxParams.childName);
+        }
     }
 
     private modifyJSXParams(jsxParams, mappedView, layerType) {

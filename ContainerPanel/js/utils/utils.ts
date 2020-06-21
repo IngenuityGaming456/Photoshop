@@ -94,7 +94,7 @@ export class utils {
     }
 
     public static getPlatformInput(item) {
-        if (item.parentElement === document.body) {
+        if (item.parentElement.tagName === "DIV") {
             return utils.getLIInput(item);
         }
         return utils.getPlatformInput(item.parentElement);
@@ -126,7 +126,7 @@ export class utils {
     }
 
     public static getData(item) {
-        if(!item.parentElement || item.parentElement === document.body) {
+        if(!item.parentElement || item.parentElement.tagName === "DIV") {
             return {
                 view: null,
                 platform: utils.getLISpan(item).childNodes[0].nodeValue
@@ -267,5 +267,14 @@ export class utils {
         parentUL.id = "parentUL";
         parentUL.className = "nested";
         return parentUL;
+    }
+
+    public static createRadio(name, checked) {
+        const radioButton = document.createElement("input");
+        radioButton.type = "radio";
+        radioButton.name = name;
+        radioButton.checked = checked;
+        return radioButton;
+
     }
 }

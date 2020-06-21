@@ -48,7 +48,7 @@ var PhotoshopFactory = /** @class */ (function () {
         this._generator = params.generator;
         this._pluginId = packageJson.name;
     };
-    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform) {
+    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform, type) {
         return __awaiter(this, void 0, void 0, function () {
             var layerType, _a, _b, _i, keys, jsxParams, mappedKey;
             return __generator(this, function (_c) {
@@ -73,7 +73,7 @@ var PhotoshopFactory = /** @class */ (function () {
                         _c.sent();
                         if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 4];
                         this.baseView = keys;
-                        return [4 /*yield*/, this.createBaseChild(jsxParams, keys, insertionPoint, parserObject)];
+                        return [4 /*yield*/, this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type)];
                     case 3:
                         _c.sent();
                         return [3 /*break*/, 6];
@@ -84,7 +84,7 @@ var PhotoshopFactory = /** @class */ (function () {
                             this.photoshopModel.automationOn = true;
                         }
                         this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey)];
+                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type)];
                     case 5:
                         _c.sent();
                         this.photoshopModel.automationOn = false;
@@ -99,7 +99,7 @@ var PhotoshopFactory = /** @class */ (function () {
     };
     PhotoshopFactory.prototype.getMappedKey = function () {
         var mappedPlatform = this.photoshopModel.mappedPlatformObj;
-        if (this.platform) {
+        if (this.platform && this.platform in mappedPlatform) {
             return mappedPlatform[this.platform][this.baseView]["mapping"];
         }
         return null;
@@ -128,7 +128,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.createBaseChild = function (jsxParams, keys, insertionPoint, parserObject) {
+    PhotoshopFactory.prototype.createBaseChild = function (jsxParams, keys, insertionPoint, parserObject, type) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -138,11 +138,11 @@ var PhotoshopFactory = /** @class */ (function () {
                         return [4 /*yield*/, this.createBaseStruct(jsxParams)];
                     case 1:
                         insertionPoint = _a.sent();
-                        this.setBaseIds(keys, insertionPoint);
+                        this.setBaseIds(keys, insertionPoint, type);
                         return [4 /*yield*/, this.insertBaseMetaData(insertionPoint)];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform)];
+                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type)];
                     case 3:
                         _a.sent();
                         return [2 /*return*/];
@@ -150,14 +150,16 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.setBaseIds = function (keys, insertionPoint) {
+    PhotoshopFactory.prototype.setBaseIds = function (keys, insertionPoint, type) {
         if (!this.platform) {
             this.photoshopModel.setPlatformMenuIds(Number(insertionPoint), keys);
         }
         else {
             this.photoshopModel.setBaseMenuIds(this.platform, Number(insertionPoint), keys);
         }
-        this.photoshopModel.setDrawnQuestItems(Number(insertionPoint), keys);
+        if (type === "quest") {
+            this.photoshopModel.setDrawnQuestItems(Number(insertionPoint), keys);
+        }
     };
     PhotoshopFactory.prototype.insertBaseMetaData = function (insertionPoint) {
         return __awaiter(this, void 0, void 0, function () {
@@ -191,7 +193,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey) {
+    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type) {
         return __awaiter(this, void 0, void 0, function () {
             var jsonMap, element, childId;
             return __generator(this, function (_a) {
@@ -213,20 +215,22 @@ var PhotoshopFactory = /** @class */ (function () {
                         childId = _a.sent();
                         _a.label = 4;
                     case 4:
-                        this.setChildIds(childId, jsxParams, layerType, parentKey);
+                        this.setChildIds(childId, jsxParams, layerType, parentKey, type);
                         return [2 /*return*/];
                 }
             });
         });
     };
-    PhotoshopFactory.prototype.setChildIds = function (childId, jsxParams, layerType, parentKey) {
+    PhotoshopFactory.prototype.setChildIds = function (childId, jsxParams, layerType, parentKey, type) {
         if (!this.platform) {
             this.photoshopModel.setPlatformMenuIds(childId, jsxParams.childName);
         }
         else {
             this.photoshopModel.setChildMenuIds(this.platform, childId, jsxParams.childName, layerType, parentKey);
         }
-        this.photoshopModel.setDrawnQuestItems(childId, jsxParams.childName);
+        if (type === "quest") {
+            this.photoshopModel.setDrawnQuestItems(childId, jsxParams.childName);
+        }
     };
     PhotoshopFactory.prototype.modifyJSXParams = function (jsxParams, mappedView, layerType) {
         if (layerType === "container") {

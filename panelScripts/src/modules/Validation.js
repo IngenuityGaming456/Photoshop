@@ -577,7 +577,8 @@ var Validation = /** @class */ (function () {
                     case 1:
                         (_a.sent())
                             .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems)
-                            .isNumeric(eventLayers[0].name, eventLayers[0].id);
+                            .isNumeric(eventLayers[0].name, eventLayers[0].id)
+                            .renameSelfStructures(eventLayers[0].name, eventLayers[0].id);
                         return [3 /*break*/, 3];
                     case 2:
                         err_1 = _a.sent();
@@ -633,7 +634,9 @@ var Validation = /** @class */ (function () {
             var selectedIdPrevName = this.modelFactory.getPhotoshopModel().selectedName;
             this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), { id: id, name: selectedIdPrevName });
             this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Names Starting with Special characters are not allowed");
+            throw new Error("Validation Stop");
         }
+        return this;
     };
     Validation.prototype.isErrorFree = function (eventLayers, callback) {
         var errorData = callback(eventLayers);
@@ -656,6 +659,10 @@ var Validation = /** @class */ (function () {
                 return true;
             }
         });
+    };
+    Validation.prototype.renameSelfStructures = function (name, id) {
+        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        utils_1.utlis.renameElementalMap(elementalMap, name, id);
     };
     return Validation;
 }());

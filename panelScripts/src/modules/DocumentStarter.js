@@ -64,6 +64,7 @@ var events_1 = require("events");
 var DocumentStabalizer_1 = require("./DocumentStabalizer");
 var constants_1 = require("../constants");
 var fs = require("fs");
+var SelfAddedStructures_1 = require("./SelfAddedStructures");
 var packageJson = require("../../package.json");
 var DocumentStarter = /** @class */ (function () {
     function DocumentStarter() {
@@ -180,9 +181,44 @@ var DocumentStarter = /** @class */ (function () {
         var _this = this;
         socket.on(constants_1.photoshopConstants.socket.register, function (name) {
             _this.handleSocketClients(name, socket);
-            if (Object.keys(_this.connectedSockets).length === 2) {
+            if (Object.keys(_this.connectedSockets).length === 3) {
                 _this.generator.emit("PanelsConnected");
             }
+        });
+    };
+    DocumentStarter.prototype.handleSocketClients = function (name, socket) {
+        if (name === constants_1.photoshopConstants.htmlPanel) {
+            this.createHTMLSocket(socket);
+        }
+        if (name === constants_1.photoshopConstants.validatorPanel) {
+            this.createValidatorSocket(socket);
+        }
+        if (name === constants_1.photoshopConstants.selfHtmlPanel) {
+            this.createSelfHTMLSocket(socket);
+        }
+        if (this.activeId.id && this.activeDocument && this.activeId.id !== this.activeDocument.id) {
+            socket.emit(constants_1.photoshopConstants.socket.disablePage);
+        }
+        socket.on('disconnect', function (reason) {
+            console.log(reason);
+        });
+        this.connectedSockets[name] = true;
+    };
+    DocumentStarter.prototype.createHTMLSocket = function (socket) {
+        this.htmlSocket = socket;
+        if (this.activeDocument) {
+            this.docEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, this.htmlSocket);
+        }
+        this.applyQuestListenerOnSocket(socket);
+    };
+    DocumentStarter.prototype.createValidatorSocket = function (socket) {
+        socket.emit(constants_1.photoshopConstants.socket.getStorage, this.docId);
+        this.loggerEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedValidatorSocket, socket);
+    };
+    DocumentStarter.prototype.createSelfHTMLSocket = function (socket) {
+        var _this = this;
+        socket.on("getRefreshResponse", function (storage) {
+            _this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
         });
         socket.on("getUpdatedDocument", function () { return __awaiter(_this, void 0, void 0, function () {
             var result;
@@ -196,35 +232,16 @@ var DocumentStarter = /** @class */ (function () {
                 }
             });
         }); });
+        this.applyQuestListenerOnSocket(socket);
     };
-    DocumentStarter.prototype.handleSocketClients = function (name, socket) {
+    DocumentStarter.prototype.applyQuestListenerOnSocket = function (socket) {
         var _this = this;
-        if (name === constants_1.photoshopConstants.htmlPanel) {
-            this.htmlSocket = socket;
-            if (this.activeDocument) {
-                this.docEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, this.htmlSocket);
-                this.htmlSocket.emit(constants_1.photoshopConstants.socket.docOpen, this.activeDocument.directory, this.docId);
-            }
-            socket.on(constants_1.photoshopConstants.socket.getQuestJson, function (storage, checkBoxes, type) {
-                _this.checkedBoxes = checkBoxes;
-                _this.modelFactory.handleSocketStorage(storage, type);
-                _this.setViewMap();
-            });
-            socket.on("getRefreshResponse", function (storage) {
-                _this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
-            });
-        }
-        if (name === constants_1.photoshopConstants.validatorPanel) {
-            socket.emit(constants_1.photoshopConstants.socket.getStorage, this.docId);
-            this.loggerEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedValidatorSocket, socket);
-        }
-        if (this.activeId.id && this.activeDocument && this.activeId.id !== this.activeDocument.id) {
-            socket.emit(constants_1.photoshopConstants.socket.disablePage);
-        }
-        socket.on('disconnect', function (reason) {
-            console.log(reason);
+        socket.on(constants_1.photoshopConstants.socket.getQuestJson, function (storage, checkBoxes, type, mappingResponse) {
+            _this.checkedBoxes = checkBoxes;
+            _this.modelFactory.getPhotoshopModel().createPlatformMapping(mappingResponse);
+            _this.modelFactory.handleSocketStorage(storage, type);
+            _this.setViewMap();
         });
-        this.connectedSockets[name] = true;
     };
     DocumentStarter.prototype.setViewMap = function () {
         var viewsMap = this.modelFactory.getMappingModel().getViewPlatformMap("desktop");
@@ -369,6 +386,10 @@ var DocumentStarter = /** @class */ (function () {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
             storage: { documentManager: this.documentManager }
         });
+        var selfAddedStructures = FactoryClass_1.inject({ ref: SelfAddedStructures_1.SelfAddedStructures, dep: [ModelFactory_1.ModelFactory] });
+        FactoryClass_1.execute(selfAddedStructures, {
+            generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: { documentManager: this.documentManager }
+        });
     };
     DocumentStarter.prototype.stabalizeDocument = function () {
         var documentStabalizer = FactoryClass_1.inject({ ref: DocumentStabalizer_1.DocumentStabalizer, dep: [] });
@@ -476,10 +497,14 @@ var DocumentStarter = /** @class */ (function () {
             this.generator.emit(constants_1.photoshopConstants.generator.activeDocumentClosed);
             this.removeListeners();
             this.startModel.onPhotoshopClose();
+            this.io && this.io.close();
+            this.io = null;
         }
         if (!this.activeDocument) {
             this.generator.removeAllListeners(constants_1.photoshopConstants.generator.closedDocument);
             this.generator.removeAllListeners(constants_1.photoshopConstants.generator.save);
+            this.io && this.io.close();
+            this.io = null;
         }
     };
     return DocumentStarter;

@@ -19,6 +19,7 @@ import {EventEmitter} from "events";
 import {DocumentStabalizer} from "./DocumentStabalizer";
 import {photoshopConstants as pc} from "../constants";
 import * as fs from "fs";
+import {SelfAddedStructures} from "./SelfAddedStructures";
 
 let packageJson = require("../../package.json");
 
@@ -127,35 +128,21 @@ export class DocumentStarter implements IFactory {
     private applySocketListeners(socket) {
         socket.on(pc.socket.register, (name) => {
             this.handleSocketClients(name, socket);
-            if (Object.keys(this.connectedSockets).length === 2) {
+            if (Object.keys(this.connectedSockets).length === 3) {
                 this.generator.emit("PanelsConnected");
             }
-        });
-        socket.on("getUpdatedDocument", async() => {
-            const result = await this.generator.getDocumentInfo(undefined);
-            socket.emit("updatedDocument", result);
         });
     }
 
     private handleSocketClients(name, socket) {
         if (name === pc.htmlPanel) {
-            this.htmlSocket = socket;
-            if (this.activeDocument) {
-                this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
-                this.htmlSocket.emit(pc.socket.docOpen, this.activeDocument.directory, this.docId);
-            }
-            socket.on(pc.socket.getQuestJson, (storage, checkBoxes, type) => {
-                this.checkedBoxes = checkBoxes;
-                this.modelFactory.handleSocketStorage(storage, type);
-                this.setViewMap();
-            });
-            socket.on("getRefreshResponse", storage => {
-                this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
-            })
+            this.createHTMLSocket(socket);
         }
         if (name === pc.validatorPanel) {
-            socket.emit(pc.socket.getStorage, this.docId);
-            this.loggerEmitter.emit(pc.logger.getUpdatedValidatorSocket, socket);
+            this.createValidatorSocket(socket);
+        }
+        if (name === pc.selfHtmlPanel) {
+            this.createSelfHTMLSocket(socket);
         }
         if (this.activeId.id && this.activeDocument && this.activeId.id !== this.activeDocument.id) {
             socket.emit(pc.socket.disablePage);
@@ -164,6 +151,39 @@ export class DocumentStarter implements IFactory {
             console.log(reason);
         });
         this.connectedSockets[name] = true;
+    }
+
+    private createHTMLSocket(socket) {
+        this.htmlSocket = socket;
+        if (this.activeDocument) {
+            this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
+        }
+        this.applyQuestListenerOnSocket(socket);
+    }
+
+    private createValidatorSocket(socket) {
+        socket.emit(pc.socket.getStorage, this.docId);
+        this.loggerEmitter.emit(pc.logger.getUpdatedValidatorSocket, socket);
+    }
+
+    private createSelfHTMLSocket(socket) {
+        socket.on("getRefreshResponse", storage => {
+            this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
+        });
+        socket.on("getUpdatedDocument", async() => {
+            const result = await this.generator.getDocumentInfo(undefined);
+            socket.emit("updatedDocument", result);
+        });
+        this.applyQuestListenerOnSocket(socket);
+    }
+
+    private applyQuestListenerOnSocket(socket) {
+        socket.on(pc.socket.getQuestJson, (storage, checkBoxes, type, mappingResponse) => {
+            this.checkedBoxes = checkBoxes;
+            this.modelFactory.getPhotoshopModel().createPlatformMapping(mappingResponse);
+            this.modelFactory.handleSocketStorage(storage, type);
+            this.setViewMap();
+        });
     }
 
     private setViewMap() {
@@ -290,6 +310,10 @@ export class DocumentStarter implements IFactory {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter,
             storage: {documentManager: this.documentManager}
         });
+        const selfAddedStructures = inject({ref: SelfAddedStructures, dep: [ModelFactory]});
+        execute(selfAddedStructures, {
+            generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: {documentManager: this.documentManager}
+        });
     }
 
     private stabalizeDocument() {
@@ -395,10 +419,14 @@ export class DocumentStarter implements IFactory {
             this.generator.emit(pc.generator.activeDocumentClosed);
             this.removeListeners();
             this.startModel.onPhotoshopClose();
+            this.io && this.io.close();
+            this.io = null;
         }
         if (!this.activeDocument) {
             this.generator.removeAllListeners(pc.generator.closedDocument);
             this.generator.removeAllListeners(pc.generator.save);
+            this.io && this.io.close();
+            this.io = null;
         }
     }
 

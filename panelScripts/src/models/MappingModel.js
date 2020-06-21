@@ -47,11 +47,7 @@ var MappingModel = /** @class */ (function () {
     };
     MappingModel.prototype.makeGenericViewMap = function () {
         this.genericViewMap = new Map();
-        this.genericViewMap.set(constants_1.photoshopConstants.views.genericView, {
-            generic: {
-                generic: {}
-            }
-        });
+        this.genericViewMap.set(constants_1.photoshopConstants.views.genericView, {});
     };
     MappingModel.prototype.makeComponentsMap = function () {
         var _this = this;

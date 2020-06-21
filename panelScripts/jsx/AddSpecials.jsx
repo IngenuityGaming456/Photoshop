@@ -19,7 +19,7 @@ function makeSpecials(specialName, singular, callBack) {
             var layerRef = getInsertionReferenceById(Number(selectedLayersIdsArray[i]));
             if(layerRef.name === specialName) {
                 var startCount = getStartCount(layerRef);
-                var symbolCount = quickMaker(specialName);
+                var symbolCount = quickMaker('Select no of ' + specialName);
                 for(var j=0;j<symbolCount;j++) {
                     if(j > 0) obj.specialIds += ",";
                     var addedSequence = Number(startCount) + j + 1;

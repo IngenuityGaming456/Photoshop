@@ -8,23 +8,31 @@ export class PanelView {
     public checkBoxArray: Array<HTMLElement> = [];
     private stateContext: StateContext;
     private safeToLock = [];
+    protected baseDiv;
 
     public constructor(eventsObj: EventEmitter) {
         this.eventsObj = eventsObj;
     }
 
-    public onStorageFull(storage: Array<Object>, stateContext) {
+    public onStorageFull(storage: Array<Object>, stateContext, str) {
+        this.reset();
         this.stateContext = stateContext;
-        this.treeView(storage);
+        this.treeView(storage, str);
         this.sendIndeterminateStates();
     }
 
-    private treeView(storage: Array<Object>) {
-        const baseDiv = this.createBaseDiv();
+    private reset() {
+        this.checkBoxArray = [];
+        this.safeToLock = [];
+    }
+
+    protected treeView(storage: Array<Object>, str) {
+        this.baseDiv = this.createBaseDiv();
+        this.createBaseLabel(this.baseDiv, str);
         ["desktop", "portrait", "landscape"].forEach(platform => {
-            this.createJSONForPlatform(platform, storage, baseDiv);
+            this.createJSONForPlatform(platform, storage, this.baseDiv);
         });
-        this.createSubmitButton();
+        this.createSubmitButton(this.baseDiv);
     }
 
     private sendIndeterminateStates() {
@@ -165,16 +173,16 @@ export class PanelView {
         this.leafsMap.set(key, liObj);
     }
 
-    private createSubmitButton() {
-        this.createButton("submitClick", "Generate", "submit");
+    private createSubmitButton(baseDiv) {
+        this.createButton("submitClick", "Generate", "submit", baseDiv);
     }
 
-    protected createButton(eventString, buttonName, className) {
+    protected createButton(eventString, buttonName, className, baseDiv) {
         const button = document.createElement("button");
         button.type = "button";
         button.innerText = buttonName;
         button.className = className;
-        document.body.append(button);
+        baseDiv.append(button);
         this.subscribeButtonListener(button, eventString);
         return button;
     }
@@ -222,6 +230,12 @@ export class PanelView {
         platformLI.append(parentUL);
         this.addContainerCheckbox(parentUL, true);
         baseDiv.append(platformLI);
+    }
+
+    private createBaseLabel(baseDiv, str) {
+        const label = document.createElement("label");
+        label.innerText = str;
+        baseDiv.append(label);
     }
 
     private createBaseDiv() {

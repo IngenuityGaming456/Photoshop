@@ -1,0 +1,16 @@
+{
+  "connection" : [
+    {
+      "front": "landscape",
+      "rear": "portrait"
+    },
+    {
+      "front": "desktop",
+      "rear": "portrait"
+    },
+    {
+      "front": "landscape",
+      "rear": "desktop"
+    }
+  ]
+}

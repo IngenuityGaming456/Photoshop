@@ -98,6 +98,7 @@ export class CreateComponent implements IFactory {
     private async isID(id, elementValue) {
         if(Number(id)) {
             await this.setGeneratorSettings(id, elementValue.label.toLowerCase(), this._pluginId);
+            this.docEmitter.emit("componentAdded", elementValue.label.toLowerCase());
             throw new Error("Control Done");
         }
         const returnArray = id.split(",");

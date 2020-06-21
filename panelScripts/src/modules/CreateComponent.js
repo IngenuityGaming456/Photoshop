@@ -181,6 +181,7 @@ var CreateComponent = /** @class */ (function () {
                         return [4 /*yield*/, this.setGeneratorSettings(id, elementValue.label.toLowerCase(), this._pluginId)];
                     case 1:
                         _a.sent();
+                        this.docEmitter.emit("componentAdded", elementValue.label.toLowerCase());
                         throw new Error("Control Done");
                     case 2:
                         returnArray = id.split(",");

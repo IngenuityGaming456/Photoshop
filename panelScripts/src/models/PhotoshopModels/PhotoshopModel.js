@@ -44,7 +44,6 @@ var PhotoshopModel = /** @class */ (function () {
     PhotoshopModel.prototype.handleData = function () {
         this.executeSubModels();
         this.elementalMap = this.createElementData();
-        this.mappedPlatform = this.createPlatformMapping();
         this.platformDeletion = this.createPlatformDeletion();
         this.viewDeletionObj = this.createViewDeletionObj();
         this.menuStates = this.accessMenuState();
@@ -133,29 +132,25 @@ var PhotoshopModel = /** @class */ (function () {
             this.questItems.push(key);
         }
     };
-    PhotoshopModel.prototype.createPlatformMapping = function () {
+    PhotoshopModel.prototype.createPlatformMapping = function (mappingResponse) {
         var _this = this;
         var mappedPlatform = {};
-        this.questPlatforms.forEach(function (item, index) {
-            mappedPlatform[item] = {};
-            _this.questViews.forEach(function (itemV) {
-                mappedPlatform[item][itemV] = _this.constructViewMapping(itemV, index);
-            });
+        mappedPlatform[mappingResponse["front"]] = {};
+        this.questViews.forEach(function (itemV) {
+            mappedPlatform[mappingResponse["front"]][itemV] = _this.constructViewMapping(itemV, mappingResponse);
         });
-        return mappedPlatform;
+        this.mappedPlatform = mappedPlatform;
     };
-    PhotoshopModel.prototype.constructViewMapping = function (itemV, index) {
+    PhotoshopModel.prototype.constructViewMapping = function (itemV, mappingResponse) {
         var nestedViewMap = {};
         if (itemV === constants_1.photoshopConstants.views.freeGame) {
             return {
                 mapping: (_a = {},
-                    _a[this.questPlatforms[index]] = constants_1.photoshopConstants.views.baseGame,
+                    _a[mappingResponse["front"]] = constants_1.photoshopConstants.views.baseGame,
                     _a)
             };
         }
-        var consecutiveIndexes = utils_1.utlis.getConsecutiveIndexes(this.questPlatforms, index);
-        nestedViewMap[this.questPlatforms[consecutiveIndexes.firstIndex]] = itemV;
-        nestedViewMap[this.questPlatforms[consecutiveIndexes.secondIndex]] = itemV;
+        nestedViewMap[mappingResponse["rear"]] = itemV;
         return {
             mapping: nestedViewMap
         };
@@ -193,6 +188,16 @@ var PhotoshopModel = /** @class */ (function () {
         },
         set: function (currentState) {
             this.currentState = currentState;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhotoshopModel.prototype, "setAutomation", {
+        get: function () {
+            return this.automation;
+        },
+        set: function (value) {
+            this.automation = value;
         },
         enumerable: true,
         configurable: true
@@ -306,6 +311,9 @@ var PhotoshopModel = /** @class */ (function () {
             }
         }
         return this.menuStates;
+    };
+    PhotoshopModel.prototype.getElementalObject = function () {
+        this.subPhotoshopModel;
     };
     return PhotoshopModel;
 }());

@@ -7,7 +7,7 @@ import {StateContext} from "../states/context";
 export class PanelModel {
     protected storage: Array<Object> = [];
     protected readonly eventsObj: EventEmitter;
-    private jsonMap = new Map();
+    protected jsonMap = new Map();
     private checkedBoxes: string;
     protected checkBoxArray = [];
     protected stateContext: StateContext;
@@ -39,9 +39,14 @@ export class PanelModel {
         this.stateContext = stateContext;
     }
 
-    public processResponse(responseArray, checkedBoxes) {
-        this.writeSession(checkedBoxes);
+    public processResponse(responseArray, checkedBoxes, mappingResponse) {
         const responseJsonMap = this.createResponseMap();
+        this.makeResponse(responseJsonMap, responseArray, checkedBoxes);
+        this.eventsObj.emit("jsonProcessed", responseJsonMap, checkedBoxes, "quest", mappingResponse);
+    }
+
+    protected makeResponse(responseJsonMap, responseArray, checkedBoxes) {
+        this.writeSession(checkedBoxes);
         responseArray.forEach((hierarchyObj) => {
             const hierarchy = hierarchyObj.hierarchy;
             const platformMap = responseJsonMap.get(hierarchyObj.platform);
@@ -55,7 +60,6 @@ export class PanelModel {
                 this.fillResponseMap(jsonObj, responseObj[splicedString], utils.spliceLastFromFront(hierarchy, ","));
             }
         });
-        this.eventsObj.emit("jsonProcessed", responseJsonMap, checkedBoxes);
     }
 
     private writeSession(checkedBoxes) {
@@ -68,7 +72,7 @@ export class PanelModel {
         });
     }
 
-    private createResponseMap() {
+    protected createResponseMap() {
         const jsonMap = new Map();
         ["desktop", "portrait", "landscape"].forEach(platform => {
             const viewJsonMap = this.createViewJsonMap();

@@ -150,7 +150,7 @@ function duplicateTextLayer(mappedLayerRef, childLayerRef) {
 
 function quickMaker(type) {
     var makerWindow = new Window('dialog', 'QuickMaker');
-    var makerPanel = makerWindow.add('panel', undefined, 'Select no of ' + type);
+    var makerPanel = makerWindow.add('panel', undefined, type);
     makerPanel.orientation = "column";
     makerPanel.alignChildren = "center";
     var countBox = makerPanel.add("edittext", [0,0,150,60], "0");

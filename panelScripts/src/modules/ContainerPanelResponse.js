@@ -148,25 +148,27 @@ var ContainerPanelResponse = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        this.setAutomationToYes();
                         previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
                         currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
                         if (!previousResponse) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.getChanges(previousResponse, currentResponse)];
+                        return [4 /*yield*/, this.getChanges(previousResponse, currentResponse, type)];
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, this.construct(currentResponse)];
+                    case 2: return [4 /*yield*/, this.construct(currentResponse, type)];
                     case 3:
                         _a.sent();
                         _a.label = 4;
                     case 4:
                         setTimeout(function () { return _this.resetMappedIds(); }, 0);
+                        this.setAutomationToNo();
                         return [2 /*return*/];
                 }
             });
         });
     };
-    ContainerPanelResponse.prototype.construct = function (currentResponse) {
+    ContainerPanelResponse.prototype.construct = function (currentResponse, type) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, _b, platform, viewObj, _c, _d, _i, view, e_2_1, e_2, _e;
             return __generator(this, function (_f) {
@@ -179,7 +181,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         if (!!_b.done) return [3 /*break*/, 8];
                         platform = _b.value;
                         if (!currentResponse[platform]["base"]) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.makePlatforms(platform)];
+                        return [4 /*yield*/, this.makePlatforms(platform, type)];
                     case 2:
                         _f.sent();
                         _f.label = 3;
@@ -198,7 +200,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         }
                         if (!(viewObj[view][view] && viewObj[view][view]["base"])) return [3 /*break*/, 6];
                         this.applyStartingLogs(view);
-                        return [4 /*yield*/, this.makeViews(view, platform)];
+                        return [4 /*yield*/, this.makeViews(view, platform, type)];
                     case 5:
                         _f.sent();
                         this.applyEndingLogs(view);
@@ -225,7 +227,7 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.makePlatforms = function (platform) {
+    ContainerPanelResponse.prototype.makePlatforms = function (platform, type) {
         return __awaiter(this, void 0, void 0, function () {
             var platformMap, platformJson;
             return __generator(this, function (_a) {
@@ -233,7 +235,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                     case 0:
                         platformMap = this.modelFactory.getMappingModel().getPlatformMap();
                         platformJson = platformMap.get(platform);
-                        return [4 /*yield*/, this.photoshopFactory.makeStruct(platformJson, null, null, null)];
+                        return [4 /*yield*/, this.photoshopFactory.makeStruct(platformJson, null, null, null, type)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -241,25 +243,30 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.makeViews = function (view, platform) {
+    ContainerPanelResponse.prototype.makeViews = function (view, platform, type, currentJson) {
         return __awaiter(this, void 0, void 0, function () {
-            var viewMap, viewJson, platformRef, commonId;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var viewMap, viewJson, platformRef, commonId, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
                         viewJson = viewMap.get(view);
+                        if (!viewJson && currentJson) {
+                            viewJson = (_a = {},
+                                _a[view] = currentJson[view],
+                                _a);
+                        }
                         platformRef = utils_1.utlis.getPlatformRef(platform, this.activeDocument);
                         commonId = utils_1.utlis.getCommonId(platformRef);
-                        return [4 /*yield*/, this.photoshopFactory.makeStruct(viewJson, commonId, null, platform)];
+                        return [4 /*yield*/, this.photoshopFactory.makeStruct(viewJson, commonId, null, platform, type)];
                     case 1:
-                        _a.sent();
+                        _b.sent();
                         return [2 /*return*/];
                 }
             });
         });
     };
-    ContainerPanelResponse.prototype.getChanges = function (previousResponseMap, responseMap) {
+    ContainerPanelResponse.prototype.getChanges = function (previousResponseMap, responseMap, type) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, _b, platform, e_3_1, e_3, _c;
             return __generator(this, function (_d) {
@@ -271,7 +278,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                     case 1:
                         if (!!_b.done) return [3 /*break*/, 4];
                         platform = _b.value;
-                        return [4 /*yield*/, this.getPlatformChanges(platform, previousResponseMap[platform], responseMap[platform])];
+                        return [4 /*yield*/, this.getPlatformChanges(platform, previousResponseMap[platform], responseMap[platform], type)];
                     case 2:
                         _d.sent();
                         _d.label = 3;
@@ -294,12 +301,12 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.getPlatformChanges = function (platform, previousPlatformView, currentPlatformView) {
+    ContainerPanelResponse.prototype.getPlatformChanges = function (platform, previousPlatformView, currentPlatformView, type) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, _b, _i, key;
             return __generator(this, function (_c) {
                 switch (_c.label) {
-                    case 0: return [4 /*yield*/, this.sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform)];
+                    case 0: return [4 /*yield*/, this.sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform, type)];
                     case 1:
                         _c.sent();
                         _a = [];
@@ -313,7 +320,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         if (!previousPlatformView.hasOwnProperty(key)) {
                             return [3 /*break*/, 4];
                         }
-                        return [4 /*yield*/, this.sendViewJsonChanges(previousPlatformView[key], currentPlatformView[key], key, platform)];
+                        return [4 /*yield*/, this.sendViewJsonChanges(previousPlatformView[key], currentPlatformView[key], key, platform, type)];
                     case 3:
                         _c.sent();
                         _c.label = 4;
@@ -326,13 +333,13 @@ var ContainerPanelResponse = /** @class */ (function () {
         });
     };
     ;
-    ContainerPanelResponse.prototype.sendPlatformJsonChanges = function (previousPlatformView, currentPlatformView, platform) {
+    ContainerPanelResponse.prototype.sendPlatformJsonChanges = function (previousPlatformView, currentPlatformView, platform, type) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(currentPlatformView.base && !previousPlatformView.base)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.makePlatforms(platform)];
+                        return [4 /*yield*/, this.makePlatforms(platform, type)];
                     case 1:
                         _a.sent();
                         _a.label = 2;
@@ -341,7 +348,7 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.sendViewJsonChanges = function (previousJson, currentJson, key, platform) {
+    ContainerPanelResponse.prototype.sendViewJsonChanges = function (previousJson, currentJson, key, platform, type) {
         return __awaiter(this, void 0, void 0, function () {
             var previousBaseChild, currentBaseChild, _a, _b, _i, keyC;
             return __generator(this, function (_c) {
@@ -351,7 +358,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         currentBaseChild = currentJson && currentJson[Object.keys(currentJson)[0]];
                         if (!(currentBaseChild && currentBaseChild["base"] && previousBaseChild && !previousBaseChild["base"])) return [3 /*break*/, 2];
                         this.applyStartingLogs(key);
-                        return [4 /*yield*/, this.makeViews(key, platform)];
+                        return [4 /*yield*/, this.makeViews(key, platform, type, currentJson)];
                     case 1:
                         _c.sent();
                         this.applyEndingLogs(key);
@@ -367,7 +374,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         keyC = _a[_i];
                         if (!currentBaseChild.hasOwnProperty(keyC)) return [3 /*break*/, 5];
                         if (!!previousBaseChild[keyC]) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[keyC], keyC, platform)];
+                        return [4 /*yield*/, this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[keyC], keyC, platform, type)];
                     case 4:
                         _c.sent();
                         _c.label = 5;
@@ -379,12 +386,12 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.sendAdditionRequest = function (baseKey, currentObj, key, platform) {
+    ContainerPanelResponse.prototype.sendAdditionRequest = function (baseKey, currentObj, key, platform, type) {
         return __awaiter(this, void 0, void 0, function () {
             var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.photoshopFactory.makeStruct((_a = {}, _a[key] = currentObj, _a), this.getParentId(baseKey, platform), baseKey, platform)];
+                    case 0: return [4 /*yield*/, this.photoshopFactory.makeStruct((_a = {}, _a[key] = currentObj, _a), this.getParentId(baseKey, platform), baseKey, platform, type)];
                     case 1:
                         _b.sent();
                         return [2 /*return*/];
@@ -415,6 +422,15 @@ var ContainerPanelResponse = /** @class */ (function () {
     ContainerPanelResponse.prototype.resetMappedIds = function () {
         var mappedIds = this.modelFactory.getPhotoshopModel().getMappedIds();
         mappedIds.length = 0;
+    };
+    ContainerPanelResponse.prototype.setAutomationToYes = function () {
+        this.modelFactory.getPhotoshopModel().setAutomation = true;
+    };
+    ContainerPanelResponse.prototype.setAutomationToNo = function () {
+        var _this = this;
+        setTimeout(function () {
+            _this.modelFactory.getPhotoshopModel().setAutomation = false;
+        }, 2000);
     };
     return ContainerPanelResponse;
 }());

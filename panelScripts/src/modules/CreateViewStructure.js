@@ -34,11 +34,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var constants_1 = require("../constants");
+var path = require("path");
 var packageJson = require("../../package.json");
 var CreateViewStructure = /** @class */ (function () {
     function CreateViewStructure(viewClass, modelFactory, photoshopFactory) {
+        this.questComponents = ["button", "image", "label", "meter", "animation", "shape", "container", "slider"];
         this._viewClass = viewClass;
         this.modelFactory = modelFactory;
         this.viewDeletionObj = this.modelFactory.getPhotoshopModel().viewDeletion;
@@ -59,36 +71,96 @@ var CreateViewStructure = /** @class */ (function () {
     };
     CreateViewStructure.prototype.drawStruct = function (menuName) {
         return __awaiter(this, void 0, void 0, function () {
-            var insertionObj, params, _a, _b, _i, keys;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var insertionObj, params, result, _a, _b, _i, keys, _c, _d;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator, this.docEmitter, this.getPlatform.bind(this), this.viewDeletionObj, this.menuName)];
                     case 1:
-                        insertionObj = _c.sent();
-                        if (!(insertionObj !== "invalid")) return [3 /*break*/, 5];
+                        insertionObj = _e.sent();
+                        if (!(insertionObj !== "invalid")) return [3 /*break*/, 6];
                         this.platform = insertionObj.platform;
                         params = this.getElementMap().get(menuName);
                         this.emitValidCalls(menuName);
+                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/CreateView.jsx"))];
+                    case 2:
+                        result = _e.sent();
+                        params = (_c = {},
+                            _c[result] = (_d = {},
+                                _d[result] = {},
+                                _d),
+                            _c);
                         _a = [];
                         for (_b in params)
                             _a.push(_b);
                         _i = 0;
-                        _c.label = 2;
-                    case 2:
-                        if (!(_i < _a.length)) return [3 /*break*/, 5];
-                        keys = _a[_i];
-                        if (!params.hasOwnProperty(keys)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform)];
+                        _e.label = 3;
                     case 3:
-                        _c.sent();
-                        _c.label = 4;
+                        if (!(_i < _a.length)) return [3 /*break*/, 6];
+                        keys = _a[_i];
+                        if (!params.hasOwnProperty(keys)) return [3 /*break*/, 5];
+                        this.modifyMappedPlatform(keys);
+                        this.modifyElementalMap(keys);
+                        return [4 /*yield*/, this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform)];
                     case 4:
+                        _e.sent();
+                        _e.label = 5;
+                    case 5:
                         _i++;
-                        return [3 /*break*/, 2];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
+    };
+    CreateViewStructure.prototype.modifyMappedPlatform = function (view) {
+        var mappedPlatform = this.modelFactory.getPhotoshopModel().mappedPlatformObj;
+        for (var key in mappedPlatform) {
+            if (!mappedPlatform.hasOwnProperty(key)) {
+                continue;
+            }
+            mappedPlatform[key][view] = {};
+            var firstKey = Object.keys(mappedPlatform[key])[0];
+            var rear = Object.keys(mappedPlatform[key][firstKey]["mapping"])[0];
+            mappedPlatform[key][view] = {
+                "mapping": (_a = {},
+                    _a[rear] = view,
+                    _a)
+            };
+        }
+        var _a;
+    };
+    CreateViewStructure.prototype.modifyElementalMap = function (view) {
+        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        this.addViewToElementalMap(elementalMap, view);
+    };
+    CreateViewStructure.prototype.addViewToElementalMap = function (elementalMap, view) {
+        for (var key in elementalMap) {
+            if (!elementalMap.hasOwnProperty(key)) {
+                continue;
+            }
+            if (view in elementalMap[key]) {
+                return;
+            }
+            elementalMap[key][view] = this.makeElementalObject();
+        }
+    };
+    CreateViewStructure.prototype.makeElementalObject = function () {
+        var elementalObj = {};
+        try {
+            for (var _a = __values(this.questComponents), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var item = _b.value;
+                elementalObj[item] = [];
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return elementalObj;
+        var e_1, _c;
     };
     CreateViewStructure.prototype.getPlatform = function (insertionPoint) {
         if (!insertionPoint) {

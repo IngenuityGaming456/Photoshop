@@ -33,6 +33,7 @@ export class PhotoshopModel implements IModel {
     private selfPreviousResponse;
     private selfContainerResponse;
     private selfPreviousContainer;
+    private automation;
 
     execute(params: IParams) {
         this.generator = params.generator;
@@ -58,7 +59,6 @@ export class PhotoshopModel implements IModel {
     protected handleData() {
         this.executeSubModels();
         this.elementalMap = this.createElementData();
-        this.mappedPlatform = this.createPlatformMapping();
         this.platformDeletion = this.createPlatformDeletion();
         this.viewDeletionObj =  this.createViewDeletionObj();
         this.menuStates = this.accessMenuState();
@@ -160,29 +160,25 @@ export class PhotoshopModel implements IModel {
         }
     }
 
-    private createPlatformMapping() {
+    public createPlatformMapping(mappingResponse) {
         const mappedPlatform = {};
-        this.questPlatforms.forEach((item, index) => {
-            mappedPlatform[item] = {};
-            this.questViews.forEach(itemV => {
-                mappedPlatform[item][itemV] = this.constructViewMapping(itemV, index);
-            });
+        mappedPlatform[mappingResponse["front"]] = {};
+        this.questViews.forEach(itemV => {
+                mappedPlatform[mappingResponse["front"]][itemV] = this.constructViewMapping(itemV, mappingResponse);
         });
-        return mappedPlatform;
+        this.mappedPlatform = mappedPlatform;
     }
 
-    private constructViewMapping(itemV, index) {
+    private constructViewMapping(itemV, mappingResponse) {
         const nestedViewMap = {};
         if (itemV === pc.views.freeGame) {
             return {
                 mapping: {
-                    [this.questPlatforms[index]]: pc.views.baseGame
+                    [mappingResponse["front"]]: pc.views.baseGame
                 }
             }
         }
-        const consecutiveIndexes = utlis.getConsecutiveIndexes(this.questPlatforms, index);
-        nestedViewMap[this.questPlatforms[consecutiveIndexes.firstIndex]] = itemV;
-        nestedViewMap[this.questPlatforms[consecutiveIndexes.secondIndex]] = itemV;
+        nestedViewMap[mappingResponse["rear"]] = itemV;
         return {
             mapping: nestedViewMap
         }
@@ -220,6 +216,14 @@ export class PhotoshopModel implements IModel {
 
     set menuCurrentState(currentState) {
         this.currentState = currentState;
+    }
+
+    set setAutomation(value) {
+        this.automation = value;
+    }
+
+    get setAutomation() {
+        return this.automation;
     }
 
     get allDrawnQuestItems() {
@@ -311,6 +315,10 @@ export class PhotoshopModel implements IModel {
             }
         }
         return this.menuStates;
+    }
+
+    public getElementalObject() {
+        this.subPhotoshopModel
     }
 
 }

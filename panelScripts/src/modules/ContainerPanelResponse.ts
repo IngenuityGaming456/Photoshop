@@ -1,7 +1,6 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
 import {utlis} from "../utils/utils";
-import * as layerClass from "../../lib/dom/layer";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 import {photoshopConstants as pc} from "../constants";
 const cloneDeep = require('lodash/cloneDeep.js');
@@ -84,20 +83,22 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async getDataForChanges(type) {
+        this.setAutomationToYes();
         const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
         if(previousResponse) {
-            await this.getChanges(previousResponse, currentResponse);
+            await this.getChanges(previousResponse, currentResponse, type);
         } else {
-            await this.construct(currentResponse);
+            await this.construct(currentResponse, type);
         }
         setTimeout(() => this.resetMappedIds(), 0);
+        this.setAutomationToNo();
     }
 
-    private async construct(currentResponse) {
+    private async construct(currentResponse, type) {
         for(let platform of this.platformArray) {
             if (currentResponse[platform]["base"]) {
-                await this.makePlatforms(platform);
+                await this.makePlatforms(platform, type);
             }
             const viewObj = currentResponse[platform];
             for (let view in viewObj) {
@@ -106,55 +107,60 @@ export class ContainerPanelResponse implements IFactory {
                 }
                 if (viewObj[view][view] && viewObj[view][view]["base"]) {
                     this.applyStartingLogs(view);
-                    await this.makeViews(view, platform);
+                    await this.makeViews(view, platform, type);
                     this.applyEndingLogs(view);
                 }
             }
         }
     }
 
-    private async makePlatforms(platform) {
+    private async makePlatforms(platform, type) {
         const platformMap = this.modelFactory.getMappingModel().getPlatformMap();
         const platformJson = platformMap.get(platform);
-        await this.photoshopFactory.makeStruct(platformJson, null, null, null);
+        await this.photoshopFactory.makeStruct(platformJson, null, null, null, type);
     }
 
-    private async makeViews(view, platform) {
+    private async makeViews(view, platform, type, currentJson?) {
         const viewMap = this.modelFactory.getMappingModel().getViewPlatformMap(platform);
-        const viewJson = viewMap.get(view);
+        let viewJson = viewMap.get(view);
+        if(!viewJson && currentJson) {
+            viewJson = {
+                [view]: currentJson[view]
+            }
+        }
         const platformRef = utlis.getPlatformRef(platform, this.activeDocument);
         const commonId = utlis.getCommonId(platformRef);
-        await this.photoshopFactory.makeStruct(viewJson, commonId, null, platform);
+        await this.photoshopFactory.makeStruct(viewJson, commonId, null, platform, type);
     }
 
-    private async getChanges(previousResponseMap, responseMap) {
+    private async getChanges(previousResponseMap, responseMap, type) {
         for(let platform of this.platformArray) {
-            await this.getPlatformChanges(platform, previousResponseMap[platform], responseMap[platform]);
+            await this.getPlatformChanges(platform, previousResponseMap[platform], responseMap[platform], type);
         }
     }
 
-    private async getPlatformChanges(platform, previousPlatformView, currentPlatformView) {
-        await this.sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform);
+    private async getPlatformChanges(platform, previousPlatformView, currentPlatformView, type) {
+        await this.sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform, type);
         for(let key in previousPlatformView) {
             if(!previousPlatformView.hasOwnProperty(key)) {
                 continue;
             }
-            await this.sendViewJsonChanges(previousPlatformView[key], currentPlatformView[key], key, platform);
+            await this.sendViewJsonChanges(previousPlatformView[key], currentPlatformView[key], key, platform, type);
         }
     };
 
-    private async sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform) {
+    private async sendPlatformJsonChanges(previousPlatformView, currentPlatformView, platform, type) {
         if(currentPlatformView.base && !previousPlatformView.base) {
-            await this.makePlatforms(platform);
+            await this.makePlatforms(platform, type);
         }
     }
 
-    private async sendViewJsonChanges(previousJson, currentJson, key, platform) {
+    private async sendViewJsonChanges(previousJson, currentJson, key, platform, type) {
         const previousBaseChild = previousJson && previousJson[Object.keys(previousJson)[0]];
         const currentBaseChild = currentJson && currentJson[Object.keys(currentJson)[0]];
         if(currentBaseChild && currentBaseChild["base"] && previousBaseChild && !previousBaseChild["base"]) {
             this.applyStartingLogs(key);
-            await this.makeViews(key, platform);
+            await this.makeViews(key, platform, type, currentJson);
             this.applyEndingLogs(key);
             return;
         }
@@ -162,14 +168,14 @@ export class ContainerPanelResponse implements IFactory {
         for (let keyC in currentBaseChild) {
             if(currentBaseChild.hasOwnProperty(keyC)) {
                 if(!previousBaseChild[keyC]) {
-                    await this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[keyC], keyC,  platform);
+                    await this.sendAdditionRequest(Object.keys(previousJson)[0], currentBaseChild[keyC], keyC,  platform, type);
                 }
             }
         }
     }
 
-    private async sendAdditionRequest(baseKey, currentObj, key, platform) {
-        await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey, platform), baseKey, platform);
+    private async sendAdditionRequest(baseKey, currentObj, key, platform, type) {
+        await this.photoshopFactory.makeStruct({[key]: currentObj}, this.getParentId(baseKey, platform), baseKey, platform, type);
     }
 
     private getParentId(baseKey, platform) {
@@ -201,6 +207,16 @@ export class ContainerPanelResponse implements IFactory {
     private resetMappedIds() {
         const mappedIds = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).getMappedIds()
         mappedIds.length = 0;
+    }
+
+    private setAutomationToYes() {
+        this.modelFactory.getPhotoshopModel().setAutomation = true;
+    }
+
+    private setAutomationToNo() {
+        setTimeout(() => {
+            this.modelFactory.getPhotoshopModel().setAutomation = false;
+        }, 2000)
     }
 
 }

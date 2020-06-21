@@ -5,19 +5,22 @@ import {utils} from "../utils/utils";
 import * as io from "socket.io-client";
 import {StateContext} from "../states/context";
 import {PanelViewApp} from "../view/PanelViewApp";
+import {MappingView} from "../view/MappingView";
 
 export class PanelController {
     protected eventsObj: EventEmitter;
     protected view: PanelViewApp;
+    private mappingView: MappingView;
     protected model: PanelModel;
     protected socket;
-    private readonly stateContext: StateContext;
+    protected readonly stateContext: StateContext;
     protected lockedItems = [];
     protected csInterface;
 
-    public constructor(eventsObj: EventEmitter, viewObj: PanelViewApp, modelObj: PanelModel, stateContext: StateContext) {
+    public constructor(eventsObj: EventEmitter, viewObj: PanelViewApp, mappingViewObj: MappingView, modelObj: PanelModel, stateContext: StateContext) {
         this.eventsObj = eventsObj;
         this.view = viewObj;
+        this.mappingView = mappingViewObj;
         this.model = modelObj;
         this.stateContext = stateContext;
         this.instantiateCSInterface();
@@ -48,6 +51,12 @@ export class PanelController {
     protected processSubmission() {
         const checkedBoxes = [];
         const responseArray = [];
+        this.makeSubmission(checkedBoxes, responseArray);
+        const mappingResponse = this.mappingView.sendMappingResponse();
+        this.model.processResponse(responseArray, checkedBoxes, mappingResponse);
+    }
+
+    protected makeSubmission(checkedBoxes, responseArray) {
         this.view.checkBoxArray.forEach((item) => {
             if((item as HTMLInputElement).checked && !utils.isInContainerOrElement(utils.getParentLI(item))) {
                 (item as HTMLInputElement).disabled = true;
@@ -59,7 +68,6 @@ export class PanelController {
                 }
             }
         });
-        this.model.processResponse(responseArray, checkedBoxes);
     }
 
     private pushToLockedItems(item) {
@@ -104,8 +112,8 @@ export class PanelController {
         event.stopPropagation();
     }
 
-    private sendStorage(storage: Array<Object>) {
-        this.view.onStorageFull(storage, this.stateContext);
+    protected sendStorage(storage: Array<Object>) {
+        this.view.onStorageFull(storage, this.stateContext, "Quest Strutures");
         this.eventsObj.emit("makePanelView");
     }
 
@@ -135,7 +143,7 @@ export class PanelController {
                 return true;
             }
             if (nodeName === layerName && utils.isInBaseView(baseView, item) &&
-               utils.isInPlatform(platform, item)) {
+                utils.isInPlatform(platform, item)) {
                 return true;
             }
         });
@@ -204,15 +212,15 @@ export class PanelController {
 
     private setCheckboxState(inputCheckbox, isChecked, parentLI) {
         if(~utils.getLISpan(parentLI).childNodes[0].nodeValue.search(/Containers|Elements/) &&
-           utils.getParentLI(parentLI).children[0].checked) {
+            utils.getParentLI(parentLI).children[0].checked) {
             inputCheckbox.disabled = false;
         } else {
             inputCheckbox.disabled = !isChecked;
         }
     }
 
-    private onJsonProcessed(responseMap, checkedBoxes) {
-        this.socket.emit("getQuestJson", utils.mapToObject(responseMap),checkedBoxes);
+    private onJsonProcessed(responseMap, checkedBoxes, type, mappingResponse) {
+        this.socket.emit("getQuestJson", utils.mapToObject(responseMap),checkedBoxes, type, mappingResponse);
     }
 
     private stopBubbling(event) {
