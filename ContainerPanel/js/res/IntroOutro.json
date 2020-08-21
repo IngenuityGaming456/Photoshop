@@ -1,22 +1,18 @@
 {
   "IntroOutro": {
-    "noElement": true,
     "IntroOutroContainer": {
       "type": "container",
-      "id": "IntroOutroContainer",
-      "noElement": true
+      "id": "IntroOutroContainer"
     },
     "IntroContainer": {
       "type": "container",
       "id": "IntroContainer",
-      "parent": "IntroOutroContainer",
-      "leaf": true
+      "parent": "IntroOutroContainer"
     },
     "OutroContainer": {
       "type": "container",
       "id": "OutroContainer",
-      "parent": "IntroOutroContainer",
-      "leaf": true
+      "parent": "IntroOutroContainer"
     }
   }
 }

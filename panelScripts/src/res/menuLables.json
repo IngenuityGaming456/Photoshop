@@ -1,4 +1,13 @@
 {
+  "Import": {
+    "label": "AddImport",
+    "displayName": "Import"
+  },
+  "Divider1": {
+    "label": "Divider1",
+    "displayName": "",
+    "enabled": false
+  },
   "GenericView": {
     "label": "AddGenericView",
     "displayName": "NewView"

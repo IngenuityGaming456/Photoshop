@@ -153,6 +153,7 @@ export class CreateComponent implements IFactory {
 
     private async callComponentJsx(sequenceId: number, jsxName: string): Promise<number> {
         let jsxPath = path.join(__dirname, "../../jsx/" + jsxName + ".jsx");
+        await this._generator.evaluateJSXString(`alert({jsxPath})`);
         return await this._generator.evaluateJSXFile(jsxPath, {clicks: sequenceId});
     }
 

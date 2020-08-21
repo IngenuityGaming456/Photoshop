@@ -13,6 +13,7 @@ export class MappingModel implements IModel {
     private testingMap;
     private localisationMap;
     private componentsMap;
+    private importMap;
     private generator;
     private params;
     private writeData = {};
@@ -26,6 +27,7 @@ export class MappingModel implements IModel {
         this.makeGenericViewMap();
         this.makeComponentsMap();
         this.makePlatformMap();
+        this.makeImportMap();
         this.makeLayoutMap();
         this.makePlatformMap();
         this.makeTestingMap();
@@ -91,6 +93,11 @@ export class MappingModel implements IModel {
                         .set(pc.platforms.landscape, landscapePlatform);
     }
 
+    private makeImportMap() {
+        this.importMap = new Map();
+        this.importMap.set(pc.generatorButtons.import, {});
+    }
+
     private makeLayoutMap() {
         this.layoutMap = new Map();
         this.layoutMap.set(pc.generatorButtons.layoutEnabled, {});
@@ -120,6 +127,10 @@ export class MappingModel implements IModel {
     
     public getTestingMap() {
         return this.testingMap;
+    }
+
+    public getImportMap() {
+        return this.importMap;
     }
     
     public getLocalisationMap() {

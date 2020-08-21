@@ -1,8 +1,6 @@
 {
   "paytable": {
-    "noElement": true,
     "payTableFullContainer": {
-      "noElement": true,
       "type": "container",
       "id": "payTableFullContainer"
     },
@@ -14,20 +12,17 @@
     "pageOneContainer": {
       "type": "container",
       "id": "pageOneContainer",
-      "parent": "pagesContainer",
-      "leaf": true
+      "parent": "pagesContainer"
     },
     "pageTwoContainer": {
       "type": "container",
       "id": "pageTwoContainer",
-      "parent": "pagesContainer",
-      "leaf": true
+      "parent": "pagesContainer"
     },
     "exitSettingContainer": {
       "type": "container",
       "id": "exitSettingContainer",
-      "parent": "payTableFullContainer",
-      "noContainer": true
+      "parent": "payTableFullContainer"
     },
     "info_next_button": {
       "type": "button",

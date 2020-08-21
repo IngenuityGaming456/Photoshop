@@ -2,8 +2,7 @@
     "loader": {
         "loadingLogo": {
             "type": "container",
-            "id": "loadingLogo",
-            "leaf": true
+            "id": "loadingLogo"
         },
         "percentBar": {
             "type": "container",
@@ -12,8 +11,7 @@
         "progress": {
             "type": "container",
             "id": "progress",
-            "parent": "percentBar",
-            "noElement": true
+            "parent": "percentBar"
         },
         "loaderPercent": {
             "type": "meter",
@@ -23,15 +21,12 @@
         "progressStatic": {
             "type": "container",
             "id": "progressStatic",
-            "parent": "progress",
-            "leaf": true
+            "parent": "progress"
         },
         "progressDynamic": {
             "type": "container",
             "id": "progressDynamic",
-            "parent": "progress",
-            "leaf": true
-        },
-        "noElement": true
+            "parent": "progress"
+        }
     }
 }

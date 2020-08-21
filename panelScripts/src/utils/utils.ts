@@ -572,4 +572,16 @@ export class utlis {
         }
     }
 
+    public static getAssetsAndJson(key, activeDocument) {
+        const savedPath = activeDocument.directory;
+        const fileName = activeDocument.name;
+        const qAssetsPath = savedPath + "\\" + `${key}\\${fileName}-assets`;
+        const qJsonPath =savedPath + "\\" + `${key}\\${fileName}`;
+        const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
+        return {
+            qAssetsPath,
+            qObj
+        }
+    }
+
 }

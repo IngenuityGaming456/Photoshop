@@ -53,7 +53,7 @@ export class SelfPanelModel extends PanelModel {
                 if(this.isQuestValidContainer(container.name, view.name)) {
                     this.parseQuestContainer(container, null, view.name, itemName);
                 }
-                if(this.isValidContainer(container.name, view.name)) {
+                else if(this.isValidContainer(container.name, view.name)) {
                     this.parseContainer(container, null, view.name, itemName);
                 }
             })
@@ -63,9 +63,12 @@ export class SelfPanelModel extends PanelModel {
     private parseQuestContainer(container, parentName, viewName, itemName) {
         this.insertContainerInJson(container, parentName, viewName, itemName);
         container.layers && container.layers.forEach(subContainer => {
-            if((subContainer.type === "layerSection" && !subContainer["generatorSettings"]) &&
-                this.isValidContainer(subContainer.name, viewName)) {
-                this.parseContainer(subContainer, container.name, viewName, itemName);
+            if((subContainer.type === "layerSection" && !subContainer["generatorSettings"])) {
+                if (this.isQuestValidContainer(subContainer.name, viewName)) {
+                    this.parseQuestContainer(subContainer, container.name, viewName, itemName);
+                } else if (this.isValidContainer(subContainer.name, viewName)) {
+                    this.parseContainer(subContainer, container.name, viewName, itemName);
+                }
             }
         })
     }
@@ -101,6 +104,9 @@ export class SelfPanelModel extends PanelModel {
         if(item.type === "textLayer") {
             type = "label";
         }
+        if(item.type === "layerSection") {
+            type = "container";
+        }
         return type;
     }
 
@@ -117,7 +123,7 @@ export class SelfPanelModel extends PanelModel {
     private isQuestValidContainer(containerName, viewName) {
         const jsonObj = this.getJsonObject(viewName);
         for(let key in jsonObj) {
-            if(containerName === key && !("leaf" in jsonObj[key])) {
+            if(containerName === key) {
                 return true;
             }
         }

@@ -55,6 +55,7 @@ export const photoshopConstants = {
         genericView: "AddGenericView"
     },
     generatorButtons: {
+        import: "AddImport",
         layoutEnabled: "LayoutEnabled",
         removePath: "Testing",
         localise: "Localise",

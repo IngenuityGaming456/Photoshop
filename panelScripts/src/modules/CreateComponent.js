@@ -258,8 +258,11 @@ var CreateComponent = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         jsxPath = path.join(__dirname, "../../jsx/" + jsxName + ".jsx");
+                        return [4 /*yield*/, this._generator.evaluateJSXString("alert({jsxPath})")];
+                    case 1:
+                        _a.sent();
                         return [4 /*yield*/, this._generator.evaluateJSXFile(jsxPath, { clicks: sequenceId })];
-                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2: return [2 /*return*/, _a.sent()];
                 }
             });
         });

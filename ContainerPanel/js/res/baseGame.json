@@ -52,8 +52,7 @@
     "menuContainer": {
       "type": "container",
       "id": "menuContainer",
-      "parent": "buttonsContainerBG",
-      "noContainer": true
+      "parent": "buttonsContainerBG"
     },
     "settingsBtn": {
       "type": "button",
@@ -63,8 +62,7 @@
     "AutoPlayOnBtnContainer": {
       "type": "container",
       "id": "AutoPlayOnBtnContainer",
-      "parent": "buttonsContainerBG",
-      "noContainer": true
+      "parent": "buttonsContainerBG"
     },
     "autoPlayOnButton": {
       "id": "autoPlayOn",
@@ -74,8 +72,7 @@
     "AutoPlayOffBtnContainer": {
       "type": "container",
       "id": "AutoPlayOffBtnContainer",
-      "parent": "buttonsContainerBG",
-      "noContainer": true
+      "parent": "buttonsContainerBG"
     },
     "autoPlayOffButton": {
       "id": "autoPlayOff",
@@ -89,50 +86,41 @@
     },
     "promoMessageContainer": {
       "type": "container",
-      "id": "promoMessageContainer",
-      "leaf": true
+      "id": "promoMessageContainer"
     },
     "fiveOfAKindContainer": {
       "type": "container",
-      "id": "fiveOfAKindContainer",
-      "leaf": true
+      "id": "fiveOfAKindContainer"
     },
     "anticipationAnim": {
       "type": "animation",
       "id": "anticipationAnim",
-      "frameRate": 15,
-      "loop": true
+      "frameRate": 15
     },
     "reelsContainer": {
       "type": "container",
-      "id": "reelsContainer",
-      "noElement": true
+      "id": "reelsContainer"
     },
     "reelsBGContainer": {
       "type": "container",
       "id": "reelsBGContainer",
-      "parent": "reelsContainer",
-      "leaf": true
+      "parent": "reelsContainer"
     },
     "gameLogoContainer": {
       "type": "container",
-      "id": "gameLogoContainer",
-      "leaf": true
+      "id": "gameLogoContainer"
     },
     "Symbols": {
       "type": "container",
-      "id": "Symbols",
-      "leaf": true
+      "id": "Symbols"
     },
     "Paylines": {
       "type": "container",
-      "id": "Paylines",
-      "leaf": true
+      "id": "Paylines"
     },
     "WinFrames": {
       "type": "container",
-      "id": "WinFrames",
-      "leaf": true
+      "id": "WinFrames"
     }
   }
 }

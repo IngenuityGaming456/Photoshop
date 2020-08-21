@@ -365,6 +365,10 @@ export class DocumentStarter implements IFactory {
         this.structureMap = new Map();
         this.mapFactory = this.modelFactory.getMappingModel();
         this.structureMap
+            .set(this.mapFactory.getImportMap(), {
+                ref: CreateImport,
+                dep: [ModelFactory]
+            })
             .set(this.mapFactory.getGenericViewMap(), {
                 ref: CreateViewStructure,
                 dep: [CreateView, ModelFactory, PhotoshopFactory]
