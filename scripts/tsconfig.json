@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "sourceMap": true,
+    "lib": [ "es2018" , "dom"],
+    
+    "downlevelIteration": true,
+    "allowUnreachableCode":true
+  },
+  "include" : [
+    "./import"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
