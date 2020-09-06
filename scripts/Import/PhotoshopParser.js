@@ -162,11 +162,13 @@ var PhotoshopParser = /** @class */ (function () {
         }
         return false;
     };
+    /**driver function to get deleted object array */
     PhotoshopParser.prototype.getPSObjects = function (platform) {
         var psObj = this.pObj;
         var psObjArray = [];
         return this.getDeletedArray(psObj, psObjArray, platform);
     };
+    /**get the quest deleted objects */
     PhotoshopParser.prototype.getDeletedArray = function (psObj, psObjArray, platform) {
         if (psObj.hasOwnProperty('layers')) {
             /**Iterate over every component of current layer */
@@ -183,6 +185,14 @@ var PhotoshopParser = /** @class */ (function () {
         }
         return psObjArray;
     };
+    /**
+     *
+     * @param obj function to check if a object is moved from its parent to under other parent
+     * @param psParent
+     * @param qParent
+     * @param qLayerID
+     * @param qId
+     */
     PhotoshopParser.prototype.findChildUnderParent = function (obj, psParent, qParent, qLayerID, qId) {
         var res;
         /**Check if curent object has any layer property */
@@ -197,18 +207,27 @@ var PhotoshopParser = /** @class */ (function () {
                     }
                     else {
                         return psParent;
-                        //return "moved";
                     }
                 }
                 else {
-                    var layerParent = obj['layers'][i].name;
-                    res = this.findChildUnderParent(obj['layers'][i], layerParent, qParent, qLayerID, qId);
+                    psParent = obj['layers'][i].name;
+                    res = this.findChildUnderParent(obj['layers'][i], psParent, qParent, qLayerID, qId);
                 }
             }
             return res;
         }
         return false;
     };
+    /**
+     * function will check if elements are edited
+     * @param obj
+     * @param qLayerID
+     * @param qId
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
     PhotoshopParser.prototype.checkForEditedElement = function (obj, qLayerID, qId, x, y, width, height) {
         var res;
         if (obj.hasOwnProperty('layers')) {
@@ -233,6 +252,14 @@ var PhotoshopParser = /** @class */ (function () {
         }
         return false;
     };
+    /**
+     * driver recursion function to check if images are chnaged
+     * @param obj
+     * @param qLayerID
+     * @param qId
+     * @param path
+     * @param qImg
+     */
     PhotoshopParser.prototype.checkIfImageChanged = function (obj, qLayerID, qId, path, qImg) {
         var res;
         if (obj.hasOwnProperty('layers')) {
@@ -249,6 +276,13 @@ var PhotoshopParser = /** @class */ (function () {
         }
         return false;
     };
+    /**
+     * function will check if images are changed, we have extract path of
+     * ps images from quest images because inside folder structure is same
+     * @param qImg quest image
+     * @param psImg ps images
+     * @param path path of quest images
+     */
     PhotoshopParser.prototype.checkImages = function (qImg, psImg, path) {
         return __awaiter(this, void 0, void 0, function () {
             var array, len, img1, img2Path, img2, _a, im1, im2, error_1;
@@ -260,7 +294,6 @@ var PhotoshopParser = /** @class */ (function () {
                         len = array.length;
                         img1 = this.readImages(path);
                         img2Path = this.pAssetsPath + "/" + array[len - 4] + "/common/" + array[len - 2] + "/" + psImg + ".png";
-                        console.log(path, " ------------ ", img2Path);
                         img2 = this.readImages(img2Path);
                         return [4 /*yield*/, Promise.all([img1, img2])];
                     case 1:

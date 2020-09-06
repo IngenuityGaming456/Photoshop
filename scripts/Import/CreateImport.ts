@@ -32,9 +32,9 @@ class CreateImport implements IFactory{
     /**
      * Function to read the quest json file.
      */
-    private async getAssetsAndJson() {
+    private getAssetsAndJson() {
         const stats =  this.pParser.getAssetsAndJsons("quest","BigWin", "quest");
-        await stats;
+     
         this.qAssetsPath = stats.qAssetsPath;
         this.qObj = stats.qObj;
    
@@ -95,7 +95,7 @@ class CreateImport implements IFactory{
                 this.result.create[type].push(compObj);
                 //console.log(this.result)
             } else {
-                this.isMove(compObj, view, platform);
+                this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
                 this.isEdit(compObj, view, platform);
                 this.isImageEdit(compObj, view, platform);
@@ -115,14 +115,15 @@ class CreateImport implements IFactory{
      * @param view view Bigwin view, intro view etc
      * @param platform desktop, landscape, portrait etc
      */
-    private isMove(compObj:any, view:string, platform:string):void {
+    private isMove(compObj:any, viewObj:any, view:string, platform:string):void {
     
         if(compObj.parent != "" && typeof compObj.layerID[0] == 'number'){
             
             let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null, null, null, null, null, "move");
             if(res){
-                this.handleMove(res ,compObj.id, compObj.parent, this.getType(compObj), view, platform);
+                this.handleMove(res ,compObj.id, compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
             }
+           
         }
     
     }
@@ -377,17 +378,19 @@ class CreateImport implements IFactory{
      * @param view current view
      * @param platform current platform
      */
-    private handleMove(newParent:string, child:string, parent:string, type:string, view:string, platform:string):void {
+    private handleMove(parent:string, child:string, newParent:string, newParentId:string|number, type:string, view:string, platform:string):void {
         let moveObj = {};
         moveObj["child"] = child;
         moveObj["parent"] = parent;
         moveObj["newparent"] = newParent;
+        moveObj["newparentId"] = newParentId;
         moveObj = JSON.stringify(moveObj);
         this.result.move[type].push({
             moveObj,
             view,
             platform
         });
+        console.log(this.result.move)
     }
 }
 

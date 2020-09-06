@@ -80,29 +80,15 @@ var CreateImport = /** @class */ (function () {
      * Function to read the quest json file.
      */
     CreateImport.prototype.getAssetsAndJson = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var stats;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        stats = this.pParser.getAssetsAndJsons("quest", "BigWin", "quest");
-                        return [4 /*yield*/, stats];
-                    case 1:
-                        _a.sent();
-                        this.qAssetsPath = stats.qAssetsPath;
-                        this.qObj = stats.qObj;
-                        return [2 /*return*/];
-                }
-            });
-        });
+        var stats = this.pParser.getAssetsAndJsons("quest", "BigWin", "quest");
+        this.qAssetsPath = stats.qAssetsPath;
+        this.qObj = stats.qObj;
     };
     /**
      * comparison starts from here, it forwards the plateform along with language object
      */
     CreateImport.prototype.compareJson = function () {
-        // console.log("compare json", this.qObj);
         for (var platform in this.qObj) {
-            // console.log(platform, this.qObj);
             if (!this.qObj.hasOwnProperty(platform)) {
                 continue;
             }
@@ -116,9 +102,7 @@ var CreateImport = /** @class */ (function () {
      * @param platform - plateform (desktop, landscape, portrait etc)
      */
     CreateImport.prototype.compareViews = function (enObj, platform) {
-        // console.log("compare views", enObj)
         for (var view in enObj) {
-            //console.log("dfghjk",view)
             if (!enObj.hasOwnProperty(view)) {
                 continue;
             }
@@ -132,7 +116,6 @@ var CreateImport = /** @class */ (function () {
             else {
                 this.compareComponents(enObj[view], view, platform);
             }
-            //console.log("jhfvsdvfjdsvfgvfvfshgv",this.result);
         }
     };
     /**function compare view components one by one with psParser
@@ -153,7 +136,7 @@ var CreateImport = /** @class */ (function () {
                 //console.log(this.result)
             }
             else {
-                this.isMove(compObj, view, platform);
+                this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
                 this.isEdit(compObj, view, platform);
                 this.isImageEdit(compObj, view, platform);
@@ -170,11 +153,11 @@ var CreateImport = /** @class */ (function () {
      * @param view view Bigwin view, intro view etc
      * @param platform desktop, landscape, portrait etc
      */
-    CreateImport.prototype.isMove = function (compObj, view, platform) {
+    CreateImport.prototype.isMove = function (compObj, viewObj, view, platform) {
         if (compObj.parent != "" && typeof compObj.layerID[0] == 'number') {
             var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null, null, null, null, null, "move");
             if (res) {
-                this.handleMove(res, compObj.id, compObj.parent, this.getType(compObj), view, platform);
+                this.handleMove(res, compObj.id, compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
             }
         }
     };
@@ -204,7 +187,6 @@ var CreateImport = /** @class */ (function () {
                 console.log("in res");
                 this.handleRename(res, compObj.id, this.getType(compObj), view, platform);
             }
-            console.log(res);
         }
     };
     /**
@@ -222,7 +204,6 @@ var CreateImport = /** @class */ (function () {
                 var height = compObj.h || compObj.height;
                 var width = compObj.w || compObj.width;
                 //let img = comp.image?comp.image:"";
-                // console.log("image is : ", img)
                 var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, compObj.x, compObj.y, width, height, null, "editElement");
                 if (res) {
                     var oldDimensions = {
@@ -256,7 +237,6 @@ var CreateImport = /** @class */ (function () {
                         return [4 /*yield*/, this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, null, null, null, compObj.image, "editImage")];
                     case 1:
                         res = _a.sent();
-                        console.log(res);
                         if (res) {
                             this.handleEditImage(res, compObj.image, path, this.getType(compObj));
                         }
@@ -308,7 +288,6 @@ var CreateImport = /** @class */ (function () {
      * @param compObj - current view component object
      */
     CreateImport.prototype.isNew = function (layerID) {
-        //console.log(typeof(layerID)=="string" ?true:false)
         return (typeof (layerID) == "string" ? true : false);
     };
     /**
@@ -354,7 +333,6 @@ var CreateImport = /** @class */ (function () {
             view: view,
             platform: platform
         });
-        // console.log(this.result.rename)
     };
     /**
      * function adds the edited elements in the result object
@@ -378,7 +356,6 @@ var CreateImport = /** @class */ (function () {
             view: view,
             platform: platform
         });
-        // console.log(this.result.edit.layout.container);
     };
     /**
      * function adds the edited image in the result object
@@ -396,7 +373,6 @@ var CreateImport = /** @class */ (function () {
             "oldPath": path,
             "newOath": newImg.path
         });
-        // console.log(this.result.edit.asset)
     };
     /**
      * function adds the moved elements in the result object
@@ -407,18 +383,19 @@ var CreateImport = /** @class */ (function () {
      * @param view current view
      * @param platform current platform
      */
-    CreateImport.prototype.handleMove = function (newParent, child, parent, type, view, platform) {
+    CreateImport.prototype.handleMove = function (parent, child, newParent, newParentId, type, view, platform) {
         var moveObj = {};
         moveObj["child"] = child;
         moveObj["parent"] = parent;
         moveObj["newparent"] = newParent;
+        moveObj["newparentId"] = newParentId;
         moveObj = JSON.stringify(moveObj);
         this.result.move[type].push({
             moveObj: moveObj,
             view: view,
             platform: platform
         });
-        //    console.log(this.result.move);
+        console.log(this.result.move);
     };
     return CreateImport;
 }());

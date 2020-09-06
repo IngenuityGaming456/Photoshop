@@ -159,11 +159,10 @@ export class PhotoshopParser implements IFactory {
                     }else{
                     
                         return psParent;
-                        //return "moved";
                     }
                 }else{
-                    let layerParent = obj['layers'][i].name;
-                    res = this.findChildUnderParent(obj['layers'][i], layerParent, qParent, qLayerID, qId); 
+                    psParent = obj['layers'][i].name;
+                    res = this.findChildUnderParent(obj['layers'][i], psParent, qParent, qLayerID, qId);  
                 }
                
             }
