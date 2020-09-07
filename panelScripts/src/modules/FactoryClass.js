@@ -20,6 +20,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.execute = exports.inject = exports.FactoryClass = void 0;
 var Loading_1 = require("../../srcExtension/loader/Loading");
 var FactoryClass = /** @class */ (function () {
     function FactoryClass() {
@@ -54,7 +55,7 @@ var FactoryClass = /** @class */ (function () {
         set: function (ref) {
             FactoryClass.instance = ref;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     return FactoryClass;

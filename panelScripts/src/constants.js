@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.photoshopConstants = void 0;
 exports.photoshopConstants = {
     logger: {
         logWarning: "logWarning",
@@ -57,6 +58,7 @@ exports.photoshopConstants = {
         genericView: "AddGenericView"
     },
     generatorButtons: {
+        import: "AddImport",
         layoutEnabled: "LayoutEnabled",
         removePath: "Testing",
         localise: "Localise",

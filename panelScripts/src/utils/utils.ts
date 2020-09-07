@@ -574,9 +574,10 @@ export class utlis {
 
     public static getAssetsAndJson(key, activeDocument) {
         const savedPath = activeDocument.directory;
-        const fileName = activeDocument.name;
-        const qAssetsPath = savedPath + "\\" + `${key}\\${fileName}-assets`;
-        const qJsonPath =savedPath + "\\" + `${key}\\${fileName}`;
+        const extIndex = activeDocument.name.search(".psd");
+        const fileName = activeDocument.name.slice(0, extIndex);
+        const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
+        const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
         const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
         return {
             qAssetsPath,

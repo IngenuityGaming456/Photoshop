@@ -20,6 +20,8 @@ import {DocumentStabalizer} from "./DocumentStabalizer";
 import {photoshopConstants as pc} from "../constants";
 import * as fs from "fs";
 import {SelfAddedStructures} from "./SelfAddedStructures";
+import {CreateImport} from "./Import/CreateImport";
+import {PhotoshopParser} from "./Import/PhotoshopParser";
 
 let packageJson = require("../../package.json");
 

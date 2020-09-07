@@ -1,27 +1,34 @@
 "use strict";
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -32,8 +39,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -52,17 +59,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PhotoshopModelApp = void 0;
 var PhotoshopModel_1 = require("../../../src/models/PhotoshopModels/PhotoshopModel");
 var path = require("path");
 var constants_1 = require("../../../src/constants");
@@ -118,6 +127,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         });
     };
     PhotoshopModelApp.prototype.deleteMappedViewFromLocalisationStruct = function (mappedView, localisationLayers) {
+        var e_1, _a;
         for (var item in localisationLayers) {
             if (!localisationLayers.hasOwnProperty(item)) {
                 continue;
@@ -125,8 +135,8 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
             var localisedStruct = localisationLayers[item];
             if (localisedStruct.struct) {
                 try {
-                    for (var _a = __values(localisedStruct.struct), _b = _a.next(); !_b.done; _b = _a.next()) {
-                        var structLayers = _b.value;
+                    for (var _b = (e_1 = void 0, __values(localisedStruct.struct)), _c = _b.next(); !_c.done; _c = _b.next()) {
+                        var structLayers = _c.value;
                         if (structLayers.id === mappedView) {
                             delete localisationLayers[item];
                             break;
@@ -136,7 +146,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
                 catch (e_1_1) { e_1 = { error: e_1_1 }; }
                 finally {
                     try {
-                        if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                        if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
                     }
                     finally { if (e_1) throw e_1.error; }
                 }
@@ -145,7 +155,6 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
                 this.deleteMappedViewFromLocalisationStruct(mappedView, localisedStruct);
             }
         }
-        var e_1, _c;
     };
     PhotoshopModelApp.prototype.deletedMappedLangIdFromLocalisationStruct = function (deletedLangId, localisationLayers) {
         for (var item in localisationLayers) {
@@ -219,35 +228,35 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         get: function () {
             return this.selectedIdName;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "selectedNameId", {
         get: function () {
             return this.selectedId;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "allSessionHandler", {
         get: function () {
             return this.sessionHandler;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "allModifiedIds", {
         get: function () {
             return this.modifiedIds;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "allRecordedResponse", {
         get: function () {
             return this.recordedResponse;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "isDeletedFromLayout", {
@@ -257,7 +266,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.isFromLayout = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "isRenamedFromLayout", {
@@ -267,7 +276,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.renamedFromLayout = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "isRemoval", {
@@ -277,7 +286,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.isRemovalOn = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "lastRemovalId", {
@@ -287,7 +296,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.lastId = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "lastRename", {
@@ -297,7 +306,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.lastRenameId = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "docLocalisationStruct", {
@@ -307,7 +316,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.localisationStruct = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModelApp.prototype, "automationOn", {
@@ -317,7 +326,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
         set: function (value) {
             this.isAutomationOn = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     PhotoshopModelApp.prototype.setMappedIds = function (id) {

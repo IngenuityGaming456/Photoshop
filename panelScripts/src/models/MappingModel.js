@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MappingModel = void 0;
 var utils_1 = require("../utils/utils");
 var constants_1 = require("../constants");
 var MappingModel = /** @class */ (function () {
@@ -14,6 +15,7 @@ var MappingModel = /** @class */ (function () {
         this.makeGenericViewMap();
         this.makeComponentsMap();
         this.makePlatformMap();
+        this.makeImportMap();
         this.makeLayoutMap();
         this.makePlatformMap();
         this.makeTestingMap();
@@ -70,6 +72,10 @@ var MappingModel = /** @class */ (function () {
             .set(constants_1.photoshopConstants.platforms.portrait, portraitPlatform)
             .set(constants_1.photoshopConstants.platforms.landscape, landscapePlatform);
     };
+    MappingModel.prototype.makeImportMap = function () {
+        this.importMap = new Map();
+        this.importMap.set(constants_1.photoshopConstants.generatorButtons.import, {});
+    };
     MappingModel.prototype.makeLayoutMap = function () {
         this.layoutMap = new Map();
         this.layoutMap.set(constants_1.photoshopConstants.generatorButtons.layoutEnabled, {});
@@ -93,6 +99,9 @@ var MappingModel = /** @class */ (function () {
     };
     MappingModel.prototype.getTestingMap = function () {
         return this.testingMap;
+    };
+    MappingModel.prototype.getImportMap = function () {
+        return this.importMap;
     };
     MappingModel.prototype.getLocalisationMap = function () {
         return this.localisationMap;

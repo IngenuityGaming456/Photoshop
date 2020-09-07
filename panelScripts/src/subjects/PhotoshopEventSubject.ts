@@ -1,6 +1,6 @@
 import {IFactory, IModel, IParams, ISubjectEvent} from "../interfaces/IJsxParam";
 import * as fs from "fs";
-import * as fsExtra from "fs-extra/lib/empty/index.js";
+const fsExtra = require("fs-extra/lib/empty/index");
 import {photoshopConstants as pc} from "../constants";
 
 let packageJson = require("../../package.json");

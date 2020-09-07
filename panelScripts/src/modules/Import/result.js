@@ -1,30 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.result = void 0;
 exports.result = {
     create: {
-        view: [],
-        container: [],
-        image: []
+        views: [],
+        containers: [],
+        images: []
     },
     delete: {
-        container: [],
-        image: []
+        containers: [],
+        images: []
     },
     move: {
-        container: [],
-        image: []
+        containers: [],
+        images: []
     },
     rename: {
-        container: [],
-        image: []
+        containers: [],
+        images: []
     },
     edit: {
         layout: {
-            container: [],
-            image: []
+            containers: [],
+            images: []
         },
         asset: {
-            image: []
+            images: []
         }
     }
 };

@@ -5,12 +5,10 @@ import * as path from "path";
 export class Creation implements IFactory{
     private generator;
     private storage;
-    private activeDocument;
     private diffObj;
 
     execute(params: IParams){
-        this.storage = params.storage; 
-        this.diffObj = this.storage.difference;
+        this.diffObj = this.storage.result;
         this.generator = params.generator;
         this.handleChangesInPS();
     }
