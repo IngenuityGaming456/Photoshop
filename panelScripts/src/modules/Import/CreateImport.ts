@@ -5,6 +5,8 @@ import {PhotoshopParser} from "./PhotoshopParser";
 import {result} from "./result";
 import {inject, execute} from "../FactoryClass"
 import {Creation} from "./Creation";
+import {PhotoshopFactory} from "../PhotoshopFactory";
+import {ModelFactory} from "../../models/ModelFactory";
 
 /**
  * class reads the quest json file and check for rename, edit, delete and newly added elements
@@ -16,15 +18,24 @@ export class CreateImport implements IFactory{
     private qObj;
     private readonly result;
     private readonly pParser;
+    private readonly pFactory;
+    private readonly modelFactory;
 
-    public constructor(psParser: PhotoshopParser) {
+
+    public constructor(psParser: PhotoshopParser, pFactory: PhotoshopFactory, modelFactory: ModelFactory) {
+        this.pFactory = pFactory;
         this.pParser = psParser;
+        this.modelFactory = modelFactory;
         this.result = {...result};
     }
 
     public execute(params: IParams) {
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
+        execute(this.pParser, {
+            generator: this.generator,
+            activeDocument: this.activeDocument
+        });
         this.getAssetsAndJson();
         this.compareJson();
         this.startCreation();
@@ -68,7 +79,7 @@ export class CreateImport implements IFactory{
             const pView:boolean = this.pParser.getPView(view, platform);
             if(!pView) {
                 this.result.create.views.push({
-                    view,
+                    view : enObj[view],
                     platform
                 });
             }else{
@@ -91,15 +102,18 @@ export class CreateImport implements IFactory{
             const compObj = viewObj[comp];
             if(this.isNew(compObj.layerID[0])) {
                 const type = this.getType(compObj);
-                this.result.create[type].push(compObj);
-                //console.log(this.result)
+                const parentId = this.getParentId(view, platform);
+                this.result.create[type].push({
+                    key : compObj,
+                    viewId: parentId,
+                    view,
+                    platform
+                });
             } else {
                 this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
                 this.isEdit(compObj, view, platform);
                 this.isImageEdit(compObj, view, platform);
-
-
             }
         }
         this.isDelete(viewObj, view, platform);
@@ -392,8 +406,19 @@ export class CreateImport implements IFactory{
         console.log(this.result.move)
     }
 
+    private getParentId(view, platform) {
+        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        const currentView = elementalMap[platform][view];
+        return currentView.base.id;
+    }
+
     private startCreation() {
         const creationObj = inject({ref: Creation, dep: []});
-        execute(creationObj, {storage: {result : this.result}, generator: this.generator});
+        execute(creationObj, {storage:
+                {
+                    result : this.result,
+                    pFactory: this.pFactory,
+                    qAssets: this.qAssetsPath
+                }, generator: this.generator, activeDocument: this.activeDocument});
     }
 }

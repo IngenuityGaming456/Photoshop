@@ -585,4 +585,17 @@ export class utlis {
         }
     }
 
+    public static recurFiles(fileName, folderPath) {
+        const files = fs.readdirSync(folderPath);
+        for (const file of files) {
+            const filePath = path.join(folderPath, file);
+            const stats = fs.statSync(filePath);
+            if(stats.isDirectory()) {
+                return utlis.recurFiles(fileName, filePath);
+            }
+            if(file === fileName) {
+                return filePath;
+            }
+        }
+    }
 }

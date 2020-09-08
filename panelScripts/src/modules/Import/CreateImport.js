@@ -57,13 +57,18 @@ var Creation_1 = require("./Creation");
  * class reads the quest json file and check for rename, edit, delete and newly added elements
  */
 var CreateImport = /** @class */ (function () {
-    function CreateImport(psParser) {
+    function CreateImport(psParser, pFactory) {
+        this.pFactory = pFactory;
         this.pParser = psParser;
         this.result = __assign({}, result_1.result);
     }
     CreateImport.prototype.execute = function (params) {
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
+        FactoryClass_1.execute(this.pParser, {
+            generator: this.generator,
+            activeDocument: this.activeDocument
+        });
         this.getAssetsAndJson();
         this.compareJson();
         this.startCreation();
@@ -101,7 +106,7 @@ var CreateImport = /** @class */ (function () {
             var pView = this.pParser.getPView(view, platform);
             if (!pView) {
                 this.result.create.views.push({
-                    view: view,
+                    view: enObj[view],
                     platform: platform
                 });
             }
@@ -124,8 +129,8 @@ var CreateImport = /** @class */ (function () {
             var compObj = viewObj[comp];
             if (this.isNew(compObj.layerID[0])) {
                 var type = this.getType(compObj);
+                //const parentId = this.getParentId(compObj, view, platform);
                 this.result.create[type].push(compObj);
-                //console.log(this.result)
             }
             else {
                 this.isMove(compObj, viewObj, view, platform);
@@ -389,9 +394,15 @@ var CreateImport = /** @class */ (function () {
         });
         console.log(this.result.move);
     };
+    CreateImport.prototype.getParentId = function (compId) {
+        if (compId.parent) {
+        }
+        else {
+        }
+    };
     CreateImport.prototype.startCreation = function () {
         var creationObj = FactoryClass_1.inject({ ref: Creation_1.Creation, dep: [] });
-        FactoryClass_1.execute(creationObj, { storage: { result: this.result }, generator: this.generator });
+        FactoryClass_1.execute(creationObj, { storage: { result: this.result, pFactory: this.pFactory }, generator: this.generator, activeDocument: this.activeDocument });
     };
     return CreateImport;
 }());

@@ -35,15 +35,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Creation = void 0;
+var utils_1 = require("../../utils/utils");
 var path = require("path");
 var Creation = /** @class */ (function () {
     function Creation() {
     }
     Creation.prototype.execute = function (params) {
         this.diffObj = this.storage.result;
+        this.pFactory = this.storage.pFactory;
         this.generator = params.generator;
+        this.activeDocument = params.activeDocument;
         this.handleChangesInPS();
     };
     Creation.prototype.handleChangesInPS = function () {
@@ -56,6 +70,9 @@ var Creation = /** @class */ (function () {
         }
         if (diffObj.hasOwnProperty("rename")) {
             this.handleOperationOverComp(diffObj['rename'], "rename");
+        }
+        if (diffObj.hasOwnProperty("create")) {
+            this.handleOperationOverComp(diffObj['create'], "create");
         }
     };
     Creation.prototype.handleDeleteComp = function (deleteObj) {
@@ -94,6 +111,7 @@ var Creation = /** @class */ (function () {
                 case "rename":
                     this.handleRenameComp(obj['container']);
                     break;
+                case "create": this.handleCreation(obj);
             }
         }
         if (obj.hasOwnProperty('image')) {
@@ -160,6 +178,67 @@ var Creation = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 4: return [2 /*return*/];
                 }
+            });
+        });
+    };
+    Creation.prototype.handleCreation = function (createObj) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.handleViewCreation(createObj["views"])];
+                    case 1:
+                        (_a.sent())
+                            .handleContainerCreation(createObj["containers"]);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Creation.prototype.handleViewCreation = function (views) {
+        return __awaiter(this, void 0, void 0, function () {
+            var views_1, views_1_1, view, platformRef, commonId, e_1_1;
+            var e_1, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 5, 6, 7]);
+                        views_1 = __values(views), views_1_1 = views_1.next();
+                        _b.label = 1;
+                    case 1:
+                        if (!!views_1_1.done) return [3 /*break*/, 4];
+                        view = views_1_1.value;
+                        platformRef = utils_1.utlis.getPlatformRef(view.platform, this.activeDocument);
+                        commonId = utils_1.utlis.getCommonId(platformRef);
+                        return [4 /*yield*/, this.pFactory.makeStruct(view.view, commonId, null, view.platform, "quest")];
+                    case 2:
+                        _b.sent();
+                        _b.label = 3;
+                    case 3:
+                        views_1_1 = views_1.next();
+                        return [3 /*break*/, 1];
+                    case 4: return [3 /*break*/, 7];
+                    case 5:
+                        e_1_1 = _b.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 7];
+                    case 6:
+                        try {
+                            if (views_1_1 && !views_1_1.done && (_a = views_1.return)) _a.call(views_1);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 7: return [2 /*return*/, this];
+                }
+            });
+        });
+    };
+    Creation.prototype.handleContainerCreation = function (containers) {
+        return __awaiter(this, void 0, void 0, function () {
+            var container;
+            return __generator(this, function (_a) {
+                for (container in containers) {
+                }
+                return [2 /*return*/];
             });
         });
     };

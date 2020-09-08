@@ -5,6 +5,7 @@ import {PhotoshopJsonComponent, QuestJsonComponent} from "./JsonComponents";
 import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
+import {utlis} from "../utils/utils";
 
 let packageJson = require("../../package.json");
 
@@ -24,7 +25,7 @@ export class PhotoshopFactory implements IFactory {
         this._pluginId = packageJson.name;
     }
 
-    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?) {
+    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?, assetsPath?) {
         let layerType: string;
         this.platform = platform;
         for(let keys in parserObject) {
@@ -44,7 +45,7 @@ export class PhotoshopFactory implements IFactory {
                     (this.photoshopModel as PhotoshopModelApp).automationOn = true;
                 }
                 this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                await this.createElementTree(jsxParams, layerType, parentKey, type);
+                await this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath);
                 (this.photoshopModel as PhotoshopModelApp).automationOn = false;
             }
         }
@@ -98,13 +99,16 @@ export class PhotoshopFactory implements IFactory {
             jsxParams);
     }
 
-    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?) {
+    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?, assetsPath?) {
         let jsonMap = JsonComponentsFactory.makeJsonComponentsMap();
         let element = jsonMap.get(layerType);
         let childId;
         if (element instanceof PhotoshopJsonComponent) {
             jsxParams.type = element.getType();
             jsxParams.subType = element.getSubType();
+            if(layerType === "image") {
+                jsxParams.file = utlis.recurFiles(jsxParams.image, assetsPath);
+            }
             childId = await element.setJsx(this._generator, jsxParams);
         }
         if (element instanceof QuestJsonComponent) {

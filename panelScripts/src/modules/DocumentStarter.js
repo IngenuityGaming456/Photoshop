@@ -69,6 +69,7 @@ var constants_1 = require("../constants");
 var fs = require("fs");
 var SelfAddedStructures_1 = require("./SelfAddedStructures");
 var CreateImport_1 = require("./Import/CreateImport");
+var PhotoshopParser_1 = require("./Import/PhotoshopParser");
 var packageJson = require("../../package.json");
 var DocumentStarter = /** @class */ (function () {
     function DocumentStarter() {
@@ -394,6 +395,7 @@ var DocumentStarter = /** @class */ (function () {
         FactoryClass_1.execute(selfAddedStructures, {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: { documentManager: this.documentManager }
         });
+        var psParser = FactoryClass_1.inject({ ref: PhotoshopParser_1.PhotoshopParser, dep: [] });
     };
     DocumentStarter.prototype.stabalizeDocument = function () {
         var documentStabalizer = FactoryClass_1.inject({ ref: DocumentStabalizer_1.DocumentStabalizer, dep: [] });
@@ -451,7 +453,7 @@ var DocumentStarter = /** @class */ (function () {
         this.structureMap
             .set(this.mapFactory.getImportMap(), {
             ref: CreateImport_1.CreateImport,
-            dep: [ModelFactory_1.ModelFactory]
+            dep: [PhotoshopParser_1.PhotoshopParser, PhotoshopFactory_1.PhotoshopFactory]
         })
             .set(this.mapFactory.getGenericViewMap(), {
             ref: CreateViewStructure_1.CreateViewStructure,
