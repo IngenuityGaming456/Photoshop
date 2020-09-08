@@ -46,11 +46,14 @@ export class Creation implements IFactory{
     private handleOperationOverComp(obj, operation){
         if(obj.hasOwnProperty('container')){
             switch(operation){
+                case "create" : this.handleCreation(obj["create"]);
+                break;
+                case "edit" : this.handleEdit(obj["edit"]);
+                break;
                 case "move" : this.handleMoveComp(obj['container']);
                 break;
                 case "rename" : this.handleRenameComp(obj['container']);
                 break;
-                case "create" : this.handleCreation(obj);
             }
            
         }
@@ -97,6 +100,26 @@ export class Creation implements IFactory{
     private async handleComponentsCreation(comps) {
         for(let comp of comps) {
             await this.pFactory.makeStruct(comp.key, comp.viewId, comp.view, comp.platform, "quest", this.qAssets);
+        }
+    }
+
+    private async handleEdit(editObj) {
+        await this.handleAssetEdit(editObj["asset"]["images"]);
+        await this.handleLayoutEdit(editObj["layout"]["images"]);
+    }
+
+    private async handleAssetEdit(assetArr) {
+        for(const assetObj of assetArr) {
+            const cObj = {...assetObj};
+            //call deletion jsx
+            //
+            await this.pFactory.makeStruct(cObj, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets);
+        }
+    }
+
+    private async handleLayoutEdit(layoutArr) {
+        for(const assetObj of layoutArr) {
+            await this.pFactory.makeStruct(assetObj, assetObj.viewId, assetObj.view, assetObj.platform, "quest", this.qAssets);
         }
     }
     

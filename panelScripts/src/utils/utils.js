@@ -687,6 +687,30 @@ var utlis = /** @class */ (function () {
             qObj: qObj
         };
     };
+    utlis.recurFiles = function (fileName, folderPath) {
+        var e_10, _a;
+        var files = fs.readdirSync(folderPath);
+        try {
+            for (var files_1 = __values(files), files_1_1 = files_1.next(); !files_1_1.done; files_1_1 = files_1.next()) {
+                var file = files_1_1.value;
+                var filePath = path.join(folderPath, file);
+                var stats = fs.statSync(filePath);
+                if (stats.isDirectory()) {
+                    return utlis.recurFiles(fileName, filePath);
+                }
+                if (file === fileName) {
+                    return filePath;
+                }
+            }
+        }
+        catch (e_10_1) { e_10 = { error: e_10_1 }; }
+        finally {
+            try {
+                if (files_1_1 && !files_1_1.done && (_a = files_1.return)) _a.call(files_1);
+            }
+            finally { if (e_10) throw e_10.error; }
+        }
+    };
     return utlis;
 }());
 exports.utlis = utlis;

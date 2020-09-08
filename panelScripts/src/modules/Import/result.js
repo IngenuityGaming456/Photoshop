@@ -4,28 +4,27 @@ exports.result = void 0;
 exports.result = {
     create: {
         views: [],
-        containers: [],
-        images: []
+        container: [],
+        image: []
     },
     delete: {
-        containers: [],
-        images: []
+        components: []
     },
     move: {
-        containers: [],
-        images: []
+        container: [],
+        image: []
     },
     rename: {
-        containers: [],
-        images: []
+        container: [],
+        image: []
     },
     edit: {
         layout: {
-            containers: [],
-            images: []
+            container: [],
+            image: []
         },
         asset: {
-            images: []
+            image: []
         }
     }
 };

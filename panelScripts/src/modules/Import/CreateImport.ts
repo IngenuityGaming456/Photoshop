@@ -85,6 +85,7 @@ export class CreateImport implements IFactory{
             }else{
                 this.compareComponents(enObj[view], view, platform);
             }
+            this.isDelete(enObj, enObj[view], platform);
         }
     }
 
@@ -116,10 +117,6 @@ export class CreateImport implements IFactory{
                 this.isImageEdit(compObj, view, platform);
             }
         }
-        this.isDelete(viewObj, view, platform);
-        let data = JSON.stringify(this.result);
-        fs.writeFileSync('modified.json', data);
-
     }
     /**
      * This function will check if a component is moved or not
@@ -266,17 +263,31 @@ export class CreateImport implements IFactory{
      * @param view - current view
      * @param platform - current platform
      */
-    private isDelete(viewObj:object, view:string, platform:string):void{
-
+    private isDelete(enObj:object, viewObj, platform:string):void{
         let psObjArray:Array<any> = this.pParser.getPSObjects(platform);
         let qObjArray:Array<any> = this.getQuestObjects(viewObj);
         let diff:Array<object>;
-        if(psObjArray.length > 0 && qObjArray.length >0){
-            diff = psObjArray.filter((x)=>!qObjArray.includes(x.id));
+        diff = psObjArray.filter((x)=>!qObjArray.includes(x.id));
+        if(diff.length>0) {
+            const delItems = [];
+            for(const psObj of psObjArray) {
+                if(psObj.isView) {
+                    if(this.isInQuestView(psObj.name, enObj, platform)) {
+                        delItems.push(psObj);
+                    }
+                }
+            }
+            for(const item of delItems) {
+                const index = psObjArray.indexOf(item);
+                psObjArray.splice(index, 1);
+            }
+            this.handleDeletdElements(diff);
         }
+    }
 
-        if(diff.length>0)
-            this.handleDeletdElements(diff, viewObj, view, platform);
+    private isInQuestView(viewName, enObj, platform) {
+        const views = Object.keys(enObj);
+        return views.includes(viewName);
     }
 
     /**
@@ -303,16 +314,14 @@ export class CreateImport implements IFactory{
      * @param view - current view
      * @param platform - current platform
      */
-    private handleDeletdElements(diff:any, viewObj:object, view:string, platform:string):void{
+    private handleDeletdElements(diff:any):void{
 
         for(let i in diff){
 
             this.result.delete['components'].push({
                 "id":diff[i].id,
                 "name":diff[i].name,
-                "type":diff[i].type,
-                view,
-                platform
+                "type":diff[i].type
             });
         }
     }

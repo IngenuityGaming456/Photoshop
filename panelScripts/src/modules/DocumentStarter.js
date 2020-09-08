@@ -395,7 +395,7 @@ var DocumentStarter = /** @class */ (function () {
         FactoryClass_1.execute(selfAddedStructures, {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: { documentManager: this.documentManager }
         });
-        var psParser = FactoryClass_1.inject({ ref: PhotoshopParser_1.PhotoshopParser, dep: [] });
+        FactoryClass_1.inject({ ref: PhotoshopParser_1.PhotoshopParser, dep: [] });
     };
     DocumentStarter.prototype.stabalizeDocument = function () {
         var documentStabalizer = FactoryClass_1.inject({ ref: DocumentStabalizer_1.DocumentStabalizer, dep: [] });
@@ -453,7 +453,7 @@ var DocumentStarter = /** @class */ (function () {
         this.structureMap
             .set(this.mapFactory.getImportMap(), {
             ref: CreateImport_1.CreateImport,
-            dep: [PhotoshopParser_1.PhotoshopParser, PhotoshopFactory_1.PhotoshopFactory]
+            dep: [PhotoshopParser_1.PhotoshopParser, PhotoshopFactory_1.PhotoshopFactory, ModelFactory_1.ModelFactory]
         })
             .set(this.mapFactory.getGenericViewMap(), {
             ref: CreateViewStructure_1.CreateViewStructure,

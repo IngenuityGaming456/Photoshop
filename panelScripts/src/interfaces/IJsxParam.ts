@@ -2,7 +2,9 @@ export interface IJsxParam {
     parentId: string,
     childName: string,
     type?: string,
-    subType?: string
+    subType?: string,
+    image?: string,
+    file?: string
 }
 
 export interface ISequence {

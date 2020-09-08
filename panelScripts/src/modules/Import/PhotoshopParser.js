@@ -55,12 +55,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PhotoshopParser = void 0;
 var utils_1 = require("../../utils/utils");
 var fs = require('fs');
+var packageJson = require("../../../package.json");
 var PhotoshopParser = /** @class */ (function () {
     function PhotoshopParser() {
     }
     PhotoshopParser.prototype.execute = function (params) {
         this.activeDocument = params.activeDocument;
         this.generator = params.generator;
+        this._pluginId = packageJson.name;
         this.getAssetsAndJson();
     };
     /**
@@ -168,11 +170,15 @@ var PhotoshopParser = /** @class */ (function () {
         if (psObj.hasOwnProperty('layers')) {
             /**Iterate over every component of current layer */
             for (var i in psObj['layers']) {
-                if ([platform, 'language', 'common'].indexOf(psObj['layers'][i].name) === -1) {
+                if ([platform, 'languages', 'common'].indexOf(psObj['layers'][i].name) === -1) {
                     var delImg = {};
                     delImg['id'] = psObj['layers'][i].id;
                     delImg['name'] = psObj['layers'][i].name;
                     delImg['type'] = psObj['layers'][i].type;
+                    var view = psObj['layers'][i].generatorSettings && psObj['layers'][i].generatorSettings[this._pluginId];
+                    if (view) {
+                        delImg["isView"] = true;
+                    }
                     psObjArray.push(delImg);
                 }
                 this.getDeletedArray(psObj['layers'][i], psObjArray, platform);

@@ -46,9 +46,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateImport = void 0;
-var fs = require("fs");
 var utils_1 = require("../../utils/utils");
 var result_1 = require("./result");
 var FactoryClass_1 = require("../FactoryClass");
@@ -57,9 +67,10 @@ var Creation_1 = require("./Creation");
  * class reads the quest json file and check for rename, edit, delete and newly added elements
  */
 var CreateImport = /** @class */ (function () {
-    function CreateImport(psParser, pFactory) {
+    function CreateImport(psParser, pFactory, modelFactory) {
         this.pFactory = pFactory;
         this.pParser = psParser;
+        this.modelFactory = modelFactory;
         this.result = __assign({}, result_1.result);
     }
     CreateImport.prototype.execute = function (params) {
@@ -113,6 +124,7 @@ var CreateImport = /** @class */ (function () {
             else {
                 this.compareComponents(enObj[view], view, platform);
             }
+            this.isDelete(enObj, enObj[view], platform);
         }
     };
     /**function compare view components one by one with psParser
@@ -129,8 +141,13 @@ var CreateImport = /** @class */ (function () {
             var compObj = viewObj[comp];
             if (this.isNew(compObj.layerID[0])) {
                 var type = this.getType(compObj);
-                //const parentId = this.getParentId(compObj, view, platform);
-                this.result.create[type].push(compObj);
+                var parentId = this.getParentId(view, platform);
+                this.result.create[type].push({
+                    key: compObj,
+                    viewId: parentId,
+                    view: view,
+                    platform: platform
+                });
             }
             else {
                 this.isMove(compObj, viewObj, view, platform);
@@ -139,9 +156,6 @@ var CreateImport = /** @class */ (function () {
                 this.isImageEdit(compObj, view, platform);
             }
         }
-        this.isDelete(viewObj, view, platform);
-        var data = JSON.stringify(this.result);
-        fs.writeFileSync('modified.json', data);
     };
     /**
      * This function will check if a component is moved or not
@@ -270,15 +284,51 @@ var CreateImport = /** @class */ (function () {
      * @param view - current view
      * @param platform - current platform
      */
-    CreateImport.prototype.isDelete = function (viewObj, view, platform) {
+    CreateImport.prototype.isDelete = function (enObj, viewObj, platform) {
+        var e_1, _a, e_2, _b;
         var psObjArray = this.pParser.getPSObjects(platform);
         var qObjArray = this.getQuestObjects(viewObj);
         var diff;
-        if (psObjArray.length > 0 && qObjArray.length > 0) {
-            diff = psObjArray.filter(function (x) { return !qObjArray.includes(x.id); });
+        diff = psObjArray.filter(function (x) { return !qObjArray.includes(x.id); });
+        if (diff.length > 0) {
+            var delItems = [];
+            try {
+                for (var psObjArray_1 = __values(psObjArray), psObjArray_1_1 = psObjArray_1.next(); !psObjArray_1_1.done; psObjArray_1_1 = psObjArray_1.next()) {
+                    var psObj = psObjArray_1_1.value;
+                    if (psObj.isView) {
+                        if (this.isInQuestView(psObj.name, enObj, platform)) {
+                            delItems.push(psObj);
+                        }
+                    }
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (psObjArray_1_1 && !psObjArray_1_1.done && (_a = psObjArray_1.return)) _a.call(psObjArray_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            try {
+                for (var delItems_1 = __values(delItems), delItems_1_1 = delItems_1.next(); !delItems_1_1.done; delItems_1_1 = delItems_1.next()) {
+                    var item = delItems_1_1.value;
+                    var index = psObjArray.indexOf(item);
+                    psObjArray.splice(index, 1);
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (delItems_1_1 && !delItems_1_1.done && (_b = delItems_1.return)) _b.call(delItems_1);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            this.handleDeletdElements(diff);
         }
-        if (diff.length > 0)
-            this.handleDeletdElements(diff, viewObj, view, platform);
+    };
+    CreateImport.prototype.isInQuestView = function (viewName, enObj, platform) {
+        var views = Object.keys(enObj);
+        return views.includes(viewName);
     };
     /**
      * function checks if a component is newly added, as newly added components has string ids
@@ -301,14 +351,12 @@ var CreateImport = /** @class */ (function () {
      * @param view - current view
      * @param platform - current platform
      */
-    CreateImport.prototype.handleDeletdElements = function (diff, viewObj, view, platform) {
+    CreateImport.prototype.handleDeletdElements = function (diff) {
         for (var i in diff) {
             this.result.delete['components'].push({
                 "id": diff[i].id,
                 "name": diff[i].name,
-                "type": diff[i].type,
-                view: view,
-                platform: platform
+                "type": diff[i].type
             });
         }
     };
@@ -394,15 +442,18 @@ var CreateImport = /** @class */ (function () {
         });
         console.log(this.result.move);
     };
-    CreateImport.prototype.getParentId = function (compId) {
-        if (compId.parent) {
-        }
-        else {
-        }
+    CreateImport.prototype.getParentId = function (view, platform) {
+        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        var currentView = elementalMap[platform][view];
+        return currentView.base.id;
     };
     CreateImport.prototype.startCreation = function () {
         var creationObj = FactoryClass_1.inject({ ref: Creation_1.Creation, dep: [] });
-        FactoryClass_1.execute(creationObj, { storage: { result: this.result, pFactory: this.pFactory }, generator: this.generator, activeDocument: this.activeDocument });
+        FactoryClass_1.execute(creationObj, { storage: {
+                result: this.result,
+                pFactory: this.pFactory,
+                qAssets: this.qAssetsPath
+            }, generator: this.generator, activeDocument: this.activeDocument });
     };
     return CreateImport;
 }());

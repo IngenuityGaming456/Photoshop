@@ -41,6 +41,7 @@ var path = require("path");
 var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
 var constants_1 = require("../constants");
+var utils_1 = require("../utils/utils");
 var packageJson = require("../../package.json");
 var PhotoshopFactory = /** @class */ (function () {
     function PhotoshopFactory(modelFactory) {
@@ -50,7 +51,7 @@ var PhotoshopFactory = /** @class */ (function () {
         this._generator = params.generator;
         this._pluginId = packageJson.name;
     };
-    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform, type) {
+    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform, type, assetsPath) {
         return __awaiter(this, void 0, void 0, function () {
             var layerType, _a, _b, _i, keys, jsxParams, mappedKey;
             return __generator(this, function (_c) {
@@ -86,7 +87,7 @@ var PhotoshopFactory = /** @class */ (function () {
                             this.photoshopModel.automationOn = true;
                         }
                         this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type)];
+                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath)];
                     case 5:
                         _c.sent();
                         this.photoshopModel.automationOn = false;
@@ -195,7 +196,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type) {
+    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type, assetsPath) {
         return __awaiter(this, void 0, void 0, function () {
             var jsonMap, element, childId;
             return __generator(this, function (_a) {
@@ -206,6 +207,9 @@ var PhotoshopFactory = /** @class */ (function () {
                         if (!(element instanceof JsonComponents_1.PhotoshopJsonComponent)) return [3 /*break*/, 2];
                         jsxParams.type = element.getType();
                         jsxParams.subType = element.getSubType();
+                        if (layerType === "image") {
+                            jsxParams.file = utils_1.utlis.recurFiles(jsxParams.image, assetsPath);
+                        }
                         return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
                     case 1:
                         childId = _a.sent();

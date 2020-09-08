@@ -1,16 +1,19 @@
 import {IFactory, IParams} from "../../interfaces/IJsxParam";
 import {utlis} from "../../utils/utils";
 const fs = require('fs');
+let packageJson = require("../../../package.json");
 
 export class PhotoshopParser implements IFactory {
     private generator;
     private activeDocument;
     private pAssetsPath;
     private pObj;
+    private _pluginId;
 
     public execute(params: IParams) {
         this.activeDocument = params.activeDocument;
         this.generator = params.generator;
+        this._pluginId = packageJson.name;
         this.getAssetsAndJson();
     }
 
@@ -123,11 +126,15 @@ export class PhotoshopParser implements IFactory {
 
             /**Iterate over every component of current layer */
             for(let i in psObj['layers']){
-                if( [platform,'language','common'].indexOf(psObj['layers'][i].name) === -1){
+                if( [platform,'languages','common'].indexOf(psObj['layers'][i].name) === -1){
                     let delImg = {};
                     delImg['id'] = psObj['layers'][i].id;
                     delImg['name'] = psObj['layers'][i].name;
                     delImg['type'] = psObj['layers'][i].type;
+                    const view = psObj['layers'][i].generatorSettings && psObj['layers'][i].generatorSettings[this._pluginId];
+                    if(view) {
+                        delImg["isView"] = true;
+                    }
                     psObjArray.push(delImg);
                 }
                 this.getDeletedArray(psObj['layers'][i], psObjArray, platform)
