@@ -1,21 +1,17 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -26,8 +22,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -58,7 +54,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateImport = void 0;
+var fs = require("fs");
 var utils_1 = require("../../utils/utils");
 var result_1 = require("./result");
 var FactoryClass_1 = require("../FactoryClass");
@@ -80,6 +76,7 @@ var CreateImport = /** @class */ (function () {
             generator: this.generator,
             activeDocument: this.activeDocument
         });
+        this.pParser.execute(params);
         this.getAssetsAndJson();
         this.compareJson();
         this.startCreation();
@@ -100,6 +97,8 @@ var CreateImport = /** @class */ (function () {
             if (!this.qObj.hasOwnProperty(platform)) {
                 continue;
             }
+            var abject = this.qObj[platform];
+            console.log(abject);
             var enObj = this.qObj[platform]["en"];
             this.compareViews(enObj, platform);
         }
@@ -145,14 +144,16 @@ var CreateImport = /** @class */ (function () {
                 this.result.create[type].push({
                     key: compObj,
                     viewId: parentId,
+                    parent: compObj.parent,
                     view: view,
                     platform: platform
                 });
+                //console.log(this.result)
             }
             else {
                 this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
-                this.isEdit(compObj, view, platform);
+                this.isEdit(compObj, view, viewObj, platform);
                 this.isImageEdit(compObj, view, platform);
             }
         }
@@ -166,24 +167,12 @@ var CreateImport = /** @class */ (function () {
      */
     CreateImport.prototype.isMove = function (compObj, viewObj, view, platform) {
         if (compObj.parent != "" && typeof compObj.layerID[0] == 'number') {
-            var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null, null, null, null, null, "move");
+            var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null, null, "move");
             if (res) {
-                this.handleMove(res, compObj.id, compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
+                this.handleMove(res, compObj.id, compObj.layerID[0], compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
             }
         }
     };
-    // private isMove(compObj, viewObj, view, platform) {
-    //     const moveObj = {};
-    //     const parent = compObj.parent;
-    //     const parentObj = viewObj[parent];
-    //     if(this.isNew(parentObj)) {
-    //         this.handleMove(moveObj, compObj, parentObj, this.getType(compObj), view, platform);
-    //     }
-    //     const isDiff = this.psParser.compareParent(compObj, parentObj, view, platform);
-    //     if(isDiff) {
-    //         this.handleMove(moveObj, compObj, parentObj, this.getType(compObj), view, platform);
-    //     }
-    // }
     /**
      * function to check if a view component is renamed or not ?
      * @param compObj - individual view component
@@ -193,10 +182,9 @@ var CreateImport = /** @class */ (function () {
      */
     CreateImport.prototype.isRename = function (compObj, viewObj, view, platform) {
         if (typeof compObj.layerID[0] == 'number') {
-            var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, null, null, null, null, null, "rename");
+            var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, null, null, "rename");
             if (res) {
-                console.log("in res");
-                this.handleRename(res, compObj.id, this.getType(compObj), view, platform);
+                this.handleRename(res, compObj.id, compObj.layerID[0], this.getType(compObj), view, platform);
             }
         }
     };
@@ -207,15 +195,28 @@ var CreateImport = /** @class */ (function () {
      * @param view - current view
      * @param platform - current platform
      */
-    CreateImport.prototype.isEdit = function (compObj, view, platform) {
+    CreateImport.prototype.isEdit = function (compObj, view, viewObj, platform) {
+        var tempParent = {};
+        var tempChild = {};
+        tempParent["x"] = 0;
+        tempParent["y"] = 0;
         /**check if obj is an instance of an object */
         if (compObj instanceof Object) {
             /**chck only for the elements which were created by PS as they have integer layerid */
             if (typeof compObj.layerID[0] == 'number') {
                 var height = compObj.h || compObj.height;
                 var width = compObj.w || compObj.width;
-                //let img = comp.image?comp.image:"";
-                var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, compObj.x, compObj.y, width, height, null, "editElement");
+                var parent_1 = compObj.parent ? compObj.parent : "";
+                if (viewObj.hasOwnProperty(parent_1)) {
+                    var tempParent_1 = viewObj[parent_1];
+                    tempParent_1["x"] = tempParent_1.x;
+                    tempParent_1["y"] = tempParent_1.y;
+                }
+                tempChild["x"] = compObj.x;
+                tempChild["y"] = compObj.y;
+                tempChild["width"] = width;
+                tempChild["height"] = height;
+                var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
                 if (res) {
                     var oldDimensions = {
                         'x': compObj.x,
@@ -223,7 +224,7 @@ var CreateImport = /** @class */ (function () {
                         'width': width,
                         'height': height
                     };
-                    this.handleEditElement(res, oldDimensions, this.getType(compObj), compObj.id, view, platform);
+                    this.handleEditElement(res, oldDimensions, this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
                 }
                 console.log(res);
             }
@@ -245,11 +246,11 @@ var CreateImport = /** @class */ (function () {
                         if (!(compObj instanceof Object)) return [3 /*break*/, 2];
                         if (!(typeof compObj.layerID[0] == 'number' && compObj.image)) return [3 /*break*/, 2];
                         path = this.qAssetsPath + "/" + platform + "/common/" + view + "/" + compObj.image + ".png";
-                        return [4 /*yield*/, this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, null, null, null, compObj.image, "editImage")];
+                        return [4 /*yield*/, this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage")];
                     case 1:
                         res = _a.sent();
                         if (res) {
-                            this.handleEditImage(res, compObj.image, path, this.getType(compObj));
+                            this.handleEditImage(compObj, this.getType(compObj), view, platform);
                         }
                         _a.label = 2;
                     case 2: return [2 /*return*/];
@@ -368,10 +369,11 @@ var CreateImport = /** @class */ (function () {
      * @param view current view
      * @param platform current platform
      */
-    CreateImport.prototype.handleRename = function (newName, oldName, type, view, platform) {
+    CreateImport.prototype.handleRename = function (newName, oldName, elementId, type, view, platform) {
         var renamed = {};
         renamed['newName'] = newName;
         renamed['oldName'] = oldName;
+        renamed['elementId'] = elementId;
         renamed = JSON.stringify(renamed);
         this.result.rename[type].push({
             renamed: renamed,
@@ -388,7 +390,7 @@ var CreateImport = /** @class */ (function () {
      * @param view current view
      * @param platform current platform
      */
-    CreateImport.prototype.handleEditElement = function (bounds, oldDimensions, type, qId, view, platform) {
+    CreateImport.prototype.handleEditElement = function (bounds, oldDimensions, type, compId, qId, view, platform) {
         var newDimensions = {};
         newDimensions["x"] = bounds.left;
         newDimensions["y"] = bounds.top;
@@ -398,6 +400,7 @@ var CreateImport = /** @class */ (function () {
             newDimensions: newDimensions,
             oldDimensions: oldDimensions,
             "name": qId,
+            compId: compId,
             view: view,
             platform: platform
         });
@@ -409,14 +412,11 @@ var CreateImport = /** @class */ (function () {
      * @param path old image path
      * @param type type of the component i.e. image
      */
-    CreateImport.prototype.handleEditImage = function (newImg, oldImg, path, type) {
-        this.result.edit.layout[type].push({
-            "oldImage": oldImg,
-            "newImage": newImg.image
-        });
+    CreateImport.prototype.handleEditImage = function (compObj, type, view, platform) {
         this.result.edit.asset[type].push({
-            "oldPath": path,
-            "newOath": newImg.path
+            "imageObj": compObj,
+            view: view,
+            platform: platform
         });
     };
     /**
@@ -428,9 +428,10 @@ var CreateImport = /** @class */ (function () {
      * @param view current view
      * @param platform current platform
      */
-    CreateImport.prototype.handleMove = function (parent, child, newParent, newParentId, type, view, platform) {
+    CreateImport.prototype.handleMove = function (parent, child, childId, newParent, newParentId, type, view, platform) {
         var moveObj = {};
         moveObj["child"] = child;
+        moveObj["childId"] = childId;
         moveObj["parent"] = parent;
         moveObj["newparent"] = newParent;
         moveObj["newparentId"] = newParentId;
@@ -449,11 +450,18 @@ var CreateImport = /** @class */ (function () {
     };
     CreateImport.prototype.startCreation = function () {
         var creationObj = FactoryClass_1.inject({ ref: Creation_1.Creation, dep: [] });
+        // execute(creationObj, {storage: {result : this.result}, generator: this.generator});
         FactoryClass_1.execute(creationObj, { storage: {
                 result: this.result,
                 pFactory: this.pFactory,
                 qAssets: this.qAssetsPath
             }, generator: this.generator, activeDocument: this.activeDocument });
+    };
+    CreateImport.prototype.getParentId = function (view, platform) {
+        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        var currentView = elementalMap[platform][view];
+        console.log(currentView.base);
+        return currentView.base;
     };
     return CreateImport;
 }());

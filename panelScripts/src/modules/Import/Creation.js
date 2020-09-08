@@ -11,11 +11,10 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -26,8 +25,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -46,26 +45,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Creation = void 0;
 var utils_1 = require("../../utils/utils");
 var path = require("path");
 var Creation = /** @class */ (function () {
     function Creation() {
     }
     Creation.prototype.execute = function (params) {
-        this.diffObj = this.storage.result;
+        this.diffObj = params.storage.result;
         this.pFactory = this.storage.pFactory;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
@@ -128,6 +125,9 @@ var Creation = /** @class */ (function () {
                     break;
                 case "rename":
                     this.handleRenameComp(obj['container']);
+                    break;
+                case "create":
+                    this.handleCreation(obj);
                     break;
             }
         }
@@ -205,12 +205,6 @@ var Creation = /** @class */ (function () {
                     case 0: return [4 /*yield*/, this.handleViewCreation(createObj["views"])];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.handleComponentsCreation(createObj["containers"])];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.handleComponentsCreation(createObj["images"])];
-                    case 3:
-                        _a.sent();
                         return [2 /*return*/];
                 }
             });
@@ -218,8 +212,7 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleViewCreation = function (views) {
         return __awaiter(this, void 0, void 0, function () {
-            var views_1, views_1_1, view, platformRef, commonId, e_1_1;
-            var e_1, _a;
+            var views_1, views_1_1, view, platformRef, commonId, e_1_1, e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -256,8 +249,7 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleComponentsCreation = function (comps) {
         return __awaiter(this, void 0, void 0, function () {
-            var comps_1, comps_1_1, comp, e_2_1;
-            var e_2, _a;
+            var comps_1, comps_1_1, comp, dimensions, e_2_1, e_2, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -267,8 +259,25 @@ var Creation = /** @class */ (function () {
                     case 1:
                         if (!!comps_1_1.done) return [3 /*break*/, 4];
                         comp = comps_1_1.value;
-                        return [4 /*yield*/, this.pFactory.makeStruct(comp.key, comp.viewId, comp.view, comp.platform, "quest", this.qAssets)];
+                        dimensions = {};
+                        dimensions["x"] = comp.x;
+                        dimensions["y"] = comp.y;
+                        dimensions["w"] = comp.w;
+                        dimensions["h"] = comp.h;
+                        dimensions["anchorX"] = comp.hasOwnProperty("anchorX") ? comp.anchorX : 0;
+                        dimensions["anchorY"] = comp.hasOwnProperty("anchorY") ? comp.anchorY : 0;
+                        // if(comp.hasOwnProperty("parent")){
+                        //     let parent = comps[comp.parent];
+                        //     dimensions["parentX"]= comp.x;
+                        //     dimensions["parentY"]= comp.y;
+                        // }
+                        return [4 /*yield*/, this.pFactory.makeStruct(comp.key, comp.viewId, comp.view, comp.platform, "quest", this.qAssets, dimensions)];
                     case 2:
+                        // if(comp.hasOwnProperty("parent")){
+                        //     let parent = comps[comp.parent];
+                        //     dimensions["parentX"]= comp.x;
+                        //     dimensions["parentY"]= comp.y;
+                        // }
                         _b.sent();
                         _b.label = 3;
                     case 3:
@@ -284,98 +293,6 @@ var Creation = /** @class */ (function () {
                             if (comps_1_1 && !comps_1_1.done && (_a = comps_1.return)) _a.call(comps_1);
                         }
                         finally { if (e_2) throw e_2.error; }
-                        return [7 /*endfinally*/];
-                    case 7: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Creation.prototype.handleEdit = function (editObj) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.handleAssetEdit(editObj["asset"]["images"])];
-                    case 1:
-                        _a.sent();
-                        return [4 /*yield*/, this.handleLayoutEdit(editObj["layout"]["images"])];
-                    case 2:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Creation.prototype.handleAssetEdit = function (assetArr) {
-        return __awaiter(this, void 0, void 0, function () {
-            var assetArr_1, assetArr_1_1, assetObj, cObj, e_3_1;
-            var e_3, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _b.trys.push([0, 5, 6, 7]);
-                        assetArr_1 = __values(assetArr), assetArr_1_1 = assetArr_1.next();
-                        _b.label = 1;
-                    case 1:
-                        if (!!assetArr_1_1.done) return [3 /*break*/, 4];
-                        assetObj = assetArr_1_1.value;
-                        cObj = __assign({}, assetObj);
-                        //call deletion jsx
-                        //
-                        return [4 /*yield*/, this.pFactory.makeStruct(cObj, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets)];
-                    case 2:
-                        //call deletion jsx
-                        //
-                        _b.sent();
-                        _b.label = 3;
-                    case 3:
-                        assetArr_1_1 = assetArr_1.next();
-                        return [3 /*break*/, 1];
-                    case 4: return [3 /*break*/, 7];
-                    case 5:
-                        e_3_1 = _b.sent();
-                        e_3 = { error: e_3_1 };
-                        return [3 /*break*/, 7];
-                    case 6:
-                        try {
-                            if (assetArr_1_1 && !assetArr_1_1.done && (_a = assetArr_1.return)) _a.call(assetArr_1);
-                        }
-                        finally { if (e_3) throw e_3.error; }
-                        return [7 /*endfinally*/];
-                    case 7: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Creation.prototype.handleLayoutEdit = function (layoutArr) {
-        return __awaiter(this, void 0, void 0, function () {
-            var layoutArr_1, layoutArr_1_1, assetObj, e_4_1;
-            var e_4, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _b.trys.push([0, 5, 6, 7]);
-                        layoutArr_1 = __values(layoutArr), layoutArr_1_1 = layoutArr_1.next();
-                        _b.label = 1;
-                    case 1:
-                        if (!!layoutArr_1_1.done) return [3 /*break*/, 4];
-                        assetObj = layoutArr_1_1.value;
-                        return [4 /*yield*/, this.pFactory.makeStruct(assetObj, assetObj.viewId, assetObj.view, assetObj.platform, "quest", this.qAssets)];
-                    case 2:
-                        _b.sent();
-                        _b.label = 3;
-                    case 3:
-                        layoutArr_1_1 = layoutArr_1.next();
-                        return [3 /*break*/, 1];
-                    case 4: return [3 /*break*/, 7];
-                    case 5:
-                        e_4_1 = _b.sent();
-                        e_4 = { error: e_4_1 };
-                        return [3 /*break*/, 7];
-                    case 6:
-                        try {
-                            if (layoutArr_1_1 && !layoutArr_1_1.done && (_a = layoutArr_1.return)) _a.call(layoutArr_1);
-                        }
-                        finally { if (e_4) throw e_4.error; }
                         return [7 /*endfinally*/];
                     case 7: return [2 /*return*/];
                 }

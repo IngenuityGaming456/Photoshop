@@ -1,10 +1,9 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -15,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -52,7 +51,6 @@ var __read = (this && this.__read) || function (o, n) {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PhotoshopParser = void 0;
 var utils_1 = require("../../utils/utils");
 var fs = require('fs');
 var packageJson = require("../../../package.json");
@@ -78,6 +76,7 @@ var PhotoshopParser = /** @class */ (function () {
     };
     PhotoshopParser.prototype.checkViews = function (pObj, view, platform) {
         var res;
+        console.log(pObj);
         if (pObj.hasOwnProperty('layers')) {
             var viewLayersObj = pObj['layers'];
             for (var i in viewLayersObj) {
@@ -107,14 +106,14 @@ var PhotoshopParser = /** @class */ (function () {
      * @param qImg
      * @param operation
      */
-    PhotoshopParser.prototype.recursionCallInitiator = function (qLayerID, qId, qParentOrPath, x, y, width, height, qImg, operation) {
+    PhotoshopParser.prototype.recursionCallInitiator = function (qLayerID, qId, qParentOrPath, childDimension, qImg, operation) {
         var psObj = this.pObj;
         switch (operation) {
             case 'move':
                 return this.findChildUnderParent(psObj, '', qParentOrPath, qLayerID, qId);
                 break;
             case 'editElement':
-                return this.checkForEditedElement(psObj, qLayerID, qId, x, y, width, height);
+                return this.checkForEditedElement(psObj, qLayerID, qId, qParentOrPath, childDimension.x, childDimension.y, childDimension.width, childDimension.height);
                 break;
             case 'editImage':
                 return this.checkIfImageChanged(psObj, qLayerID, qId, qParentOrPath, qImg);
@@ -143,12 +142,10 @@ var PhotoshopParser = /** @class */ (function () {
                 if (psObj['layers'][i].id == qLayerID) {
                     /**If parent is also equal the component is not moved return false else return the parent to which it is moved */
                     if (psObj['layers'][i].name !== qId) {
-                        console.log(psObj['layers'][i].name);
                         return psObj['layers'][i].name;
                     }
                     else {
                         return false;
-                        //return "moved";
                     }
                 }
                 else {
@@ -170,7 +167,7 @@ var PhotoshopParser = /** @class */ (function () {
         if (psObj.hasOwnProperty('layers')) {
             /**Iterate over every component of current layer */
             for (var i in psObj['layers']) {
-                if ([platform, 'languages', 'common'].indexOf(psObj['layers'][i].name) === -1) {
+                if ((psObj['layers'][i].name !== platform) && (psObj['layers'][i].name !== "languages") && (psObj['layers'][i].name !== "common") && (psObj['layers'][i].name !== "download")) {
                     var delImg = {};
                     delImg['id'] = psObj['layers'][i].id;
                     delImg['name'] = psObj['layers'][i].name;
@@ -229,7 +226,7 @@ var PhotoshopParser = /** @class */ (function () {
      * @param width
      * @param height
      */
-    PhotoshopParser.prototype.checkForEditedElement = function (obj, qLayerID, qId, x, y, width, height) {
+    PhotoshopParser.prototype.checkForEditedElement = function (obj, qLayerID, qId, parCordinates, x, y, width, height) {
         var res;
         if (obj.hasOwnProperty('layers')) {
             for (var i in obj['layers']) {
@@ -238,7 +235,7 @@ var PhotoshopParser = /** @class */ (function () {
                     /**if width or height of the element get changed */
                     if ((width !== (currentEle.bounds.right - currentEle.bounds.left)) ||
                         (height !== (currentEle.bounds.bottom - currentEle.bounds.top)) ||
-                        (x !== currentEle.bounds.left) || y !== currentEle.bounds.top) {
+                        (x !== (parCordinates.x - currentEle.bounds.left)) || y !== (parCordinates.y - currentEle.bounds.top)) {
                         return currentEle.bounds;
                     }
                     else {
@@ -246,7 +243,7 @@ var PhotoshopParser = /** @class */ (function () {
                     }
                 }
                 else {
-                    res = this.checkForEditedElement(currentEle, qLayerID, qId, x, y, width, height);
+                    res = this.checkForEditedElement(currentEle, qLayerID, qId, parCordinates, x, y, width, height);
                 }
             }
             return res;
@@ -299,7 +296,7 @@ var PhotoshopParser = /** @class */ (function () {
                         return [4 /*yield*/, Promise.all([img1, img2])];
                     case 1:
                         _a = __read.apply(void 0, [_b.sent(), 2]), im1 = _a[0], im2 = _a[1];
-                        return [2 /*return*/, (im1['img'] == im2['img']) ? false : { 'image': psImg, 'path': img2Path }];
+                        return [2 /*return*/, (im1['img'] == im2['img']) ? false : true];
                     case 2:
                         error_1 = _b.sent();
                         // console.log(error);

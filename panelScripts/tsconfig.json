@@ -5,7 +5,8 @@
     "sourceMap": true,
     "lib": [ "es2018" , "dom"],
     "types": ["node"],
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "allowUnreachableCode":true
   },
   "include" : [
     "./src"

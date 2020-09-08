@@ -1,10 +1,9 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -15,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -35,19 +34,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateViewStructure = void 0;
 var constants_1 = require("../constants");
 var path = require("path");
 var packageJson = require("../../package.json");
@@ -74,8 +71,7 @@ var CreateViewStructure = /** @class */ (function () {
     };
     CreateViewStructure.prototype.drawStruct = function (menuName) {
         return __awaiter(this, void 0, void 0, function () {
-            var insertionObj, params, result, _a, _b, _i, keys;
-            var _c, _d;
+            var insertionObj, params, result, _a, _b, _i, keys, _c, _d;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0: return [4 /*yield*/, this._viewClass.shouldDrawStruct(this._generator, this.docEmitter, this.getPlatform.bind(this), this.viewDeletionObj, this.menuName)];
@@ -117,7 +113,6 @@ var CreateViewStructure = /** @class */ (function () {
         });
     };
     CreateViewStructure.prototype.modifyMappedPlatform = function (view) {
-        var _a;
         var mappedPlatform = this.modelFactory.getPhotoshopModel().mappedPlatformObj;
         for (var key in mappedPlatform) {
             if (!mappedPlatform.hasOwnProperty(key)) {
@@ -132,6 +127,7 @@ var CreateViewStructure = /** @class */ (function () {
                     _a)
             };
         }
+        var _a;
     };
     CreateViewStructure.prototype.modifyElementalMap = function (view) {
         var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
@@ -149,22 +145,22 @@ var CreateViewStructure = /** @class */ (function () {
         }
     };
     CreateViewStructure.prototype.makeElementalObject = function () {
-        var e_1, _a;
         var elementalObj = {};
         try {
-            for (var _b = __values(this.questComponents), _c = _b.next(); !_c.done; _c = _b.next()) {
-                var item = _c.value;
+            for (var _a = __values(this.questComponents), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var item = _b.value;
                 elementalObj[item] = [];
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
             finally { if (e_1) throw e_1.error; }
         }
         return elementalObj;
+        var e_1, _c;
     };
     CreateViewStructure.prototype.getPlatform = function (insertionPoint) {
         if (!insertionPoint) {

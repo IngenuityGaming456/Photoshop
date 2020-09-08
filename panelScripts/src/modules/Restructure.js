@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Restructure = void 0;
 var Restructure = /** @class */ (function () {
     function Restructure() {
     }

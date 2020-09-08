@@ -316,6 +316,7 @@ export class DocumentStarter implements IFactory {
         execute(selfAddedStructures, {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: {documentManager: this.documentManager}
         });
+        const psParser = inject({ ref:PhotoshopParser, dep: [] });
     }
 
     private stabalizeDocument() {
@@ -369,7 +370,7 @@ export class DocumentStarter implements IFactory {
         this.structureMap
             .set(this.mapFactory.getImportMap(), {
                 ref: CreateImport,
-                dep: [ModelFactory]
+                dep: [PhotoshopParser, PhotoshopFactory, ModelFactory]
             })
             .set(this.mapFactory.getGenericViewMap(), {
                 ref: CreateViewStructure,

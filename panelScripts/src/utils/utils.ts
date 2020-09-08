@@ -572,18 +572,36 @@ export class utlis {
         }
     }
 
+    // public static getAssetsAndJson(key, activeDocument) {
+    //     const savedPath = activeDocument.directory;
+    //     const extIndex = activeDocument.name.search(".psd");
+    //     const fileName = activeDocument.name.slice(0, extIndex);
+    //     const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
+    //     const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
+    //     const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
+    //     return {
+    //         qAssetsPath,
+    //         qObj
+    //     }
+    // }
+
     public static getAssetsAndJson(key, activeDocument) {
         const savedPath = activeDocument.directory;
+        // const extIndex = activeDocument.name.indexOf(".");
         const extIndex = activeDocument.name.search(".psd");
         const fileName = activeDocument.name.slice(0, extIndex);
         const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
         const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
-        const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
+        let sObj = fs.readFileSync(qJsonPath, "utf-8");
+
+        let qObj = JSON.parse(sObj);
+        console.log(qObj)
         return {
             qAssetsPath,
             qObj
         }
     }
+<<<<<<< Updated upstream
 
     public static recurFiles(fileName, folderPath) {
         const files = fs.readdirSync(folderPath);
@@ -598,4 +616,19 @@ export class utlis {
             }
         }
     }
+=======
+    public static recurFiles(fileName, folderPath) {
+            const files = fs.readdirSync(folderPath);
+            for (const file of files) {
+                const filePath = path.join(folderPath, file);
+                const stats = fs.statSync(filePath);
+                if(stats.isDirectory()) {
+                    return utlis.recurFiles(fileName, filePath);
+                }
+                if(file === fileName) {
+                    return filePath;
+                }
+            }
+        }
+>>>>>>> Stashed changes
 }

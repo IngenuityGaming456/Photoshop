@@ -1,5 +1,5 @@
-#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
-#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\AddSpecials.jsx";
+#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\AddSpecials.jsx";
 var symbolStruct = ["Animations", "Blur", "Static"];
 var animationTypes = ["win", "landing", "trigger"];
 var symbolStructLength = symbolStruct.length;

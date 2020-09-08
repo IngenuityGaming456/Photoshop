@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataPhotoshopModel = void 0;
 var DataPhotoshopModel = /** @class */ (function () {
     function DataPhotoshopModel() {
     }

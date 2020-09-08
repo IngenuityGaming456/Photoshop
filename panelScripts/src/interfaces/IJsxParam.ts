@@ -3,8 +3,9 @@ export interface IJsxParam {
     childName: string,
     type?: string,
     subType?: string,
-    image?: string,
-    file?: string
+    file?:string,
+    image?:string,
+    dimensions?:{x:number, y:number, w:number, h:number, anchorX?:number, anchorY?:number}
 }
 
 export interface ISequence {

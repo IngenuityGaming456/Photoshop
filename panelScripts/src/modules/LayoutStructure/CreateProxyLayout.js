@@ -1,10 +1,9 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -15,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -35,16 +34,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -67,7 +65,6 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateProxyLayout = void 0;
 var utils_1 = require("../../utils/utils");
 var path = require("path");
 var ModelFactory_1 = require("../../models/ModelFactory");
@@ -182,8 +179,7 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.getBufferFrequency = function (layerMap) {
         return __awaiter(this, void 0, void 0, function () {
-            var layerMapKeys, layerMapKeys_1, layerMapKeys_1_1, key, value, bufferObj, e_1_1;
-            var e_1, _a;
+            var layerMapKeys, layerMapKeys_1, layerMapKeys_1_1, key, value, bufferObj, e_1_1, e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -271,14 +267,13 @@ var CreateProxyLayout = /** @class */ (function () {
         utils_1.utlis.traverseBaseFreeGame(this.document.layers, this.inspectSymbols.bind(this));
     };
     CreateProxyLayout.prototype.inspectSymbols = function (viewLayer) {
-        var e_2, _a;
         var _this = this;
         if (!viewLayer.layers) {
             return;
         }
         try {
-            for (var _b = __values(viewLayer.layers), _c = _b.next(); !_c.done; _c = _b.next()) {
-                var item = _c.value;
+            for (var _a = __values(viewLayer.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var item = _b.value;
                 if (item.name === constants_1.photoshopConstants.generatorButtons.symbols && item.layers) {
                     item.layers.forEach(function (itemS) {
                         _this.checkIfStaticEmpty(itemS);
@@ -289,10 +284,11 @@ var CreateProxyLayout = /** @class */ (function () {
         catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
-                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
             finally { if (e_2) throw e_2.error; }
         }
+        var e_2, _c;
     };
     CreateProxyLayout.prototype.checkIfStaticEmpty = function (item) {
         var _this = this;
@@ -322,8 +318,7 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.checkLocalisationStruct = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var localisationStruct, langIds, langIds_1, langIds_1_1, id, idRef, e_3_1;
-            var e_3, _a;
+            var localisationStruct, langIds, langIds_1, langIds_1_1, id, idRef, e_3_1, e_3, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -382,7 +377,6 @@ var CreateProxyLayout = /** @class */ (function () {
         });
     };
     CreateProxyLayout.prototype.getHierarchyStructure = function (idLayers, hierarchyStruct, wholeHierarchy) {
-        var e_4, _a;
         var hierarchyClone = [];
         try {
             for (var idLayers_1 = __values(idLayers), idLayers_1_1 = idLayers_1.next(); !idLayers_1_1.done; idLayers_1_1 = idLayers_1.next()) {
@@ -418,11 +412,11 @@ var CreateProxyLayout = /** @class */ (function () {
             }
             wholeHierarchy.push(hierarchyClone);
         }
+        var e_4, _a;
     };
     CreateProxyLayout.prototype.sendLocalisationResponse = function (platfromId, langId, wholeHierarchyStruct) {
         return __awaiter(this, void 0, void 0, function () {
-            var wholeHierarchyStruct_1, wholeHierarchyStruct_1_1, hierarchyStruct, hierarchyArray, trueIndex, responseObj, response, isTrue, e_5_1;
-            var e_5, _a;
+            var wholeHierarchyStruct_1, wholeHierarchyStruct_1_1, hierarchyStruct, hierarchyArray, trueIndex, responseObj, response, isTrue, e_5_1, e_5, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:

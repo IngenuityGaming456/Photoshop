@@ -21,7 +21,6 @@ export class CreateImport implements IFactory{
     private readonly pFactory;
     private readonly modelFactory;
 
-
     public constructor(psParser: PhotoshopParser, pFactory: PhotoshopFactory, modelFactory: ModelFactory) {
         this.pFactory = pFactory;
         this.pParser = psParser;
@@ -36,6 +35,7 @@ export class CreateImport implements IFactory{
             generator: this.generator,
             activeDocument: this.activeDocument
         });
+        this.pParser.execute(params);
         this.getAssetsAndJson();
         this.compareJson();
         this.startCreation();
@@ -47,6 +47,7 @@ export class CreateImport implements IFactory{
     private getAssetsAndJson() {
         const stats =  utlis.getAssetsAndJson("Quest", this.activeDocument);
         this.qAssetsPath = stats.qAssetsPath;
+      
         this.qObj = stats.qObj;
     }
 
@@ -60,6 +61,8 @@ export class CreateImport implements IFactory{
             if(!this.qObj.hasOwnProperty(platform)) {
                 continue;
             }
+            let abject = this.qObj[platform];
+            console.log(abject)
             const enObj:object = this.qObj[platform]["en"];
             this.compareViews(enObj, platform);
         }
@@ -107,14 +110,19 @@ export class CreateImport implements IFactory{
                 this.result.create[type].push({
                     key : compObj,
                     viewId: parentId,
+                    parent:compObj.parent,
                     view,
                     platform
                 });
+
+                //console.log(this.result)
             } else {
                 this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
-                this.isEdit(compObj, view, platform);
+                this.isEdit(compObj, view, viewObj, platform);
                 this.isImageEdit(compObj, view, platform);
+            
+
             }
         }
     }
@@ -129,26 +137,14 @@ export class CreateImport implements IFactory{
 
         if(compObj.parent != "" && typeof compObj.layerID[0] == 'number'){
 
-            let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null, null, null, null, null, "move");
+            let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null,  null, "move");
             if(res){
-                this.handleMove(res ,compObj.id, compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
+                this.handleMove(res ,compObj.id, compObj.layerID[0], compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
             }
 
         }
 
     }
-    // private isMove(compObj, viewObj, view, platform) {
-    //     const moveObj = {};
-    //     const parent = compObj.parent;
-    //     const parentObj = viewObj[parent];
-    //     if(this.isNew(parentObj)) {
-    //         this.handleMove(moveObj, compObj, parentObj, this.getType(compObj), view, platform);
-    //     }
-    //     const isDiff = this.psParser.compareParent(compObj, parentObj, view, platform);
-    //     if(isDiff) {
-    //         this.handleMove(moveObj, compObj, parentObj, this.getType(compObj), view, platform);
-    //     }
-    // }
 
     /**
      * function to check if a view component is renamed or not ?
@@ -161,13 +157,10 @@ export class CreateImport implements IFactory{
 
         if(typeof compObj.layerID[0] == 'number'){
 
-            let res:boolean|string = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, null, null, null, null, null, "rename");
+            let res:boolean|string = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, null, null, "rename");
             if(res){
-                console.log("in res");
-                this.handleRename(res ,compObj.id, this.getType(compObj), view, platform);
+                this.handleRename(res ,compObj.id, compObj.layerID[0], this.getType(compObj), view, platform);
             }
-
-
         }
     }
 
@@ -181,8 +174,12 @@ export class CreateImport implements IFactory{
     private isEdit(compObj:{parent:string,layerID:Array<number>,
                        id:string, w?:number, h?:number, width?:number,
                        height?:number, x:number, y:number, type:string},
-                   view:string, platform:string):void {
+                   view:string, viewObj:any, platform:string):void {
 
+        let tempParent = {};
+        let tempChild = {};
+        tempParent["x"]=0;
+        tempParent["y"]=0;
         /**check if obj is an instance of an object */
 
         if(compObj instanceof Object){
@@ -194,9 +191,19 @@ export class CreateImport implements IFactory{
                 let height = compObj.h||compObj.height;
                 let width = compObj.w||compObj.width;
 
-                //let img = comp.image?comp.image:"";
+                let parent = compObj.parent?compObj.parent:"";
+                if(viewObj.hasOwnProperty(parent)){
+                    let tempParent = viewObj[parent];
+                    tempParent["x"]=tempParent.x;
+                    tempParent["y"]=tempParent.y;
+                }
 
-                let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, null, compObj.x, compObj.y, width, height, null, "editElement");
+                tempChild["x"]= compObj.x;
+                tempChild["y"]= compObj.y;
+                tempChild["width"]= width;
+                tempChild["height"]= height;
+
+                let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
                 if(res){
                     let oldDimensions:object = {
                         'x':compObj.x,
@@ -204,7 +211,7 @@ export class CreateImport implements IFactory{
                         'width':width,
                         'height':height
                     }
-                    this.handleEditElement(res, oldDimensions, this.getType(compObj), compObj.id, view, platform);
+                    this.handleEditElement(res, oldDimensions, this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
                 }
                 console.log(res);
             }
@@ -226,10 +233,10 @@ export class CreateImport implements IFactory{
             if(typeof compObj.layerID[0] == 'number' && compObj.image){
                 let path = `${this.qAssetsPath}/${platform}/common/${view}/${compObj.image}.png`;
 
-                let res = await this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, null, null, null, compObj.image, "editImage");
+                let res = await this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
 
                 if(res){
-                    this.handleEditImage(res, compObj.image, path, this.getType(compObj));
+                    this.handleEditImage(compObj, this.getType(compObj), view, platform);
                 }
             }
         }
@@ -334,10 +341,11 @@ export class CreateImport implements IFactory{
      * @param view current view
      * @param platform current platform
      */
-    private handleRename(newName:boolean|string ,oldName:string, type:string, view:string, platform:string):void{
+    private handleRename(newName:boolean|string ,oldName:string, elementId:number|string, type:string, view:string, platform:string):void{
         let renamed={};
         renamed['newName'] = newName;
         renamed['oldName'] = oldName;
+        renamed['elementId'] = elementId;
 
         renamed = JSON.stringify(renamed);
         this.result.rename[type].push({
@@ -356,7 +364,7 @@ export class CreateImport implements IFactory{
      * @param view current view
      * @param platform current platform
      */
-    private handleEditElement(bounds:{left:number, right:number, top:number, bottom:number}, oldDimensions:object, type:string, qId:string, view:string, platform:string):void{
+    private handleEditElement(bounds:{left:number, right:number, top:number, bottom:number}, oldDimensions:object, type:string, compId, qId:string, view:string, platform:string):void{
 
         let newDimensions = {};
 
@@ -369,6 +377,7 @@ export class CreateImport implements IFactory{
             newDimensions,
             oldDimensions,
             "name":qId,
+            compId,
             view,
             platform
         });
@@ -380,14 +389,12 @@ export class CreateImport implements IFactory{
      * @param path old image path
      * @param type type of the component i.e. image
      */
-    private handleEditImage(newImg:{image:string, path:string}, oldImg:string, path:string, type:string):void{
-        this.result.edit.layout[type].push({
-            "oldImage":oldImg,
-            "newImage":newImg.image
-        });
+    private handleEditImage(compObj:any, type:string, view, platform):void{
+        
         this.result.edit.asset[type].push({
-            "oldPath": path,
-            "newOath": newImg.path
+            "imageObj":compObj,
+            view,
+            platform
         });
     }
 
@@ -400,9 +407,10 @@ export class CreateImport implements IFactory{
      * @param view current view
      * @param platform current platform
      */
-    private handleMove(parent:string, child:string, newParent:string, newParentId:string|number, type:string, view:string, platform:string):void {
+    private handleMove(parent:string, child:string, childId:string|number, newParent:string,  newParentId:string|number, type:string, view:string, platform:string):void {
         let moveObj = {};
         moveObj["child"] = child;
+        moveObj["childId"] = childId;
         moveObj["parent"] = parent;
         moveObj["newparent"] = newParent;
         moveObj["newparentId"] = newParentId;
@@ -423,11 +431,11 @@ export class CreateImport implements IFactory{
 
     private startCreation() {
         const creationObj = inject({ref: Creation, dep: []});
-        execute(creationObj, {storage:
-                {
-                    result : this.result,
-                    pFactory: this.pFactory,
-                    qAssets: this.qAssetsPath
-                }, generator: this.generator, activeDocument: this.activeDocument});
+        // execute(creationObj, {storage: {result : this.result}, generator: this.generator});
+        execute(creationObj, {storage:{
+            result : this.result,
+            pFactory: this.pFactory,
+            qAssets: this.qAssetsPath
+        }, generator: this.generator, activeDocument: this.activeDocument});
     }
 }

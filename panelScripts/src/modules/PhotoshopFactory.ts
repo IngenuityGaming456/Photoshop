@@ -25,7 +25,7 @@ export class PhotoshopFactory implements IFactory {
         this._pluginId = packageJson.name;
     }
 
-    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?, assetsPath?) {
+    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?, assetsPath?, dimensions?) {
         let layerType: string;
         this.platform = platform;
         for(let keys in parserObject) {
@@ -45,7 +45,7 @@ export class PhotoshopFactory implements IFactory {
                     (this.photoshopModel as PhotoshopModelApp).automationOn = true;
                 }
                 this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                await this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath);
+                await this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath, dimensions);
                 (this.photoshopModel as PhotoshopModelApp).automationOn = false;
             }
         }
@@ -99,7 +99,7 @@ export class PhotoshopFactory implements IFactory {
             jsxParams);
     }
 
-    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?, assetsPath?) {
+    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?, assetsPath?, dimensions?) {
         let jsonMap = JsonComponentsFactory.makeJsonComponentsMap();
         let element = jsonMap.get(layerType);
         let childId;
@@ -112,6 +112,7 @@ export class PhotoshopFactory implements IFactory {
             childId = await element.setJsx(this._generator, jsxParams);
         }
         if (element instanceof QuestJsonComponent) {
+            jsxParams.dimensions = dimensions;
             childId = await element.setJsx(this._generator, jsxParams);
         }
         this.setChildIds(childId, jsxParams, layerType, parentKey, type);

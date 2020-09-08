@@ -1,14 +1,13 @@
 "use strict";
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
@@ -31,7 +30,6 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.utlis = void 0;
 var fs = require("fs");
 var path = require("path");
 var constants_1 = require("../constants");
@@ -43,7 +41,6 @@ var utlis = /** @class */ (function () {
         return ~searchArray.indexOf(key);
     };
     utlis.isIDExistsRec = function (id, idArray) {
-        var e_1, _a;
         var itemRef = idArray.find(function (item) {
             if (item.id === Number(id)) {
                 return true;
@@ -71,6 +68,7 @@ var utlis = /** @class */ (function () {
             finally { if (e_1) throw e_1.error; }
         }
         return null;
+        var e_1, _a;
     };
     utlis.isIDExists = function (id, idArray) {
         return idArray.find(function (item) {
@@ -118,14 +116,13 @@ var utlis = /** @class */ (function () {
         return obj;
     };
     utlis.objectToMap = function (obj) {
-        var e_2, _a;
         if (!obj) {
             return null;
         }
         var map = new Map();
         try {
-            for (var _b = __values(Object.keys(obj)), _c = _b.next(); !_c.done; _c = _b.next()) {
-                var key = _c.value;
+            for (var _a = __values(Object.keys(obj)), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var key = _b.value;
                 if (obj[key] instanceof Object) {
                     map.set(key, utlis.objectToMap(obj[key]));
                 }
@@ -137,11 +134,12 @@ var utlis = /** @class */ (function () {
         catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
-                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
             finally { if (e_2) throw e_2.error; }
         }
         return map;
+        var e_2, _c;
     };
     utlis.traverseObject = function (arrayLayers, callback, callbackLayers) {
         var noOfLayers = arrayLayers.length;
@@ -259,10 +257,9 @@ var utlis = /** @class */ (function () {
         }
     };
     utlis.getCommonId = function (platformRef) {
-        var e_3, _a;
         try {
-            for (var _b = __values(platformRef.layers), _c = _b.next(); !_c.done; _c = _b.next()) {
-                var layer = _c.value;
+            for (var _a = __values(platformRef.layers), _b = _a.next(); !_b.done; _b = _a.next()) {
+                var layer = _b.value;
                 if (layer.name === constants_1.photoshopConstants.common) {
                     return layer.id;
                 }
@@ -271,10 +268,11 @@ var utlis = /** @class */ (function () {
         catch (e_3_1) { e_3 = { error: e_3_1 }; }
         finally {
             try {
-                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+                if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
             finally { if (e_3) throw e_3.error; }
         }
+        var e_3, _c;
     };
     utlis.getElementView = function (element, activeDocumentLayers) {
         var layers = activeDocumentLayers;
@@ -322,7 +320,6 @@ var utlis = /** @class */ (function () {
         });
     };
     utlis.getFirstAddedItem = function (addedLayers, callback) {
-        var e_4, _a;
         try {
             for (var addedLayers_1 = __values(addedLayers), addedLayers_1_1 = addedLayers_1.next(); !addedLayers_1_1.done; addedLayers_1_1 = addedLayers_1.next()) {
                 var item = addedLayers_1_1.value;
@@ -342,6 +339,7 @@ var utlis = /** @class */ (function () {
             }
             finally { if (e_4) throw e_4.error; }
         }
+        var e_4, _a;
     };
     utlis.getAllLayersAtLevel = function (arrayLayers, level) {
         var levelArray = arrayLayers;
@@ -408,7 +406,6 @@ var utlis = /** @class */ (function () {
         };
     };
     utlis.isLayerExists = function (layerRef, idKey) {
-        var e_5, _a;
         var layerRefLayers = layerRef.layer.layers;
         try {
             for (var layerRefLayers_1 = __values(layerRefLayers), layerRefLayers_1_1 = layerRefLayers_1.next(); !layerRefLayers_1_1.done; layerRefLayers_1_1 = layerRefLayers_1.next()) {
@@ -426,6 +423,7 @@ var utlis = /** @class */ (function () {
             finally { if (e_5) throw e_5.error; }
         }
         return false;
+        var e_5, _a;
     };
     utlis.putComponentInGeneratorSettings = function (item, pluginId, component) {
         if (item.hasOwnProperty("generatorSettings") && item["generatorSettings"] === false) {
@@ -468,7 +466,6 @@ var utlis = /** @class */ (function () {
         }
     };
     utlis.getView = function (commonRef, viewName) {
-        var e_6, _a;
         var viewLayers = commonRef.layer.layers;
         try {
             for (var viewLayers_1 = __values(viewLayers), viewLayers_1_1 = viewLayers_1.next(); !viewLayers_1_1.done; viewLayers_1_1 = viewLayers_1.next()) {
@@ -486,9 +483,9 @@ var utlis = /** @class */ (function () {
             finally { if (e_6) throw e_6.error; }
         }
         return null;
+        var e_6, _a;
     };
     utlis.getPlatformRef = function (platform, activeDocument) {
-        var e_7, _a;
         var activeLayers = activeDocument.layers.layers;
         try {
             for (var activeLayers_1 = __values(activeLayers), activeLayers_1_1 = activeLayers_1.next(); !activeLayers_1_1.done; activeLayers_1_1 = activeLayers_1.next()) {
@@ -505,9 +502,9 @@ var utlis = /** @class */ (function () {
             }
             finally { if (e_7) throw e_7.error; }
         }
+        var e_7, _a;
     };
     utlis.hasKey = function (keyArray, key) {
-        var e_8, _a;
         try {
             for (var keyArray_1 = __values(keyArray), keyArray_1_1 = keyArray_1.next(); !keyArray_1_1.done; keyArray_1_1 = keyArray_1.next()) {
                 var item = keyArray_1_1.value;
@@ -524,6 +521,7 @@ var utlis = /** @class */ (function () {
             finally { if (e_8) throw e_8.error; }
         }
         return null;
+        var e_8, _a;
     };
     utlis.breakArrayOnTrue = function (breakArray) {
         var splitIndexes = [];
@@ -558,7 +556,6 @@ var utlis = /** @class */ (function () {
         return utlis.isNotContainer(itemRef.layer.group, activeDocument, resultLayers, pluginId);
     };
     utlis.findLayerInResult = function (id, resultLayers) {
-        var e_9, _a;
         try {
             for (var resultLayers_1 = __values(resultLayers), resultLayers_1_1 = resultLayers_1.next(); !resultLayers_1_1.done; resultLayers_1_1 = resultLayers_1.next()) {
                 var item = resultLayers_1_1.value;
@@ -581,6 +578,7 @@ var utlis = /** @class */ (function () {
             finally { if (e_9) throw e_9.error; }
         }
         return null;
+        var e_9, _a;
     };
     utlis.isButton = function (array1, array2) {
         if (array1.length !== array2.length) {
@@ -675,13 +673,28 @@ var utlis = /** @class */ (function () {
             }
         }
     };
+    // public static getAssetsAndJson(key, activeDocument) {
+    //     const savedPath = activeDocument.directory;
+    //     const extIndex = activeDocument.name.search(".psd");
+    //     const fileName = activeDocument.name.slice(0, extIndex);
+    //     const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
+    //     const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
+    //     const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
+    //     return {
+    //         qAssetsPath,
+    //         qObj
+    //     }
+    // }
     utlis.getAssetsAndJson = function (key, activeDocument) {
         var savedPath = activeDocument.directory;
+        // const extIndex = activeDocument.name.indexOf(".");
         var extIndex = activeDocument.name.search(".psd");
         var fileName = activeDocument.name.slice(0, extIndex);
         var qAssetsPath = savedPath + ("\\" + fileName + "\\") + (key + "\\" + fileName + "-assets");
         var qJsonPath = savedPath + ("\\" + fileName + "\\") + (key + "\\" + fileName + ".json");
-        var qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
+        var sObj = fs.readFileSync(qJsonPath, "utf-8");
+        var qObj = JSON.parse(sObj);
+        console.log(qObj);
         return {
             qAssetsPath: qAssetsPath,
             qObj: qObj

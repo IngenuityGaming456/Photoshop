@@ -1,10 +1,9 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -15,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -36,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PhotoshopFactory = void 0;
 var path = require("path");
 var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
@@ -51,7 +49,7 @@ var PhotoshopFactory = /** @class */ (function () {
         this._generator = params.generator;
         this._pluginId = packageJson.name;
     };
-    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform, type, assetsPath) {
+    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform, type, assetsPath, dimensions) {
         return __awaiter(this, void 0, void 0, function () {
             var layerType, _a, _b, _i, keys, jsxParams, mappedKey;
             return __generator(this, function (_c) {
@@ -87,7 +85,7 @@ var PhotoshopFactory = /** @class */ (function () {
                             this.photoshopModel.automationOn = true;
                         }
                         this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath)];
+                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath, dimensions)];
                     case 5:
                         _c.sent();
                         this.photoshopModel.automationOn = false;
@@ -196,7 +194,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type, assetsPath) {
+    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type, assetsPath, dimensions) {
         return __awaiter(this, void 0, void 0, function () {
             var jsonMap, element, childId;
             return __generator(this, function (_a) {
@@ -216,6 +214,7 @@ var PhotoshopFactory = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         if (!(element instanceof JsonComponents_1.QuestJsonComponent)) return [3 /*break*/, 4];
+                        jsxParams.dimensions = dimensions;
                         return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
                     case 3:
                         childId = _a.sent();

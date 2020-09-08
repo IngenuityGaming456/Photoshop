@@ -1,7 +1,7 @@
 import {IFactory, IParams} from "../../interfaces/IJsxParam";
 import {utlis} from "../../utils/utils";
 import * as path from "path";
-
+ 
 export class Creation implements IFactory{
     private generator;
     private storage;
@@ -11,7 +11,7 @@ export class Creation implements IFactory{
     private qAssets;
 
     execute(params: IParams){
-        this.diffObj = this.storage.result;
+        this.diffObj = params.storage.result;
         this.pFactory = this.storage.pFactory;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
@@ -32,6 +32,10 @@ export class Creation implements IFactory{
         }
         if(diffObj.hasOwnProperty("create")){
             this.handleOperationOverComp(diffObj['create'], "create");
+        }
+
+        if(diffObj.hasOwnProperty("edit")){
+            this.handleOperationOverComp(diffObj['edit'], "edit");
         }
     }
 
@@ -54,6 +58,8 @@ export class Creation implements IFactory{
                 break;
                 case "rename" : this.handleRenameComp(obj['container']);
                 break;
+                case "create" : this.handleCreation(obj);
+                break;
             }
            
         }
@@ -63,6 +69,7 @@ export class Creation implements IFactory{
                 break;
                 case "rename" : this.handleRenameComp(obj['container']);
                 break;
+               
             }
         }
     }
@@ -93,13 +100,29 @@ export class Creation implements IFactory{
         for(let view of views) {
             const platformRef = utlis.getPlatformRef(view.platform, this.activeDocument);
             const commonId = utlis.getCommonId(platformRef);
+          
             await this.pFactory.makeStruct(view.view, commonId, null, view.platform, "quest");
         }
     }
-
     private async handleComponentsCreation(comps) {
+     
         for(let comp of comps) {
-            await this.pFactory.makeStruct(comp.key, comp.viewId, comp.view, comp.platform, "quest", this.qAssets);
+            let dimensions ={};
+            dimensions["x"]= comp.x;
+            dimensions["y"]= comp.y;
+            dimensions["w"]= comp.w;
+            dimensions["h"]= comp.h;
+            dimensions["anchorX"] = comp.hasOwnProperty("anchorX") ? comp.anchorX:0;
+            dimensions["anchorY"] = comp.hasOwnProperty("anchorY") ? comp.anchorY:0;
+
+            // if(comp.hasOwnProperty("parent")){
+            //     let parent = comps[comp.parent];
+            //     dimensions["parentX"]= comp.x;
+            //     dimensions["parentY"]= comp.y;
+            
+            // }
+            
+            await this.pFactory.makeStruct(comp.key, comp.viewId, comp.view, comp.platform, "quest", this.qAssets, dimensions);
         }
     }
 
