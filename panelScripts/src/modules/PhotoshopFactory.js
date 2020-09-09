@@ -122,7 +122,7 @@ var PhotoshopFactory = /** @class */ (function () {
                             jsxDim["parentX"] = parserObject[keys].parentX;
                             jsxDim["parentY"] = parserObject[keys].parentY;
                         }
-                        if (parserObject.image) {
+                        if (parserObject[keys].image) {
                             jsxParams.image = parserObject[keys].image;
                         }
                         jsxParams.leaf = parserObject[keys].leaf;

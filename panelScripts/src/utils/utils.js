@@ -712,7 +712,12 @@ var utlis = /** @class */ (function () {
                 if (stats.isDirectory()) {
                     return utlis.recurFiles(fileName, filePath);
                 }
-                if (file === fileName) {
+                var fileExtIndex = file.search(".png");
+                var fileExt = void 0;
+                if (fileExtIndex > -1) {
+                    fileExt = file.slice(0, fileExtIndex);
+                }
+                if (fileExt === fileName) {
                     return filePath;
                 }
             }

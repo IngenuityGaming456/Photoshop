@@ -22,7 +22,7 @@ if(params["image"]){
     var currentParent = params.parentId ? getInsertionReferenceById(params.parentId) :app.activeDocument;
 
     var fileRef = new File(params.file);
-    var docRef = app.open (fileRef);
+    var docRef = app.open(fileRef);
 
     app.activeDocument.selection.selectAll();
     app.activeDocument.selection.copy();

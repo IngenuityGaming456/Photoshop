@@ -319,7 +319,7 @@ var CreateImport = /** @class */ (function () {
                 for (var delItems_1 = __values(delItems), delItems_1_1 = delItems_1.next(); !delItems_1_1.done; delItems_1_1 = delItems_1.next()) {
                     var item = delItems_1_1.value;
                     var index = psObjArray.indexOf(item);
-                    psObjArray.splice(index, 1);
+                    diff.splice(index, 1);
                 }
             }
             catch (e_2_1) { e_2 = { error: e_2_1 }; }

@@ -287,7 +287,7 @@ export class CreateImport implements IFactory{
             }
             for(const item of delItems) {
                 const index = psObjArray.indexOf(item);
-                psObjArray.splice(index, 1);
+                diff.splice(index, 1);
             }
             this.handleDeletdElements(diff);
         }
