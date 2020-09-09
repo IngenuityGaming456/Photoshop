@@ -62,7 +62,6 @@ export class CreateImport implements IFactory{
                 continue;
             }
             let abject = this.qObj[platform];
-            console.log(abject)
             const enObj:object = this.qObj[platform]["en"];
             this.compareViews(enObj, platform);
         }
@@ -102,7 +101,6 @@ export class CreateImport implements IFactory{
             if(!viewObj.hasOwnProperty(comp) || !(viewObj[comp] instanceof Object)) {
                 continue;
             }
-            // console.log("compare component  ",comp);
             const compObj = viewObj[comp];
             if(this.isNew(compObj.layerID[0])) {
                 const type = this.getType(compObj);
@@ -115,13 +113,12 @@ export class CreateImport implements IFactory{
                     view,
                     platform
                 });
-
-                //console.log(this.result)
             } else {
+                console.log(viewObj);
                 this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
                 this.isEdit(compObj, view, viewObj, platform);
-                this.isImageEdit(compObj, view, platform);
+                this.isImageEdit(compObj, view, viewObj, platform);
             
 
             }
@@ -136,11 +133,13 @@ export class CreateImport implements IFactory{
      */
     private isMove(compObj:any, viewObj:any, view:string, platform:string):void {
 
-        if(compObj.parent != "" && typeof compObj.layerID[0] == 'number'){
+        if(compObj.parent && typeof(compObj.layerID[0]) == "number"){
 
             let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, compObj.parent, null,  null, "move");
             if(res){
-                this.handleMove(res ,compObj.id, compObj.layerID[0], compObj.parent, viewObj[compObj.parent]['layerID'][0], this.getType(compObj), view, platform);
+              
+                this.handleMove(res ,compObj.id, compObj.layerID[0], compObj.parent, viewObj[compObj.parent].layerID[0], this.getType(compObj), view, platform);
+                return;
             }
 
         }
@@ -187,7 +186,7 @@ export class CreateImport implements IFactory{
 
 
             /**chck only for the elements which were created by PS as they have integer layerid */
-            if(typeof compObj.layerID[0] == 'number'){
+            if(typeof compObj.layerID[0] == 'number' && compObj.type== "image"){
 
                 let height = compObj.h||compObj.height;
                 let width = compObj.w||compObj.width;
@@ -212,9 +211,8 @@ export class CreateImport implements IFactory{
                         'width':width,
                         'height':height
                     }
-                    this.handleEditElement(res, oldDimensions, this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
+                    this.handleEditElement(res, oldDimensions,  viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
                 }
-                console.log(res);
             }
         }
 
@@ -227,17 +225,18 @@ export class CreateImport implements IFactory{
      * @param view - current view
      * @param platform - current platform
      */
-    private async isImageEdit(compObj:any, view:string, platform:string){
+    private isImageEdit(compObj:any, view:string, viewObj:any, platform:string){
         if(compObj instanceof Object){
 
             /**chck only for the elements which were created by PS as they have integer layerid */
             if(typeof compObj.layerID[0] == 'number' && compObj.image){
-                let path = `${this.qAssetsPath}/${platform}/common/${view}/${compObj.image}.png`;
+                // let path = `${this.qAssetsPath}/${platform}/common/${view}/${compObj.image}.png`;
+                let path = utlis.recurFiles(`${compObj.image}`, this.qAssetsPath);
 
-                let res = await this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
+                let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
 
                 if(res){
-                    this.handleEditImage(compObj, this.getType(compObj), view, platform);
+                    this.handleEditImage(compObj, viewObj[compObj.parent].layerID[0], this.getType(compObj), view, platform);
                 }
             }
         }
@@ -365,7 +364,7 @@ export class CreateImport implements IFactory{
      * @param view current view
      * @param platform current platform
      */
-    private handleEditElement(bounds:{left:number, right:number, top:number, bottom:number}, oldDimensions:object, type:string, compId, qId:string, view:string, platform:string):void{
+    private handleEditElement(bounds:{left:number, right:number, top:number, bottom:number}, oldDimensions:object,parentId ,type:string, compId, qId:string, view:string, platform:string):void{
 
         let newDimensions = {};
 
@@ -378,6 +377,7 @@ export class CreateImport implements IFactory{
             newDimensions,
             oldDimensions,
             "name":qId,
+            parentId,
             compId,
             view,
             platform
@@ -390,10 +390,11 @@ export class CreateImport implements IFactory{
      * @param path old image path
      * @param type type of the component i.e. image
      */
-    private handleEditImage(compObj:any, type:string, view, platform):void{
+    private handleEditImage(compObj:any, parentId, type:string, view, platform):void{
         
         this.result.edit.asset[type].push({
             "imageObj":compObj,
+            parentId,
             view,
             platform
         });
@@ -421,7 +422,7 @@ export class CreateImport implements IFactory{
             view,
             platform
         });
-        console.log(this.result.move)
+     
     }
 
     private getParentId(view, platform) {
@@ -429,7 +430,7 @@ export class CreateImport implements IFactory{
         const currentView = elementalMap[platform][view];
         return currentView.base.id;
     }
-
+ 
     private startCreation() {
         const creationObj = inject({ref: Creation, dep: []});
         // execute(creationObj, {storage: {result : this.result}, generator: this.generator});

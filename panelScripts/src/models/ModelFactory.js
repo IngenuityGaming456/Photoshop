@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModelFactory = void 0;
 var FactoryClass_1 = require("../modules/FactoryClass");
 var MappingModel_1 = require("./MappingModel");
 var DataPhotoshopModel_1 = require("./PhotoshopModels/DataPhotoshopModel");
@@ -35,6 +34,7 @@ var ModelFactory = /** @class */ (function () {
             generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument
         });
+        /**calling photoshop modal class */
         this.photoshopModel = FactoryClass_1.inject({ ref: PhotoshopModel_1.PhotoshopModel, dep: [] });
         FactoryClass_1.execute(this.photoshopModel, {
             storage: this.getPhotoshopStorage(),

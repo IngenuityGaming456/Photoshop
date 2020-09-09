@@ -32,7 +32,6 @@ export class PhotoshopParser implements IFactory {
 
     private checkViews(pObj, view, platform){
         let res;
-        console.log(pObj);
         if(pObj.hasOwnProperty('layers')){
             let viewLayersObj = pObj['layers'];
             for(let i in viewLayersObj){
@@ -172,10 +171,13 @@ export class PhotoshopParser implements IFactory {
                 }else{
                     psParent = obj['layers'][i].name;
                     res = this.findChildUnderParent(obj['layers'][i], psParent, qParent, qLayerID, qId);
+                    if(res){
+                        return res;
+                    }
                 }
 
             }
-            return res;
+           
 
         }
         return false;
@@ -208,10 +210,11 @@ export class PhotoshopParser implements IFactory {
                     }
                 }else{
                     res = this.checkForEditedElement(currentEle, qLayerID, qId, parCordinates, x, y, width, height);
+                    if(res){
+                        return res;
+                    }
                 }
             }
-
-            return res;
         }
         return false;
     }
@@ -232,12 +235,17 @@ export class PhotoshopParser implements IFactory {
 
                 if(currentEle.name == qId && (currentEle.hasOwnProperty('type') && currentEle.type == 'layer')){
 
-                    return this.checkImages(qImg, JSON.parse(currentEle.generatorSettings.PanelScriptsImage.json).image, path);
+                    let resp = this.checkImages(qImg, JSON.parse(currentEle.generatorSettings.PanelScriptsImage.json).image, path);
+                    console.log(typeof(resp), resp);
+                    return resp;
                 }else{
-                    res = this.checkIfImageChanged(currentEle, qLayerID, qId, path, qImg)
+                    res = this.checkIfImageChanged(currentEle, qLayerID, qId, path, qImg);
+                    if(res){
+                        return res;
+                    }
                 }
             }
-            return res;
+          
         }
         return false;
 
@@ -251,34 +259,36 @@ export class PhotoshopParser implements IFactory {
      * @param path path of quest images
      */
 
-    private async checkImages(qImg, psImg, path){
+    private checkImages(qImg, psImg, path){
 
         try{
             let array = path.split("/");
             let len = array.length;
             const img1 = this.readImages(path);
-            let img2Path = `${this.pAssetsPath}/${array[len-4]}/common/${array[len-2]}/${psImg}.png`;
+            // let img2Path = `${this.pAssetsPath}/${array[len-4]}/common/${array[len-2]}/${psImg}.png`;
+            let img2Path = utlis.recurFiles(`${psImg}`, this.pAssetsPath);
             const img2 = this.readImages(img2Path);
-
-            let [im1, im2] =await Promise.all([img1, img2]);
-            return (im1['img']==im2['img'])? false:true;
+            return (img1 == img2)?false:true;
+            // let [im1, im2] =await Promise.all([img1, img2]);
+            // return (im1['img']==im2['img'])? false:true;
 
         }catch(error){
-            // console.log(error);
+         
             return false;
         }
     }
 
-    public readImages(url){
-        return new Promise((resolve, reject)=>{
-            fs.readFile(url, 'base64', (err, img) => {
-                if(err){
-                    return reject(err);
-                }else{
-                    return resolve({"img":img});
-                }
-            });
-        });
+    public readImages(path){
+        return fs.readFileSync(path, "base64");
+        // return new Promise((resolve, reject)=>{
+        //     fs.readFile(url, 'base64', (err, img) => {
+        //         if(err){
+        //             reject(err);
+        //         }else{
+        //             resolve({"img":img});
+        //         }
+        //     });
+        // });
     }
     // private CheckIfElementsDeleted(qLayerID, qId){
     //     let psObj =  this.pObj;

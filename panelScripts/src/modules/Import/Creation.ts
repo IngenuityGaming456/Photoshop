@@ -48,12 +48,13 @@ export class Creation implements IFactory{
     }
 
     private handleOperationOverComp(obj, operation){
+        if(obj.hasOwnProperty("asset") || obj.hasOwnProperty("layout")){
+           this.handleEdit(obj);
+        }
+
         if(obj.hasOwnProperty('container')){
+            console.log(operation);
             switch(operation){
-                case "create" : this.handleCreation(obj);
-                break;
-                case "edit" : this.handleEdit(obj["edit"]);
-                break;
                 case "move" : this.handleMoveComp(obj['container']);
                 break;
                 case "rename" : this.handleRenameComp(obj['container']);
@@ -63,9 +64,9 @@ export class Creation implements IFactory{
         }
         if(obj.hasOwnProperty('image')){
             switch(operation){
-                case "move": this.handleMoveComp(obj['container']);
+                case "move": this.handleMoveComp(obj['image']);
                 break;
-                case "rename" : this.handleRenameComp(obj['container']);
+                case "rename" : this.handleRenameComp(obj['image']);
                 break;
                
             }
@@ -76,7 +77,7 @@ export class Creation implements IFactory{
         for(let i in moveObj){
             let currentObj = moveObj[i];
             let currentMovedObj = JSON.parse(currentObj['moveObj']);
-            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/move.jsx"), {"newParentId": currentMovedObj.newparentId, "childId": currentMovedObj.childId});
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/move.jsx"), {newParentId: currentMovedObj.newparentId, childId: currentMovedObj.childId});
         }
     }
 
@@ -84,7 +85,7 @@ export class Creation implements IFactory{
         for(let i in renameObj){
             let currentObj = renameObj[i];
             let currentMovedObj = JSON.parse(currentObj['renamed']);
-            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/rename.jsx"), {"elementId": currentMovedObj.elementId, "newName":currentMovedObj.newName});
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/rename.jsx"), {elementId: currentMovedObj.elementId, newName:currentMovedObj.newName});
         }
     }
 
@@ -111,8 +112,8 @@ export class Creation implements IFactory{
     }
 
     private async handleEdit(editObj) {
-        await this.handleAssetEdit(editObj["asset"]["images"]);
-        await this.handleLayoutEdit(editObj["layout"]["images"]);
+        await this.handleAssetEdit(editObj["asset"]["image"]);
+        await this.handleLayoutEdit(editObj["layout"]["image"]);
     }
 
     private async handleAssetEdit(assetArr) {
@@ -120,13 +121,14 @@ export class Creation implements IFactory{
             const cObj = {...assetObj};
             //call deletion jsx
             //
-            await this.pFactory.makeStruct(cObj, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets);
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/DeleteErrorLayer.jsx"), {id: cObj["imageObj"].id});
+            await this.pFactory.makeStruct(cObj, cObj.parentId, cObj.view, cObj.platform, "quest", this.qAssets);
         }
     }
 
     private async handleLayoutEdit(layoutArr) {
         for(const assetObj of layoutArr) {
-            await this.pFactory.makeStruct(assetObj, assetObj.viewId, assetObj.view, assetObj.platform, "quest", this.qAssets);
+            await this.pFactory.makeStruct(assetObj, assetObj.parentId, assetObj.view, assetObj.platform, "quest", this.qAssets);
         }
     }
     

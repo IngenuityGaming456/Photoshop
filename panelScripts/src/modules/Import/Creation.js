@@ -1,21 +1,17 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -26,8 +22,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -46,19 +42,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Creation = void 0;
 var utils_1 = require("../../utils/utils");
 var path = require("path");
 var Creation = /** @class */ (function () {
@@ -74,15 +68,15 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleChangesInPS = function () {
         var diffObj = this.diffObj;
-        if (diffObj.hasOwnProperty("delete")) {
-            this.handleDeleteComp(diffObj['delete']);
-        }
-        if (diffObj.hasOwnProperty("move")) {
-            this.handleOperationOverComp(diffObj['move'], "move");
-        }
-        if (diffObj.hasOwnProperty("rename")) {
-            this.handleOperationOverComp(diffObj['rename'], "rename");
-        }
+        // if(diffObj.hasOwnProperty("delete")){
+        //     this.handleDeleteComp(diffObj['delete']);
+        // }
+        // if(diffObj.hasOwnProperty("move")){
+        //     this.handleOperationOverComp(diffObj['move'], "move");
+        // }
+        // if(diffObj.hasOwnProperty("rename")){
+        //     this.handleOperationOverComp(diffObj['rename'], "rename");
+        // }
         if (diffObj.hasOwnProperty("create")) {
             this.handleOperationOverComp(diffObj['create'], "create");
         }
@@ -118,14 +112,12 @@ var Creation = /** @class */ (function () {
         });
     };
     Creation.prototype.handleOperationOverComp = function (obj, operation) {
+        if (obj.hasOwnProperty("asset") || obj.hasOwnProperty("layout")) {
+            this.handleEdit(obj);
+        }
         if (obj.hasOwnProperty('container')) {
+            console.log(operation);
             switch (operation) {
-                case "create":
-                    this.handleCreation(obj);
-                    break;
-                case "edit":
-                    this.handleEdit(obj["edit"]);
-                    break;
                 case "move":
                     this.handleMoveComp(obj['container']);
                     break;
@@ -137,10 +129,10 @@ var Creation = /** @class */ (function () {
         if (obj.hasOwnProperty('image')) {
             switch (operation) {
                 case "move":
-                    this.handleMoveComp(obj['container']);
+                    this.handleMoveComp(obj['image']);
                     break;
                 case "rename":
-                    this.handleRenameComp(obj['container']);
+                    this.handleRenameComp(obj['image']);
                     break;
             }
         }
@@ -161,7 +153,7 @@ var Creation = /** @class */ (function () {
                         i = _a[_i];
                         currentObj = moveObj[i];
                         currentMovedObj = JSON.parse(currentObj['moveObj']);
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/move.jsx"), { "newParentId": currentMovedObj.newparentId, "childId": currentMovedObj.childId })];
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/move.jsx"), { newParentId: currentMovedObj.newparentId, childId: currentMovedObj.childId })];
                     case 2:
                         _c.sent();
                         _c.label = 3;
@@ -189,7 +181,7 @@ var Creation = /** @class */ (function () {
                         i = _a[_i];
                         currentObj = renameObj[i];
                         currentMovedObj = JSON.parse(currentObj['renamed']);
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/rename.jsx"), { "elementId": currentMovedObj.elementId, "newName": currentMovedObj.newName })];
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/rename.jsx"), { elementId: currentMovedObj.elementId, newName: currentMovedObj.newName })];
                     case 2:
                         _c.sent();
                         _c.label = 3;
@@ -221,8 +213,7 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleViewCreation = function (views) {
         return __awaiter(this, void 0, void 0, function () {
-            var views_1, views_1_1, view, platformRef, commonId, e_1_1;
-            var e_1, _a;
+            var views_1, views_1_1, view, platformRef, commonId, e_1_1, e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -259,8 +250,7 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleComponentsCreation = function (comps) {
         return __awaiter(this, void 0, void 0, function () {
-            var comps_1, comps_1_1, comp, compId, e_2_1;
-            var e_2, _a, _b;
+            var comps_1, comps_1_1, comp, compId, e_2_1, e_2, _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -298,10 +288,10 @@ var Creation = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.handleAssetEdit(editObj["asset"]["images"])];
+                    case 0: return [4 /*yield*/, this.handleAssetEdit(editObj["asset"]["image"])];
                     case 1:
                         _a.sent();
-                        return [4 /*yield*/, this.handleLayoutEdit(editObj["layout"]["images"])];
+                        return [4 /*yield*/, this.handleLayoutEdit(editObj["layout"]["image"])];
                     case 2:
                         _a.sent();
                         return [2 /*return*/];
@@ -311,8 +301,7 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleAssetEdit = function (assetArr) {
         return __awaiter(this, void 0, void 0, function () {
-            var assetArr_1, assetArr_1_1, assetObj, cObj, e_3_1;
-            var e_3, _a;
+            var assetArr_1, assetArr_1_1, assetObj, cObj, e_3_1, e_3, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -325,7 +314,7 @@ var Creation = /** @class */ (function () {
                         cObj = __assign({}, assetObj);
                         //call deletion jsx
                         //
-                        return [4 /*yield*/, this.pFactory.makeStruct(cObj, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets)];
+                        return [4 /*yield*/, this.pFactory.makeStruct(cObj, cObj.parentId, cObj.view, cObj.platform, "quest", this.qAssets)];
                     case 2:
                         //call deletion jsx
                         //
@@ -352,8 +341,7 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleLayoutEdit = function (layoutArr) {
         return __awaiter(this, void 0, void 0, function () {
-            var layoutArr_1, layoutArr_1_1, assetObj, e_4_1;
-            var e_4, _a;
+            var layoutArr_1, layoutArr_1_1, assetObj, e_4_1, e_4, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -363,7 +351,7 @@ var Creation = /** @class */ (function () {
                     case 1:
                         if (!!layoutArr_1_1.done) return [3 /*break*/, 4];
                         assetObj = layoutArr_1_1.value;
-                        return [4 /*yield*/, this.pFactory.makeStruct(assetObj, assetObj.viewId, assetObj.view, assetObj.platform, "quest", this.qAssets)];
+                        return [4 /*yield*/, this.pFactory.makeStruct(assetObj, assetObj.parentId, assetObj.view, assetObj.platform, "quest", this.qAssets)];
                     case 2:
                         _b.sent();
                         _b.label = 3;

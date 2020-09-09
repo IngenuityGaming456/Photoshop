@@ -609,6 +609,7 @@ export class utlis {
             if(stats.isDirectory()) {
                 return utlis.recurFiles(fileName, filePath);
             }
+            // if(file.split('.').slice(0, -1).join('.') === fileName)
             const fileExtIndex = file.search(".png");
             let fileExt;
             if(fileExtIndex > -1) {

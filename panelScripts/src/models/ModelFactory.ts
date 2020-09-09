@@ -44,6 +44,7 @@ export class ModelFactory implements IFactory {
             generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument
         });
+        /**calling photoshop modal class */
         this.photoshopModel = inject({ref: PhotoshopModel, dep: []});
         execute(this.photoshopModel, {
             storage: this.getPhotoshopStorage(),

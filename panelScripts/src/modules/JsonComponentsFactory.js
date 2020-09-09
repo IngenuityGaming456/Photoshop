@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonComponentsFactory = void 0;
 var JsonComponents_1 = require("./JsonComponents");
 var JsonComponentsFactory = /** @class */ (function () {
     function JsonComponentsFactory() {
