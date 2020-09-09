@@ -193,9 +193,9 @@ export class CreateImport implements IFactory{
 
                 let parent = compObj.parent?compObj.parent:"";
                 if(viewObj.hasOwnProperty(parent)){
-                    let tempParent = viewObj[parent];
-                    tempParent["x"]=tempParent.x;
-                    tempParent["y"]=tempParent.y;
+                    let eleParent = viewObj[parent];
+                    tempParent["x"]= eleParent.x;
+                    tempParent["y"]= eleParent.y;
                 }
 
                 tempChild["x"]= compObj.x;
@@ -205,13 +205,20 @@ export class CreateImport implements IFactory{
 
                 let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
                 if(res){
-                    let oldDimensions:object = {
-                        'x':compObj.x,
-                        'y':compObj.y,
+                    let newDimensions:object = {
+                        'x':(compObj.x - tempParent["x"]),
+                        'y':(compObj.y - tempParent["y"]),
                         'width':width,
                         'height':height
-                    }
-                    this.handleEditElement(res, oldDimensions,  viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
+                    };
+                    console.log(newDimensions);
+                    let oldDimensions = {};
+                    oldDimensions["x"]=res.left;
+                    oldDimensions["y"]=res.top;
+                    oldDimensions["width"]=res.right-res.left;
+                    oldDimensions["height"]=res.bottom-res.top;
+
+                    this.handleEditElement(oldDimensions, newDimensions, viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
                 }
             }
         }
@@ -364,14 +371,9 @@ export class CreateImport implements IFactory{
      * @param view current view
      * @param platform current platform
      */
-    private handleEditElement(bounds:{left:number, right:number, top:number, bottom:number}, oldDimensions:object,parentId ,type:string, compId, qId:string, view:string, platform:string):void{
+    private handleEditElement(oldDimensions, newDimensions:object,parentId ,type:string, compId, qId:string, view:string, platform:string):void{
 
-        let newDimensions = {};
-
-        newDimensions["x"]=bounds.left;
-        newDimensions["y"]=bounds.top;
-        newDimensions["width"]=bounds.right-bounds.left;
-        newDimensions["height"]=bounds.bottom-bounds.top;
+        
 
         this.result.edit.layout[type].push({
             newDimensions,
