@@ -68,15 +68,15 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleChangesInPS = function () {
         var diffObj = this.diffObj;
-        // if(diffObj.hasOwnProperty("delete")){
-        //     this.handleDeleteComp(diffObj['delete']);
-        // }
-        // if(diffObj.hasOwnProperty("move")){
-        //     this.handleOperationOverComp(diffObj['move'], "move");
-        // }
-        // if(diffObj.hasOwnProperty("rename")){
-        //     this.handleOperationOverComp(diffObj['rename'], "rename");
-        // }
+        if (diffObj.hasOwnProperty("delete")) {
+            this.handleDeleteComp(diffObj['delete']);
+        }
+        if (diffObj.hasOwnProperty("move")) {
+            this.handleOperationOverComp(diffObj['move'], "move");
+        }
+        if (diffObj.hasOwnProperty("rename")) {
+            this.handleOperationOverComp(diffObj['rename'], "rename");
+        }
         if (diffObj.hasOwnProperty("create")) {
             this.handleOperationOverComp(diffObj['create'], "create");
         }
@@ -305,36 +305,39 @@ var Creation = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 5, 6, 7]);
+                        _b.trys.push([0, 6, 7, 8]);
                         assetArr_1 = __values(assetArr), assetArr_1_1 = assetArr_1.next();
                         _b.label = 1;
                     case 1:
-                        if (!!assetArr_1_1.done) return [3 /*break*/, 4];
+                        if (!!assetArr_1_1.done) return [3 /*break*/, 5];
                         assetObj = assetArr_1_1.value;
                         cObj = __assign({}, assetObj);
                         //call deletion jsx
                         //
-                        return [4 /*yield*/, this.pFactory.makeStruct(cObj, cObj.parentId, cObj.view, cObj.platform, "quest", this.qAssets)];
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/DeleteErrorLayer.jsx"), { id: cObj["imageObj"].id })];
                     case 2:
                         //call deletion jsx
                         //
                         _b.sent();
-                        _b.label = 3;
+                        return [4 /*yield*/, this.pFactory.makeStruct(cObj, cObj.parentId, cObj.view, cObj.platform, "quest", this.qAssets)];
                     case 3:
+                        _b.sent();
+                        _b.label = 4;
+                    case 4:
                         assetArr_1_1 = assetArr_1.next();
                         return [3 /*break*/, 1];
-                    case 4: return [3 /*break*/, 7];
-                    case 5:
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
                         e_3_1 = _b.sent();
                         e_3 = { error: e_3_1 };
-                        return [3 /*break*/, 7];
-                    case 6:
+                        return [3 /*break*/, 8];
+                    case 7:
                         try {
                             if (assetArr_1_1 && !assetArr_1_1.done && (_a = assetArr_1.return)) _a.call(assetArr_1);
                         }
                         finally { if (e_3) throw e_3.error; }
                         return [7 /*endfinally*/];
-                    case 7: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

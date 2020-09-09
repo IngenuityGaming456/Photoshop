@@ -171,9 +171,9 @@ var CreateImport = /** @class */ (function () {
                 var width = compObj.w || compObj.width;
                 var parent_1 = compObj.parent ? compObj.parent : "";
                 if (viewObj.hasOwnProperty(parent_1)) {
-                    var tempParent_1 = viewObj[parent_1];
-                    tempParent_1["x"] = tempParent_1.x;
-                    tempParent_1["y"] = tempParent_1.y;
+                    var eleParent = viewObj[parent_1];
+                    tempParent["x"] = eleParent.x;
+                    tempParent["y"] = eleParent.y;
                 }
                 tempChild["x"] = compObj.x;
                 tempChild["y"] = compObj.y;
@@ -181,13 +181,19 @@ var CreateImport = /** @class */ (function () {
                 tempChild["height"] = height;
                 var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
                 if (res) {
-                    var oldDimensions = {
-                        'x': compObj.x,
-                        'y': compObj.y,
+                    var newDimensions = {
+                        'x': (compObj.x - tempParent["x"]),
+                        'y': (compObj.y - tempParent["y"]),
                         'width': width,
                         'height': height
                     };
-                    this.handleEditElement(res, oldDimensions, viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
+                    console.log(newDimensions);
+                    var oldDimensions = {};
+                    oldDimensions["x"] = res.left;
+                    oldDimensions["y"] = res.top;
+                    oldDimensions["width"] = res.right - res.left;
+                    oldDimensions["height"] = res.bottom - res.top;
+                    this.handleEditElement(oldDimensions, newDimensions, viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
                 }
             }
         }
@@ -344,12 +350,7 @@ var CreateImport = /** @class */ (function () {
      * @param view current view
      * @param platform current platform
      */
-    CreateImport.prototype.handleEditElement = function (bounds, oldDimensions, parentId, type, compId, qId, view, platform) {
-        var newDimensions = {};
-        newDimensions["x"] = bounds.left;
-        newDimensions["y"] = bounds.top;
-        newDimensions["width"] = bounds.right - bounds.left;
-        newDimensions["height"] = bounds.bottom - bounds.top;
+    CreateImport.prototype.handleEditElement = function (oldDimensions, newDimensions, parentId, type, compId, qId, view, platform) {
         this.result.edit.layout[type].push({
             newDimensions: newDimensions,
             oldDimensions: oldDimensions,
