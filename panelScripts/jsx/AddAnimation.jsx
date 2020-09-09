@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var animationStruct = ["end", "loop", "start"];
 var animationTypeCount = animationStruct.length;
 var animationObj = getElementRef(params, "Animation");

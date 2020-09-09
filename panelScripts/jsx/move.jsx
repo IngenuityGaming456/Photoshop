@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\generator-core\\plugins\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 
 
 var newParent =getInsertionReferenceById(params.newParentId);

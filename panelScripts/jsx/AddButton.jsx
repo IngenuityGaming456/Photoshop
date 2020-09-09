@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var buttonStruct = ["disabled", "down", "hover", "normal"];
 var statesCount = buttonStruct.length;
 var buttonObj = getElementRef(params, "Button");

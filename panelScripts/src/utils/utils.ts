@@ -595,13 +595,11 @@ export class utlis {
         let sObj = fs.readFileSync(qJsonPath, "utf-8");
 
         let qObj = JSON.parse(sObj);
-        console.log(qObj)
         return {
             qAssetsPath,
             qObj
         }
     }
-<<<<<<< Updated upstream
 
     public static recurFiles(fileName, folderPath) {
         const files = fs.readdirSync(folderPath);
@@ -616,19 +614,4 @@ export class utlis {
             }
         }
     }
-=======
-    public static recurFiles(fileName, folderPath) {
-            const files = fs.readdirSync(folderPath);
-            for (const file of files) {
-                const filePath = path.join(folderPath, file);
-                const stats = fs.statSync(filePath);
-                if(stats.isDirectory()) {
-                    return utlis.recurFiles(fileName, filePath);
-                }
-                if(file === fileName) {
-                    return filePath;
-                }
-            }
-        }
->>>>>>> Stashed changes
 }

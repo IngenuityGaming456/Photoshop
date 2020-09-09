@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var radioResponse;
 var noPng = true;
 var bitmapObj = getElementRef(params, "Bitmap");

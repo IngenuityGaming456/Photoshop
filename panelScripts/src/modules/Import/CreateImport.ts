@@ -107,10 +107,11 @@ export class CreateImport implements IFactory{
             if(this.isNew(compObj.layerID[0])) {
                 const type = this.getType(compObj);
                 const parentId = this.getParentId(view, platform);
+                compObj["parentX"] = compObj.parent && viewObj[compObj.parent].x || 0;
+                compObj["parentY"] = compObj.parent && viewObj[compObj.parent].y || 0;
                 this.result.create[type].push({
                     key : compObj,
                     viewId: parentId,
-                    parent:compObj.parent,
                     view,
                     platform
                 });

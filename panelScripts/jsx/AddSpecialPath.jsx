@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var activeLayer = getInsertionReferenceById(params.id);
 app.doForcedProgress(restructurePath(activeLayer, params.parentName, params.subLayerName));
 

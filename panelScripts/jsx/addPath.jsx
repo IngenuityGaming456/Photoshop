@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var ref = new ActionReference();
 ref.putIdentifier(charIDToTypeID('Lyr '), Number(params.id));
 var desc = new ActionDescriptor();

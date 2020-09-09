@@ -95,7 +95,7 @@ function setNameToAnimations(layerRef, pathName) {
  */
 function getParentRef() {
     var parentRef;
-    var selectedLayers = $.evalFile("F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\SelectedLayers.jsx");
+    var selectedLayers = $.evalFile("D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\SelectedLayers.jsx");
     var selectedLayersString = selectedLayers.toString();
 
     if (selectedLayersString.length && !app.activeDocument.activeLayer.kind) {

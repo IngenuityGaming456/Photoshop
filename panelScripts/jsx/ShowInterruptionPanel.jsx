@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var windowStruct = makeWindowAndPanel('Info', params.panelName);
 windowStruct.panel.add('statictext', undefined, params.text);
 var button = windowStruct.panel.add("button", undefined, "OK");

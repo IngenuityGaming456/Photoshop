@@ -1,4 +1,4 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
     app.activeDocument;
 var layerConfig;
@@ -21,20 +21,20 @@ if(params["image"]){
     
     var currentParent = params.parentId ? getInsertionReferenceById(params.parentId) :app.activeDocument;
 
-    var fileRef = new File("F:\\images\\im.jpg");
-    var docRef = app.open (fileRef)
+    var fileRef = new File(params.file);
+    var docRef = app.open (fileRef);
 
     app.activeDocument.selection.selectAll();
     app.activeDocument.selection.copy();
     app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
 
     app.activeDocument.paste();
-}
-if(params["dimensions"]){
-    var dimensions = params["dimensions"];
-    var relativeX = dimensions.parentX + dimensions.x;
-    var relativeY = dimensions.parentY + dimensions.y;
-    childLayerRef.resizeImage(UnitValue(dimensions.width, "px"),UnitValue(dimensions.height, "px"));
-    childLayerRef.translate(relativeX, relativeY);
+    if(params["dimensions"]){
+        var dimensions = params["dimensions"];
+        var relativeX = dimensions.parentX + dimensions.x;
+        var relativeY = dimensions.parentY + dimensions.y;
+        childLayerRef.resizeImage(UnitValue(dimensions.width, "px"),UnitValue(dimensions.height, "px"));
+        childLayerRef.translate(relativeX, relativeY);
+    }
 }
 childLayerRef.id;

@@ -41,7 +41,7 @@ if (!Object.keys) {
     }());
 }
 
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
 var checkCount = 1;
 var selectedLayers = {};
 var languagesArray = params.languages;

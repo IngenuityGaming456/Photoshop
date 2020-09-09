@@ -25,7 +25,7 @@ export class PhotoshopFactory implements IFactory {
         this._pluginId = packageJson.name;
     }
 
-    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?, assetsPath?, dimensions?) {
+    public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?, assetsPath?) {
         let layerType: string;
         this.platform = platform;
         for(let keys in parserObject) {
@@ -45,7 +45,7 @@ export class PhotoshopFactory implements IFactory {
                     (this.photoshopModel as PhotoshopModelApp).automationOn = true;
                 }
                 this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                await this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath, dimensions);
+                await this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath);
                 (this.photoshopModel as PhotoshopModelApp).automationOn = false;
             }
         }
@@ -60,6 +60,18 @@ export class PhotoshopFactory implements IFactory {
     }
 
     private async setParams(jsxParams, parserObject, keys, insertionPoint) {
+        if("x" in parserObject[keys] && "y" in parserObject[keys]) {
+            const jsxDim = jsxParams["dimensions"] = {};
+            jsxDim["x"] = parserObject[keys].x;
+            jsxDim["y"] = parserObject[keys].y;
+            jsxDim["h"] = parserObject[keys].h || parserObject[keys].height;
+            jsxDim["w"] = parserObject[keys].w || parserObject[keys].width;
+            jsxDim["parentX"] = parserObject[keys].parentX;
+            jsxDim["parentY"] = parserObject[keys].parentY;
+        }
+        if(parserObject.image) {
+            jsxParams.image = parserObject[keys].image;
+        }
         jsxParams.leaf = parserObject[keys].leaf;
         jsxParams.childName = parserObject[keys].id;
         jsxParams.parentId = parserObject[keys].parent ? await this.findParentId(parserObject[keys].parent, insertionPoint) : insertionPoint;
@@ -112,7 +124,6 @@ export class PhotoshopFactory implements IFactory {
             childId = await element.setJsx(this._generator, jsxParams);
         }
         if (element instanceof QuestJsonComponent) {
-            jsxParams.dimensions = dimensions;
             childId = await element.setJsx(this._generator, jsxParams);
         }
         this.setChildIds(childId, jsxParams, layerType, parentKey, type);

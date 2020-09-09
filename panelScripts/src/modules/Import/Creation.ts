@@ -12,10 +12,10 @@ export class Creation implements IFactory{
 
     execute(params: IParams){
         this.diffObj = params.storage.result;
-        this.pFactory = this.storage.pFactory;
+        this.pFactory = params.storage.pFactory;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
-        this.qAssets = this.storage.qAssets;
+        this.qAssets = params.storage.qAssets;
         this.handleChangesInPS();
     }
 
@@ -50,15 +50,13 @@ export class Creation implements IFactory{
     private handleOperationOverComp(obj, operation){
         if(obj.hasOwnProperty('container')){
             switch(operation){
-                case "create" : this.handleCreation(obj["create"]);
+                case "create" : this.handleCreation(obj);
                 break;
                 case "edit" : this.handleEdit(obj["edit"]);
                 break;
                 case "move" : this.handleMoveComp(obj['container']);
                 break;
                 case "rename" : this.handleRenameComp(obj['container']);
-                break;
-                case "create" : this.handleCreation(obj);
                 break;
             }
            
@@ -92,8 +90,8 @@ export class Creation implements IFactory{
 
     private async handleCreation(createObj) {
             await this.handleViewCreation(createObj["views"]);
-            await this.handleComponentsCreation(createObj["containers"]);
-            await this.handleComponentsCreation(createObj["images"]);
+            await this.handleComponentsCreation(createObj["container"]);
+            await this.handleComponentsCreation(createObj["image"]);
     }
 
     private async handleViewCreation(views) {
@@ -107,22 +105,8 @@ export class Creation implements IFactory{
     private async handleComponentsCreation(comps) {
      
         for(let comp of comps) {
-            let dimensions ={};
-            dimensions["x"]= comp.x;
-            dimensions["y"]= comp.y;
-            dimensions["w"]= comp.w;
-            dimensions["h"]= comp.h;
-            dimensions["anchorX"] = comp.hasOwnProperty("anchorX") ? comp.anchorX:0;
-            dimensions["anchorY"] = comp.hasOwnProperty("anchorY") ? comp.anchorY:0;
-
-            // if(comp.hasOwnProperty("parent")){
-            //     let parent = comps[comp.parent];
-            //     dimensions["parentX"]= comp.x;
-            //     dimensions["parentY"]= comp.y;
-            
-            // }
-            
-            await this.pFactory.makeStruct(comp.key, comp.viewId, comp.view, comp.platform, "quest", this.qAssets, dimensions);
+            const compId = comp.key.id;
+            await this.pFactory.makeStruct({[compId]: comp.key}, comp.viewId, comp.view, comp.platform, "quest", this.qAssets);
         }
     }
 
