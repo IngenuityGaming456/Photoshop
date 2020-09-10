@@ -205,13 +205,17 @@ export class CreateImport implements IFactory{
                     compObj["height"] = height;
                     compObj.h && delete compObj.h;
                     compObj.w && delete compObj.w;
+                    compObj["isAssetChange"] = false;
                 }
                 let path = utlis.recurFiles(`${compObj.image}`, this.qAssetsPath);
-
+ 
                 let resA = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
 
-                if(resA || resL){
+                if(resA){
                     compObj["isAssetChange"] = true;
+                }
+                if(resA || resL){
+                    
                     const parentId = this.getParentId(view, platform);
                     this.handleEditElement(compObj, parentId, view, platform);
                 }

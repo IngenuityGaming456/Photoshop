@@ -121,9 +121,12 @@ export class Creation implements IFactory{
             const cObj = {...assetObj};
             if(cObj.key.isAssetChange) {
                 await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/DeleteErrorLayer.jsx"), {id: cObj.key.layerID[0]});
+            
+                const compId = cObj.key.id;
+                await this.pFactory.makeStruct({[compId]: cObj.key}, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets);
+            }else{
+                await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/editElement.jsx"), {obj: cObj.key});
             }
-            const compId = cObj.key.id;
-            await this.pFactory.makeStruct({[compId]: cObj.key}, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets);
         }
     }
     
