@@ -1,23 +1,28 @@
 "use strict";
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CreateImport = void 0;
 var utils_1 = require("../../utils/utils");
 var result_1 = require("./result");
 var FactoryClass_1 = require("../FactoryClass");
@@ -116,7 +121,6 @@ var CreateImport = /** @class */ (function () {
                 this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
                 this.isEdit(compObj, view, viewObj, platform);
-                this.isImageEdit(compObj, view, viewObj, platform);
             }
         }
     };
@@ -179,41 +183,21 @@ var CreateImport = /** @class */ (function () {
                 tempChild["y"] = compObj.y;
                 tempChild["width"] = width;
                 tempChild["height"] = height;
-                var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
-                if (res) {
-                    var newDimensions = {
-                        'x': (compObj.x - tempParent["x"]),
-                        'y': (compObj.y - tempParent["y"]),
-                        'width': width,
-                        'height': height
-                    };
-                    console.log(newDimensions);
-                    var oldDimensions = {};
-                    oldDimensions["x"] = res.left;
-                    oldDimensions["y"] = res.top;
-                    oldDimensions["width"] = res.right - res.left;
-                    oldDimensions["height"] = res.bottom - res.top;
-                    this.handleEditElement(oldDimensions, newDimensions, viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
+                var resL = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
+                if (resL) {
+                    compObj["parentX"] = tempParent["x"];
+                    compObj["parentY"] = tempParent["y"];
+                    compObj["width"] = width;
+                    compObj["height"] = height;
+                    compObj.h && delete compObj.h;
+                    compObj.w && delete compObj.w;
                 }
-            }
-        }
-    };
-    /**
-     *
-     * @param compObj function to check if image is edited or not
-     * @param viewObj - current view object
-     * @param view - current view
-     * @param platform - current platform
-     */
-    CreateImport.prototype.isImageEdit = function (compObj, view, viewObj, platform) {
-        if (compObj instanceof Object) {
-            /**chck only for the elements which were created by PS as they have integer layerid */
-            if (typeof compObj.layerID[0] == 'number' && compObj.image) {
-                // let path = `${this.qAssetsPath}/${platform}/common/${view}/${compObj.image}.png`;
                 var path = utils_1.utlis.recurFiles("" + compObj.image, this.qAssetsPath);
-                var res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
-                if (res) {
-                    this.handleEditImage(compObj, viewObj[compObj.parent].layerID[0], this.getType(compObj), view, platform);
+                var resA = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
+                if (resA || resL) {
+                    compObj["isAssetChange"] = true;
+                    var parentId = this.getParentId(view, platform);
+                    this.handleEditElement(compObj, parentId, view, platform);
                 }
             }
         }
@@ -246,6 +230,7 @@ var CreateImport = /** @class */ (function () {
      * @param platform - current platform
      */
     CreateImport.prototype.isDelete = function (enObj, viewObj, platform) {
+        var e_1, _a, e_2, _b;
         var psObjArray = this.pParser.getPSObjects(platform);
         var qObjArray = this.getQuestObjects(viewObj);
         var diff;
@@ -285,7 +270,6 @@ var CreateImport = /** @class */ (function () {
             }
             this.handleDeletdElements(diff);
         }
-        var e_1, _a, e_2, _b;
     };
     CreateImport.prototype.isInQuestView = function (viewName, enObj, platform) {
         var views = Object.keys(enObj);
@@ -341,37 +325,10 @@ var CreateImport = /** @class */ (function () {
             platform: platform
         });
     };
-    /**
-     * function adds the edited elements in the result object
-     * @param bounds bounds of the elements (top, bottom, left, right)
-     * @param oldDimensions old dimensions of the component
-     * @param type type of the component
-     * @param qId id (identifying name) of the component
-     * @param view current view
-     * @param platform current platform
-     */
-    CreateImport.prototype.handleEditElement = function (oldDimensions, newDimensions, parentId, type, compId, qId, view, platform) {
-        this.result.edit.layout[type].push({
-            newDimensions: newDimensions,
-            oldDimensions: oldDimensions,
-            "name": qId,
-            parentId: parentId,
-            compId: compId,
-            view: view,
-            platform: platform
-        });
-    };
-    /**
-     * function adds the edited image in the result object
-     * @param newImg new image object contains name and path
-     * @param oldImg old image name
-     * @param path old image path
-     * @param type type of the component i.e. image
-     */
-    CreateImport.prototype.handleEditImage = function (compObj, parentId, type, view, platform) {
-        this.result.edit.asset[type].push({
-            "imageObj": compObj,
-            parentId: parentId,
+    CreateImport.prototype.handleEditElement = function (compObj, parentId, view, platform) {
+        this.result.edit[compObj.type].push({
+            key: compObj,
+            viewId: parentId,
             view: view,
             platform: platform
         });

@@ -16,12 +16,6 @@ export const result = {
         image: []
     },
     edit: {
-        layout: {
-            container :[],
-            image: []
-        },
-        asset: {
-            image: []
-        }
+        image: []
     }
 }

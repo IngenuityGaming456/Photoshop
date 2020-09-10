@@ -33,7 +33,6 @@ if(params["image"]){
         var dimensions = params["dimensions"];
         var relativeX = dimensions.parentX + dimensions.x;
         var relativeY = dimensions.parentY + dimensions.y;
-        childLayerRef.resizeImage(UnitValue(dimensions.width, "px"),UnitValue(dimensions.height, "px"));
         childLayerRef.translate(relativeX, relativeY);
     }
 }

@@ -4,7 +4,6 @@ import * as path from "path";
  
 export class Creation implements IFactory{
     private generator;
-    private storage;
     private diffObj;
     private activeDocument;
     private pFactory;
@@ -19,23 +18,22 @@ export class Creation implements IFactory{
         this.handleChangesInPS();
     }
 
-    private handleChangesInPS(){
+    private async handleChangesInPS(){
         let diffObj = this.diffObj;
-        if(diffObj.hasOwnProperty("delete")){
-            this.handleDeleteComp(diffObj['delete']);
-        }
         if(diffObj.hasOwnProperty("move")){
-            this.handleOperationOverComp(diffObj['move'], "move");
+            await this.handleOperationOverComp(diffObj['move'], "move");
+        }
+        if(diffObj.hasOwnProperty("delete")){
+            await this.handleDeleteComp(diffObj['delete']);
         }
         if(diffObj.hasOwnProperty("rename")){
-            this.handleOperationOverComp(diffObj['rename'], "rename");
+            await this.handleOperationOverComp(diffObj['rename'], "rename");
         }
         if(diffObj.hasOwnProperty("create")){
-            this.handleOperationOverComp(diffObj['create'], "create");
+            await this.handleOperationOverComp(diffObj['create'], "create");
         }
-
         if(diffObj.hasOwnProperty("edit")){
-            this.handleOperationOverComp(diffObj['edit'], "edit");
+            await this.handleOperationOverComp(diffObj['edit'], "edit");
         }
     }
 
@@ -47,26 +45,29 @@ export class Creation implements IFactory{
         }
     }
 
-    private handleOperationOverComp(obj, operation){
-        if(obj.hasOwnProperty("asset") || obj.hasOwnProperty("layout")){
-           this.handleEdit(obj);
+    private async handleOperationOverComp(obj, operation){
+        if(operation === "create") {
+            await this.handleCreation(obj);
+        }
+        if(operation === "edit"){
+           await this.handleEdit(obj);
         }
 
         if(obj.hasOwnProperty('container')){
             console.log(operation);
             switch(operation){
-                case "move" : this.handleMoveComp(obj['container']);
+                case "move" : await this.handleMoveComp(obj['container']);
                 break;
-                case "rename" : this.handleRenameComp(obj['container']);
+                case "rename" : await this.handleRenameComp(obj['container']);
                 break;
             }
            
         }
         if(obj.hasOwnProperty('image')){
             switch(operation){
-                case "move": this.handleMoveComp(obj['image']);
+                case "move": await this.handleMoveComp(obj['image']);
                 break;
-                case "rename" : this.handleRenameComp(obj['image']);
+                case "rename" : await this.handleRenameComp(obj['image']);
                 break;
                
             }
@@ -112,23 +113,17 @@ export class Creation implements IFactory{
     }
 
     private async handleEdit(editObj) {
-        await this.handleAssetEdit(editObj["asset"]["image"]);
-        await this.handleLayoutEdit(editObj["layout"]["image"]);
+        await this.handleAssetEdit(editObj["image"]);
     }
 
     private async handleAssetEdit(assetArr) {
         for(const assetObj of assetArr) {
             const cObj = {...assetObj};
-            //call deletion jsx
-            //
-            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/DeleteErrorLayer.jsx"), {id: cObj["imageObj"].id});
-            await this.pFactory.makeStruct(cObj, cObj.parentId, cObj.view, cObj.platform, "quest", this.qAssets);
-        }
-    }
-
-    private async handleLayoutEdit(layoutArr) {
-        for(const assetObj of layoutArr) {
-            await this.pFactory.makeStruct(assetObj, assetObj.parentId, assetObj.view, assetObj.platform, "quest", this.qAssets);
+            if(cObj.key.isAssetChange) {
+                await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/DeleteErrorLayer.jsx"), {id: cObj.key.layerID[0]});
+            }
+            const compId = cObj.key.id;
+            await this.pFactory.makeStruct({[compId]: cObj.key}, cObj.viewId, cObj.view, cObj.platform, "quest", this.qAssets);
         }
     }
     

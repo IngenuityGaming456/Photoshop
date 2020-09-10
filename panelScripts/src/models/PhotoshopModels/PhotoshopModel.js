@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PhotoshopModel = void 0;
 var path = require("path");
 var fs = require("fs");
 var utils_1 = require("../../utils/utils");
@@ -142,6 +143,7 @@ var PhotoshopModel = /** @class */ (function () {
         this.mappedPlatform = mappedPlatform;
     };
     PhotoshopModel.prototype.constructViewMapping = function (itemV, mappingResponse) {
+        var _a;
         var nestedViewMap = {};
         if (itemV === constants_1.photoshopConstants.views.freeGame) {
             return {
@@ -154,7 +156,6 @@ var PhotoshopModel = /** @class */ (function () {
         return {
             mapping: nestedViewMap
         };
-        var _a;
     };
     PhotoshopModel.prototype.setPlatformMenuIds = function (id, key) {
         if (this.elementalMap[key]) {
@@ -189,7 +190,7 @@ var PhotoshopModel = /** @class */ (function () {
         set: function (currentState) {
             this.currentState = currentState;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "setAutomation", {
@@ -199,28 +200,28 @@ var PhotoshopModel = /** @class */ (function () {
         set: function (value) {
             this.automation = value;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "allDrawnQuestItems", {
         get: function () {
             return this.drawnQuestItems;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "viewElementalMap", {
         get: function () {
             return this.elementalMap;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "allQuestItems", {
         get: function () {
             return this.questItems;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     PhotoshopModel.prototype.currentContainerResponse = function (type) {
@@ -235,7 +236,7 @@ var PhotoshopModel = /** @class */ (function () {
         get: function () {
             return this.mappedPlatform;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     PhotoshopModel.prototype.previousContainerResponse = function (type) {
@@ -250,35 +251,35 @@ var PhotoshopModel = /** @class */ (function () {
         get: function () {
             return this.questPlatforms;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "allLayersErrorData", {
         get: function () {
             return this.layersErrorData;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "viewDeletion", {
         get: function () {
             return this.viewDeletionObj;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "allPlatformDeletion", {
         get: function () {
             return this.platformDeletion;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     Object.defineProperty(PhotoshopModel.prototype, "allMenuStates", {
         get: function () {
             return this.menuStates;
         },
-        enumerable: true,
+        enumerable: false,
         configurable: true
     });
     PhotoshopModel.prototype.onPhotoshopStart = function () {

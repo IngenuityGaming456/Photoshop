@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MappingModel = void 0;
 var utils_1 = require("../utils/utils");
 var constants_1 = require("../constants");
 var MappingModel = /** @class */ (function () {

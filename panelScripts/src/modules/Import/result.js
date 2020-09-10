@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.result = void 0;
 exports.result = {
     create: {
         views: [],
@@ -18,13 +19,7 @@ exports.result = {
         image: []
     },
     edit: {
-        layout: {
-            container: [],
-            image: []
-        },
-        asset: {
-            image: []
-        }
+        image: []
     }
 };
 //# sourceMappingURL=result.js.map

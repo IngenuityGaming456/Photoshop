@@ -118,9 +118,6 @@ export class CreateImport implements IFactory{
                 this.isMove(compObj, viewObj, view, platform);
                 this.isRename(compObj, viewObj, view, platform);
                 this.isEdit(compObj, view, viewObj, platform);
-                this.isImageEdit(compObj, view, viewObj, platform);
-            
-
             }
         }
     }
@@ -171,10 +168,7 @@ export class CreateImport implements IFactory{
      * @param view - current view
      * @param platform - current platform
      */
-    private isEdit(compObj:{parent:string,layerID:Array<number>,
-                       id:string, w?:number, h?:number, width?:number,
-                       height?:number, x:number, y:number, type:string},
-                   view:string, viewObj:any, platform:string):void {
+    private isEdit(compObj, view:string, viewObj:any, platform:string):void {
 
         let tempParent = {};
         let tempChild = {};
@@ -203,50 +197,27 @@ export class CreateImport implements IFactory{
                 tempChild["width"]= width;
                 tempChild["height"]= height;
 
-                let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
-                if(res){
-                    let newDimensions:object = {
-                        'x':(compObj.x - tempParent["x"]),
-                        'y':(compObj.y - tempParent["y"]),
-                        'width':width,
-                        'height':height
-                    };
-                    console.log(newDimensions);
-                    let oldDimensions = {};
-                    oldDimensions["x"]=res.left;
-                    oldDimensions["y"]=res.top;
-                    oldDimensions["width"]=res.right-res.left;
-                    oldDimensions["height"]=res.bottom-res.top;
-
-                    this.handleEditElement(oldDimensions, newDimensions, viewObj[compObj.parent].layerID[0], this.getType(compObj), compObj.layerID[0], compObj.id, view, platform);
+                let resL = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
+                if(resL){
+                    compObj["parentX"] = tempParent["x"];
+                    compObj["parentY"] = tempParent["y"];
+                    compObj["width"] = width;
+                    compObj["height"] = height;
+                    compObj.h && delete compObj.h;
+                    compObj.w && delete compObj.w;
                 }
-            }
-        }
-
-    }
-
-    /**
-     *
-     * @param compObj function to check if image is edited or not
-     * @param viewObj - current view object
-     * @param view - current view
-     * @param platform - current platform
-     */
-    private isImageEdit(compObj:any, view:string, viewObj:any, platform:string){
-        if(compObj instanceof Object){
-
-            /**chck only for the elements which were created by PS as they have integer layerid */
-            if(typeof compObj.layerID[0] == 'number' && compObj.image){
-                // let path = `${this.qAssetsPath}/${platform}/common/${view}/${compObj.image}.png`;
                 let path = utlis.recurFiles(`${compObj.image}`, this.qAssetsPath);
 
-                let res = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
+                let resA = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
 
-                if(res){
-                    this.handleEditImage(compObj, viewObj[compObj.parent].layerID[0], this.getType(compObj), view, platform);
+                if(resA || resL){
+                    compObj["isAssetChange"] = true;
+                    const parentId = this.getParentId(view, platform);
+                    this.handleEditElement(compObj, parentId, view, platform);
                 }
             }
         }
+
     }
 
     /**
@@ -362,41 +333,10 @@ export class CreateImport implements IFactory{
         });
     }
 
-    /**
-     * function adds the edited elements in the result object
-     * @param bounds bounds of the elements (top, bottom, left, right)
-     * @param oldDimensions old dimensions of the component
-     * @param type type of the component
-     * @param qId id (identifying name) of the component
-     * @param view current view
-     * @param platform current platform
-     */
-    private handleEditElement(oldDimensions, newDimensions:object,parentId ,type:string, compId, qId:string, view:string, platform:string):void{
-
-        
-
-        this.result.edit.layout[type].push({
-            newDimensions,
-            oldDimensions,
-            "name":qId,
-            parentId,
-            compId,
-            view,
-            platform
-        });
-    }
-    /**
-     * function adds the edited image in the result object
-     * @param newImg new image object contains name and path
-     * @param oldImg old image name
-     * @param path old image path
-     * @param type type of the component i.e. image
-     */
-    private handleEditImage(compObj:any, parentId, type:string, view, platform):void{
-        
-        this.result.edit.asset[type].push({
-            "imageObj":compObj,
-            parentId,
+    private handleEditElement(compObj, parentId ,view:string, platform:string):void{
+        this.result.edit[compObj.type].push({
+            key:compObj,
+            viewId: parentId,
             view,
             platform
         });
