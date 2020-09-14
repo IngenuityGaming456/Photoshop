@@ -66,7 +66,7 @@ export class PhotoshopModel implements IModel {
         this.previousContainer = this.accessContainerResponse();
         this.drawnQuestItems = this.accessDrawnQuestItems();
     }
-
+ 
     private executeSubModels() {
         if(this.subPhotoshopModel instanceof NoDataPhotoshopModel) {
             execute(this.subPhotoshopModel, this.getNoDataParams());
@@ -130,6 +130,9 @@ export class PhotoshopModel implements IModel {
         this.selfPreviousContainer = storage;
     }
 
+    /**
+     * function reads views json file from viewRes folder
+     */
     private createStorage() {
         const folderPath = path.join(__dirname, "../../viewRes");
         fs.readdirSync(folderPath).forEach(fileName => {
@@ -208,7 +211,7 @@ export class PhotoshopModel implements IModel {
                 name: childName
             });
         }
-    }
+    } 
 
     public setDrawnQuestItems(id, key) {
         this.drawnQuestItems.push({id: id, name: key});

@@ -1,10 +1,9 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -15,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -35,19 +34,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Validation = void 0;
 var utils_1 = require("../utils/utils");
 var path = require("path");
 var constants_1 = require("../constants");
@@ -122,8 +119,7 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.onLayersLocalised = function (eventLayers, isOmit) {
         return __awaiter(this, void 0, void 0, function () {
-            var localisationStructure, langIds, langIds_1, langIds_1_1, langId, langRef, langStructArray, langStructArrays, langStructArrays_1, langStructArrays_1_1, langArray, compareStruct, e_1_1, e_2_1;
-            var e_2, _a, e_1, _b;
+            var localisationStructure, langIds, langIds_1, langIds_1_1, langId, langRef, langStructArray, langStructArrays, langStructArrays_1, langStructArrays_1_1, langArray, compareStruct, e_1_1, e_2_1, e_2, _a, e_1, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -148,7 +144,7 @@ var Validation = /** @class */ (function () {
                         _c.label = 3;
                     case 3:
                         _c.trys.push([3, 8, 9, 10]);
-                        langStructArrays_1 = (e_1 = void 0, __values(langStructArrays)), langStructArrays_1_1 = langStructArrays_1.next();
+                        langStructArrays_1 = __values(langStructArrays), langStructArrays_1_1 = langStructArrays_1.next();
                         _c.label = 4;
                     case 4:
                         if (!!langStructArrays_1_1.done) return [3 /*break*/, 7];
@@ -248,8 +244,7 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.compareLocalisation = function (compareStruct, localisationStructure, langId, isOmit) {
         return __awaiter(this, void 0, void 0, function () {
-            var langRef, langName, toCompareWith, _a, _b, item, localisedRef, localisedObj, e_3_1;
-            var e_3, _c;
+            var langRef, langName, toCompareWith, _a, _b, item, localisedRef, localisedObj, e_3_1, e_3, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -300,7 +295,6 @@ var Validation = /** @class */ (function () {
         });
     };
     Validation.prototype.compareFromLocalisedName = function (localisedRef, toCompareWith, compareStruct, langId, langName, isOmit) {
-        var e_4, _a;
         var compareArray = [];
         for (var key in toCompareWith) {
             if (!toCompareWith.hasOwnProperty(key)) {
@@ -342,9 +336,9 @@ var Validation = /** @class */ (function () {
             finally { if (e_4) throw e_4.error; }
         }
         this.checkImageStatus(localisedRef, compareStruct, langId, langName, isOmit);
+        var e_4, _a;
     };
     Validation.prototype.getStructNames = function (struct) {
-        var e_5, _a;
         var structNames = [];
         try {
             for (var struct_1 = __values(struct), struct_1_1 = struct_1.next(); !struct_1_1.done; struct_1_1 = struct_1.next()) {
@@ -360,9 +354,9 @@ var Validation = /** @class */ (function () {
             finally { if (e_5) throw e_5.error; }
         }
         return structNames;
+        var e_5, _a;
     };
     Validation.prototype.getCompareStructNames = function (compareStruct) {
-        var e_6, _a;
         var compareStructNames = [];
         try {
             for (var compareStruct_1 = __values(compareStruct), compareStruct_1_1 = compareStruct_1.next(); !compareStruct_1_1.done; compareStruct_1_1 = compareStruct_1.next()) {
@@ -379,6 +373,7 @@ var Validation = /** @class */ (function () {
             finally { if (e_6) throw e_6.error; }
         }
         return compareStructNames;
+        var e_6, _a;
     };
     Validation.prototype.checkImageStatus = function (localisedRef, compareStruct, langId, langName, isOmit) {
         return __awaiter(this, void 0, void 0, function () {
@@ -422,8 +417,7 @@ var Validation = /** @class */ (function () {
     };
     Validation.prototype.showLocalisationWarning = function (compareStruct, langId, langName) {
         return __awaiter(this, void 0, void 0, function () {
-            var localisedObj, localisingLayers, containObj, toBeLocalised, notToBeLocalised, delocalisedLayers, delocalisedLayers_1, delocalisedLayers_1_1, name_1, indexName, id, response, langStruct, langObj, deletionKey, item, deletedLayers, e_7_1;
-            var e_7, _a;
+            var localisedObj, localisingLayers, containObj, toBeLocalised, notToBeLocalised, delocalisedLayers, delocalisedLayers_1, delocalisedLayers_1_1, name_1, indexName, id, response, langStruct, langObj, deletionKey, item, deletedLayers, e_7_1, e_7, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -493,7 +487,6 @@ var Validation = /** @class */ (function () {
         });
     };
     Validation.prototype.getLocalisingLayers = function (compareStruct) {
-        var e_8, _a;
         var localisingLayers = [];
         var compLocalisedLength = compareStruct.length;
         var localisationContainerId = compareStruct[compLocalisedLength - 1];
@@ -513,6 +506,7 @@ var Validation = /** @class */ (function () {
             finally { if (e_8) throw e_8.error; }
         }
         return localisingLayers;
+        var e_8, _a;
     };
     Validation.prototype.getLocalisedLayers = function (compareStruct, langId, langName) {
         var localisedLayers = [];
@@ -557,7 +551,6 @@ var Validation = /** @class */ (function () {
         }
     };
     Validation.prototype.deleteLayersFromPhotoshop = function (deletedLayers) {
-        var e_9, _a;
         try {
             for (var deletedLayers_1 = __values(deletedLayers), deletedLayers_1_1 = deletedLayers_1.next(); !deletedLayers_1_1.done; deletedLayers_1_1 = deletedLayers_1.next()) {
                 var item = deletedLayers_1_1.value;
@@ -571,6 +564,7 @@ var Validation = /** @class */ (function () {
             }
             finally { if (e_9) throw e_9.error; }
         }
+        var e_9, _a;
     };
     Validation.prototype.startValidationSequence = function (eventLayers, questArray, drawnQuestItems) {
         return __awaiter(this, void 0, void 0, function () {

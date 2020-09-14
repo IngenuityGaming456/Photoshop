@@ -25,6 +25,15 @@ export class PhotoshopFactory implements IFactory {
         this._pluginId = packageJson.name;
     }
 
+    /**
+     * function is responsible for creating eveery element
+     * @param parserObject it is the object which is needed for creation, it contains every required info for creation like parent, id, x,y etc.
+     * @param insertionPoint it is the point under which element is to be added
+     * @param parentKey parent of the element
+     * @param platform platform is like desktop, landscape and portrait 
+     * @param type type of element
+     * @param assetsPath path of the images if any
+     */
     public async makeStruct(parserObject: Object, insertionPoint: string, parentKey: string, platform, type?, assetsPath?) {
         let layerType: string;
         this.platform = platform;

@@ -3,6 +3,10 @@
     "label": "AddImport",
     "displayName": "Import"
   },
+  "SyncAssets":{
+    "label": "syncAssets",
+    "displayName": "changeAssets" 
+  },
   "Divider1": {
     "label": "Divider1",
     "displayName": "",

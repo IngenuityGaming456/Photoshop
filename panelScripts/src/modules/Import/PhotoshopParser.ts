@@ -265,12 +265,11 @@ export class PhotoshopParser implements IFactory {
             let array = path.split("/");
             let len = array.length;
             const img1 = this.readImages(path);
-            // let img2Path = `${this.pAssetsPath}/${array[len-4]}/common/${array[len-2]}/${psImg}.png`;
+
             let img2Path = utlis.recurFiles(`${psImg}`, this.pAssetsPath);
             const img2 = this.readImages(img2Path);
             return (img1 == img2)?false:true;
-            // let [im1, im2] =await Promise.all([img1, img2]);
-            // return (im1['img']==im2['img'])? false:true;
+      
 
         }catch(error){
          
@@ -280,25 +279,7 @@ export class PhotoshopParser implements IFactory {
 
     public readImages(path){
         return fs.readFileSync(path, "base64");
-        // return new Promise((resolve, reject)=>{
-        //     fs.readFile(url, 'base64', (err, img) => {
-        //         if(err){
-        //             reject(err);
-        //         }else{
-        //             resolve({"img":img});
-        //         }
-        //     });
-        // });
+       
     }
-    // private CheckIfElementsDeleted(qLayerID, qId){
-    //     let psObj =  this.pObj;
-    //     if(obj.hasOwnProperty('layers')){
-    //         for(let i in pObj['layers']){
-    //             let currentEle = obj['layers'][i];
-
-    //         }
-    //         return res;
-    //     }
-    //     return false;
-    // }
+  
 }

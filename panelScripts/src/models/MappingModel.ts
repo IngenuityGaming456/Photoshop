@@ -18,6 +18,7 @@ export class MappingModel implements IModel {
     private params;
     private writeData = {};
     private docEmitter;
+    private assetsSyncMap;
 
     execute(params: IParams) {
         this.params = params;
@@ -33,6 +34,7 @@ export class MappingModel implements IModel {
         this.makeTestingMap();
         this.makeLocalisationMap();
         this.handleOpenDocumentData(params.storage.openDocumentData);
+        this.makeAssetsSyncMap();
     }
 
     private fireEvents() {
@@ -98,6 +100,14 @@ export class MappingModel implements IModel {
         this.importMap.set(pc.generatorButtons.import, {});
     }
 
+    /**
+     * function will handle assets change functionality on click of asset change from photoshop
+     */
+    private makeAssetsSyncMap() {
+        this.assetsSyncMap = new Map();
+        this.assetsSyncMap.set(pc.generatorButtons.syncAssets, {});
+    }
+
     private makeLayoutMap() {
         this.layoutMap = new Map();
         this.layoutMap.set(pc.generatorButtons.layoutEnabled, {});
@@ -131,6 +141,9 @@ export class MappingModel implements IModel {
 
     public getImportMap() {
         return this.importMap;
+    }
+    public getSyncAssetsMap(){
+        return this.assetsSyncMap;
     }
     
     public getLocalisationMap() {

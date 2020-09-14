@@ -22,6 +22,7 @@ import * as fs from "fs";
 import {SelfAddedStructures} from "./SelfAddedStructures";
 import {CreateImport} from "./Import/CreateImport";
 import {PhotoshopParser} from "./Import/PhotoshopParser";
+import { AssetsSync } from "./AssetsSync";
 
 let packageJson = require("../../package.json");
 
@@ -368,6 +369,10 @@ export class DocumentStarter implements IFactory {
         this.structureMap = new Map();
         this.mapFactory = this.modelFactory.getMappingModel();
         this.structureMap
+            .set(this.mapFactory.getSyncAssetsMap(), {
+                ref: AssetsSync,
+                dep: [ModelFactory, PhotoshopFactory]
+            })
             .set(this.mapFactory.getImportMap(), {
                 ref: CreateImport,
                 dep: [PhotoshopParser, PhotoshopFactory, ModelFactory]

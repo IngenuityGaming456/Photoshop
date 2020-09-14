@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PhotoshopParser = void 0;
 var utils_1 = require("../../utils/utils");
 var fs = require('fs');
 var packageJson = require("../../../package.json");
@@ -243,12 +242,9 @@ var PhotoshopParser = /** @class */ (function () {
             var array = path.split("/");
             var len = array.length;
             var img1 = this.readImages(path);
-            // let img2Path = `${this.pAssetsPath}/${array[len-4]}/common/${array[len-2]}/${psImg}.png`;
             var img2Path = utils_1.utlis.recurFiles("" + psImg, this.pAssetsPath);
             var img2 = this.readImages(img2Path);
             return (img1 == img2) ? false : true;
-            // let [im1, im2] =await Promise.all([img1, img2]);
-            // return (im1['img']==im2['img'])? false:true;
         }
         catch (error) {
             return false;
@@ -256,15 +252,6 @@ var PhotoshopParser = /** @class */ (function () {
     };
     PhotoshopParser.prototype.readImages = function (path) {
         return fs.readFileSync(path, "base64");
-        // return new Promise((resolve, reject)=>{
-        //     fs.readFile(url, 'base64', (err, img) => {
-        //         if(err){
-        //             reject(err);
-        //         }else{
-        //             resolve({"img":img});
-        //         }
-        //     });
-        // });
     };
     return PhotoshopParser;
 }());

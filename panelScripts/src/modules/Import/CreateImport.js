@@ -1,28 +1,23 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
 };
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
+    return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateImport = void 0;
 var utils_1 = require("../../utils/utils");
 var result_1 = require("./result");
 var FactoryClass_1 = require("../FactoryClass");
@@ -191,11 +186,14 @@ var CreateImport = /** @class */ (function () {
                     compObj["height"] = height;
                     compObj.h && delete compObj.h;
                     compObj.w && delete compObj.w;
+                    compObj["isAssetChange"] = false;
                 }
                 var path = utils_1.utlis.recurFiles("" + compObj.image, this.qAssetsPath);
                 var resA = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
-                if (resA || resL) {
+                if (resA) {
                     compObj["isAssetChange"] = true;
+                }
+                if (resA || resL) {
                     var parentId = this.getParentId(view, platform);
                     this.handleEditElement(compObj, parentId, view, platform);
                 }
@@ -230,7 +228,6 @@ var CreateImport = /** @class */ (function () {
      * @param platform - current platform
      */
     CreateImport.prototype.isDelete = function (enObj, viewObj, platform) {
-        var e_1, _a, e_2, _b;
         var psObjArray = this.pParser.getPSObjects(platform);
         var qObjArray = this.getQuestObjects(viewObj);
         var diff;
@@ -270,6 +267,7 @@ var CreateImport = /** @class */ (function () {
             }
             this.handleDeletdElements(diff);
         }
+        var e_1, _a, e_2, _b;
     };
     CreateImport.prototype.isInQuestView = function (viewName, enObj, platform) {
         var views = Object.keys(enObj);

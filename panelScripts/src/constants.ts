@@ -56,6 +56,7 @@ export const photoshopConstants = {
     },
     generatorButtons: {
         import: "AddImport",
+        syncAssets : "syncAssets",
         layoutEnabled: "LayoutEnabled",
         removePath: "Testing",
         localise: "Localise",

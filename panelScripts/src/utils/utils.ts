@@ -94,6 +94,7 @@ export class utlis {
 
     public static traverseObject(arrayLayers, callback, callbackLayers?) {
         let noOfLayers = arrayLayers.length;
+        
         for (let i = 0; i < noOfLayers; i++) {
             if (arrayLayers[i].type === "layer") {
                 callback(arrayLayers[i]);

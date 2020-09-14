@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ModelFactory = void 0;
 var FactoryClass_1 = require("../modules/FactoryClass");
 var MappingModel_1 = require("./MappingModel");
 var DataPhotoshopModel_1 = require("./PhotoshopModels/DataPhotoshopModel");

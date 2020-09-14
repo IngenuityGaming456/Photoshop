@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MappingModel = void 0;
 var utils_1 = require("../utils/utils");
 var constants_1 = require("../constants");
 var MappingModel = /** @class */ (function () {
@@ -21,6 +20,7 @@ var MappingModel = /** @class */ (function () {
         this.makeTestingMap();
         this.makeLocalisationMap();
         this.handleOpenDocumentData(params.storage.openDocumentData);
+        this.makeAssetsSyncMap();
     };
     MappingModel.prototype.fireEvents = function () {
         this.docEmitter.emit(constants_1.photoshopConstants.emitter.observerAdd, this);
@@ -76,6 +76,13 @@ var MappingModel = /** @class */ (function () {
         this.importMap = new Map();
         this.importMap.set(constants_1.photoshopConstants.generatorButtons.import, {});
     };
+    /**
+     * function will handle assets change functionality on click of asset change from photoshop
+     */
+    MappingModel.prototype.makeAssetsSyncMap = function () {
+        this.assetsSyncMap = new Map();
+        this.assetsSyncMap.set(constants_1.photoshopConstants.generatorButtons.syncAssets, {});
+    };
     MappingModel.prototype.makeLayoutMap = function () {
         this.layoutMap = new Map();
         this.layoutMap.set(constants_1.photoshopConstants.generatorButtons.layoutEnabled, {});
@@ -102,6 +109,9 @@ var MappingModel = /** @class */ (function () {
     };
     MappingModel.prototype.getImportMap = function () {
         return this.importMap;
+    };
+    MappingModel.prototype.getSyncAssetsMap = function () {
+        return this.assetsSyncMap;
     };
     MappingModel.prototype.getLocalisationMap = function () {
         return this.localisationMap;
