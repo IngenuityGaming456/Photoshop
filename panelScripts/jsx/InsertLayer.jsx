@@ -1,4 +1,5 @@
-#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+
 var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
     app.activeDocument;
 var layerConfig;
@@ -7,7 +8,9 @@ if (params.subType && params.subType === "text") {
         kind: LayerKind.TEXT,
     };
 }
+
 var childLayerRef = insertLayer(parentRef, params.childName, params.type, layerConfig);
+
 if(params["mappedItem"]) {
     var mappedItemRef = getInsertionReferenceById(params["mappedItem"].id);
     if(params.subType && params.subType === "text") {
@@ -18,22 +21,29 @@ if(params["mappedItem"]) {
 }
 
 if(params["image"]){
-    
-    var currentParent = params.parentId ? getInsertionReferenceById(params.parentId) :app.activeDocument;
 
+    var currentParent = params.parentId ? getInsertionReferenceById(params.parentId) :app.activeDocument;
+    var mask = app.activeDocument.activeLayer;
     var fileRef = new File(params.file);
     var docRef = app.open(fileRef);
+    
+    var imageBounds = mask.bounds;
 
-    app.activeDocument.selection.selectAll();
-    app.activeDocument.selection.copy();
-    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+    var maskTop = imageBounds[0];
+    var maskLeft = imageBounds[1];
+    var maskWidth = imageBounds[2]-imageBounds[0];
+    var maskHeight = imageBounds[3]- imageBounds[1];
 
-    app.activeDocument.paste();
+    var pastedImg = docRef.activeLayer.duplicate(mask, ElementPlacement.PLACEBEFORE); 
+
+    docRef.close(SaveOptions.DONOTSAVECHANGES);
+
     if(params["dimensions"]){
         var dimensions = params["dimensions"];
         var relativeX = dimensions.parentX + dimensions.x;
         var relativeY = dimensions.parentY + dimensions.y;
-        childLayerRef.translate(relativeX, relativeY);
+      
+        pastedImg.translate(relativeX, relativeY);
     }
 }
 childLayerRef.id;

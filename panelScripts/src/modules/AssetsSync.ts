@@ -77,10 +77,10 @@ export class AssetsSync implements IFactory{
     }
 
     private async handleFileSyncProcedure(file, assetsPath, platform, common, view){
-        console.log(file, assetsPath, platform, common, view);
+  
      
         for(const artLayer of this.artLayers){
-            console.log(artLayer);
+     
             const imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
             if( imageName === file && artLayer.type == "layer"){
                 const name = artLayer.name;
@@ -90,6 +90,7 @@ export class AssetsSync implements IFactory{
                 let parentId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/getParentId.jsx"), {"childName":artLayer.id, "parentId": viewId});
                 let parentX = 0;
                 let parentY = 0;
+                let filePath = path.join(assetsPath, file+".png")
                 let dimension = {
                     parentX,
                     parentY,
@@ -105,14 +106,13 @@ export class AssetsSync implements IFactory{
                     layerID:[artLayer.id],
                     image:imageName,
                     parentId:parentId,
-                    file:path.join(assetsPath, file+".png")
+                    file:filePath
                 };
                 // await this.photoshopFactory.makeStruct({[name]: creationObj}, parentId, view, platform, "image", assetsPath);
                 await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj);
 
                 await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: artLayer.id});
 
-                
             }
         }
         
