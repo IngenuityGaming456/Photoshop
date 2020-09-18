@@ -4,7 +4,6 @@ import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
-import set = Reflect.set;
 
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");

@@ -3,8 +3,8 @@ import {utlis} from "../utils/utils";
 import * as fs from "fs";
 import * as path from "path";
 import {PhotoshopFactory} from "./PhotoshopFactory";
-import {ContainerPanelResponse} from "./ContainerPanelResponse";
 import {ModelFactory} from "../models/ModelFactory";
+let packageJson = require("../../package.json");
 
 export class AssetsSync implements IFactory{
     private generator;
@@ -44,7 +44,6 @@ export class AssetsSync implements IFactory{
         utlis.traverseObject(this.psObj.layers, this.getAllArtLayers.bind(this));
         this.artLayers.reverse();
         this.searchForChangedAssets(level, assetsPath, null, 'common', null);
-
     }
 
     private async searchForChangedAssets(level, assetsPath, platform, common, view){
@@ -77,10 +76,10 @@ export class AssetsSync implements IFactory{
     }
 
     private async handleFileSyncProcedure(file, assetsPath, platform, common, view){
-  
+
      
         for(const artLayer of this.artLayers){
-     
+
             const imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
             if( imageName === file && artLayer.type == "layer"){
                 const name = artLayer.name;
@@ -108,15 +107,12 @@ export class AssetsSync implements IFactory{
                     parentId:parentId,
                     file:filePath
                 };
-                // await this.photoshopFactory.makeStruct({[name]: creationObj}, parentId, view, platform, "image", assetsPath);
-                await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj);
-
+                const bufferPayload = await this.generator.getLayerSettingsForPlugin(this.activeDocument.id, artLayer.id, packageJson.name);
                 await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: artLayer.id});
-
+                const newLayerId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj);
+                await this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name);
             }
         }
-        
-
     }
 
     private getAllArtLayers(artLayerRef) {

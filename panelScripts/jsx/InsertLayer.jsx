@@ -1,5 +1,6 @@
-#include "F:\\projects\\project_photoshop\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
-
+#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+var childLayerRef;
+var activeLayer;
 var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
     app.activeDocument;
 var layerConfig;
@@ -9,7 +10,9 @@ if (params.subType && params.subType === "text") {
     };
 }
 
-var childLayerRef = insertLayer(parentRef, params.childName, params.type, layerConfig);
+if(!params["image"]) {
+    childLayerRef = insertLayer(parentRef, params.childName, params.type, layerConfig);
+}
 
 if(params["mappedItem"]) {
     var mappedItemRef = getInsertionReferenceById(params["mappedItem"].id);
@@ -21,29 +24,33 @@ if(params["mappedItem"]) {
 }
 
 if(params["image"]){
-
-    var currentParent = params.parentId ? getInsertionReferenceById(params.parentId) :app.activeDocument;
     var mask = app.activeDocument.activeLayer;
     var fileRef = new File(params.file);
-    var docRef = app.open(fileRef);
-    
-    var imageBounds = mask.bounds;
-
-    var maskTop = imageBounds[0];
-    var maskLeft = imageBounds[1];
-    var maskWidth = imageBounds[2]-imageBounds[0];
-    var maskHeight = imageBounds[3]- imageBounds[1];
-
-    var pastedImg = docRef.activeLayer.duplicate(mask, ElementPlacement.PLACEBEFORE); 
-
-    docRef.close(SaveOptions.DONOTSAVECHANGES);
-
+    app.open(fileRef);
+    app.activeDocument.flatten();
+    app.activeDocument.selection.selectAll();
+    app.activeDocument.selection.copy();
+    var imageBounds = app.activeDocument.selection.bounds;
+    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+    var topLeftH = 0;
+    var topLeftV = 0;
+    var docH = imageBounds[2]-imageBounds[0];
+    var docV = imageBounds[3]- imageBounds[1];
+    var selRegion = [[new UnitValue(0, "px"), new UnitValue(0, "px")], [new UnitValue(docH, "px"), new UnitValue(0, "px")], [new UnitValue(docH, "px"), new UnitValue(docV, "px")], [new UnitValue(0, "px"), new UnitValue(docV, "px")]];
+    app.activeDocument.selection.select(selRegion);
+    app.activeDocument.paste();
+    activeLayer = app.activeDocument.activeLayer;
     if(params["dimensions"]){
         var dimensions = params["dimensions"];
         var relativeX = dimensions.parentX + dimensions.x;
         var relativeY = dimensions.parentY + dimensions.y;
-      
-        pastedImg.translate(relativeX, relativeY);
+
+        activeLayer.translate(relativeX, relativeY);
     }
+    activeLayer.name = params.childName;
 }
-childLayerRef.id;
+if(params["image"]) {
+    activeLayer.id;
+} else {
+    childLayerRef.id;
+}
