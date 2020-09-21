@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DocumentLogger = void 0;
 var path = require("path");
 var constants_1 = require("../constants");
 var DocumentLogger = /** @class */ (function () {

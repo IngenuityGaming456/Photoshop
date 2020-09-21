@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.photoshopConstants = void 0;
 exports.photoshopConstants = {
     logger: {
         logWarning: "logWarning",

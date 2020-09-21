@@ -3,6 +3,7 @@ import * as path from "path";
 import * as layerClass from "../../lib/dom/layer";
 import {photoshopConstants as pc} from "../constants";
 import {JsonComponentsFactory} from "../modules/JsonComponentsFactory";
+import * as fsx from "fs-extra";
 
 export class utlis {
 
@@ -620,5 +621,17 @@ export class utlis {
                 return filePath;
             }
         }
+    }
+
+    public static copyFolder(directory, source , destination){
+
+        // let dir = fs.mkdirSync(path.join(destinationDir, directory.toString()), { recursive: true });
+
+        fsx.copy(path.join(directory, source.toString()), path.join(directory, destination.toString()), function(err){
+            console.log(err)
+            return false;
+        });
+        console.log("copied completed");
+        return true;
     }
 }

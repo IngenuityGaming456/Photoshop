@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -14,8 +15,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -34,17 +35,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DocumentStarter = void 0;
 var CreateViewStructure_1 = require("./CreateViewStructure");
 var ModelFactory_1 = require("../models/ModelFactory");
 var CreateComponent_1 = require("./CreateComponent");
@@ -68,6 +71,7 @@ var SelfAddedStructures_1 = require("./SelfAddedStructures");
 var CreateImport_1 = require("./Import/CreateImport");
 var PhotoshopParser_1 = require("./Import/PhotoshopParser");
 var AssetsSync_1 = require("./AssetsSync");
+var utils_1 = require("../utils/utils");
 var packageJson = require("../../package.json");
 var DocumentStarter = /** @class */ (function () {
     function DocumentStarter() {
@@ -138,11 +142,13 @@ var DocumentStarter = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
+                        /**it will remove all the listeners and apply all the listeners again */
                         this.restorePhotoshop();
                         _a = this;
                         return [4 /*yield*/, this.documentManager.getDocument(openId)];
                     case 1:
                         _a.activeDocument = _c.sent();
+                        // let da =  await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,packageJson.name + "Document");
                         FactoryClass_1.execute(this.startModel, { generator: this.generator, activeDocument: this.activeDocument });
                         _b = this;
                         return [4 /*yield*/, this.startModel.onPhotoshopStart()];
@@ -280,6 +286,7 @@ var DocumentStarter = /** @class */ (function () {
         }
     };
     DocumentStarter.prototype.getElementMap = function (menuName) {
+        var e_1, _a;
         var keysIterable = this.structureMap.keys();
         try {
             for (var keysIterable_1 = __values(keysIterable), keysIterable_1_1 = keysIterable_1.next(); !keysIterable_1_1.done; keysIterable_1_1 = keysIterable_1.next()) {
@@ -296,7 +303,6 @@ var DocumentStarter = /** @class */ (function () {
             }
             finally { if (e_1) throw e_1.error; }
         }
-        var e_1, _a;
     };
     DocumentStarter.prototype.sendToHTMLSocket = function () {
         this.htmlSocket.emit(constants_1.photoshopConstants.socket.docOpen, this.activeDocument.directory, this.docId);
@@ -345,24 +351,50 @@ var DocumentStarter = /** @class */ (function () {
             _this.onSave();
         });
     };
+    DocumentStarter.prototype.getOriginalFileName = function () {
+        return this.activeDocument.name;
+    };
+    DocumentStarter.prototype.checkifDuplicateDocument = function () {
+        var generatorSettings = this.activeDocument.generatorSettings ? this.activeDocument.generatorSettings : false;
+        var file = JSON.parse(generatorSettings.PanelScriptsDocument.json).originalFile;
+        if (generatorSettings)
+            return this.activeDocument.name !== file;
+        return false;
+    };
+    DocumentStarter.prototype.setDocId = function () {
+        this.docId = Math.floor(Math.random() * 5000);
+    };
+    /**it sets the doc id with which psd data folder created */
     DocumentStarter.prototype.setDocumentMetaData = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var docIdObj;
+            var originalFileName, ifCopiedDoc, docIdObj, originalFileName;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!!this.openDocumentData) return [3 /*break*/, 2];
-                        this.docId = Math.floor(Math.random() * 5000);
-                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId }, packageJson.name + "Document")];
+                        this.setDocId();
+                        originalFileName = this.getOriginalFileName();
+                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId, originalFile: originalFileName }, packageJson.name + "Document")];
                     case 1:
                         _a.sent();
-                        return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
+                        return [3 /*break*/, 6];
+                    case 2:
+                        ifCopiedDoc = this.checkifDuplicateDocument();
+                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
                     case 3:
                         docIdObj = _a.sent();
                         this.docId = docIdObj.docId;
-                        _a.label = 4;
+                        if (!ifCopiedDoc) return [3 /*break*/, 6];
+                        this.setDocId();
+                        originalFileName = this.getOriginalFileName();
+                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId, originalFile: originalFileName }, packageJson.name + "Document")];
                     case 4:
+                        _a.sent();
+                        return [4 /*yield*/, utils_1.utlis.copyFolder(this.activeDocument.directory, docIdObj.docId, this.docId)];
+                    case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6:
                         this.generator.emit(constants_1.photoshopConstants.generator.docId, this.docId);
                         return [2 /*return*/];
                 }

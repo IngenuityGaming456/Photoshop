@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -14,8 +15,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -34,20 +35,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AssetsSync = void 0;
 var utils_1 = require("../utils/utils");
 var fs = require("fs");
 var path = require("path");
+var packageJson = require("../../package.json");
 var AssetsSync = /** @class */ (function () {
     function AssetsSync(modelFactory, pFactory) {
         this.artLayers = [];
@@ -88,7 +92,8 @@ var AssetsSync = /** @class */ (function () {
     };
     AssetsSync.prototype.searchForChangedAssets = function (level, assetsPath, platform, common, view) {
         return __awaiter(this, void 0, void 0, function () {
-            var files, files_1, files_1_1, file, filePath, stats, currentFile, e_1_1, e_1, _a;
+            var files, files_1, files_1_1, file, filePath, stats, currentFile, e_1_1;
+            var e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -143,30 +148,28 @@ var AssetsSync = /** @class */ (function () {
     };
     AssetsSync.prototype.handleFileSyncProcedure = function (file, assetsPath, platform, common, view) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, artLayer, imageName, name_1, type, viewId, parentId, parentX, parentY, dimension, creationObj, e_2_1, e_2, _c;
+            var _a, _b, artLayer, imageName, name_1, type, viewId, parentId, parentX, parentY, filePath, dimension, creationObj, bufferPayload, newLayerId, e_2_1;
+            var e_2, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
-                        console.log(file, assetsPath, platform, common, view);
+                        _d.trys.push([0, 9, 10, 11]);
+                        _a = __values(this.artLayers), _b = _a.next();
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 8, 9, 10]);
-                        _a = __values(this.artLayers), _b = _a.next();
-                        _d.label = 2;
-                    case 2:
-                        if (!!_b.done) return [3 /*break*/, 7];
+                        if (!!_b.done) return [3 /*break*/, 8];
                         artLayer = _b.value;
-                        console.log(artLayer);
                         imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
-                        if (!(imageName === file && artLayer.type == "layer")) return [3 /*break*/, 6];
+                        if (!(imageName === file && artLayer.type == "layer")) return [3 /*break*/, 7];
                         name_1 = artLayer.name;
                         type = artLayer.type;
                         viewId = this.getParentId(view, platform);
                         return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/getParentId.jsx"), { "childName": artLayer.id, "parentId": viewId })];
-                    case 3:
+                    case 2:
                         parentId = _d.sent();
                         parentX = 0;
                         parentY = 0;
+                        filePath = path.join(assetsPath, file + ".png");
                         dimension = {
                             parentX: parentX,
                             parentY: parentY,
@@ -182,32 +185,36 @@ var AssetsSync = /** @class */ (function () {
                             layerID: [artLayer.id],
                             image: imageName,
                             parentId: parentId,
-                            file: path.join(assetsPath, file + ".png")
+                            file: filePath
                         };
-                        // await this.photoshopFactory.makeStruct({[name]: creationObj}, parentId, view, platform, "image", assetsPath);
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj)];
-                    case 4:
-                        // await this.photoshopFactory.makeStruct({[name]: creationObj}, parentId, view, platform, "image", assetsPath);
-                        _d.sent();
+                        return [4 /*yield*/, this.generator.getLayerSettingsForPlugin(this.activeDocument.id, artLayer.id, packageJson.name)];
+                    case 3:
+                        bufferPayload = _d.sent();
                         return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: artLayer.id })];
-                    case 5:
+                    case 4:
                         _d.sent();
-                        _d.label = 6;
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj)];
+                    case 5:
+                        newLayerId = _d.sent();
+                        return [4 /*yield*/, this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name)];
                     case 6:
+                        _d.sent();
+                        _d.label = 7;
+                    case 7:
                         _b = _a.next();
-                        return [3 /*break*/, 2];
-                    case 7: return [3 /*break*/, 10];
-                    case 8:
+                        return [3 /*break*/, 1];
+                    case 8: return [3 /*break*/, 11];
+                    case 9:
                         e_2_1 = _d.sent();
                         e_2 = { error: e_2_1 };
-                        return [3 /*break*/, 10];
-                    case 9:
+                        return [3 /*break*/, 11];
+                    case 10:
                         try {
                             if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                         }
                         finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
-                    case 10: return [2 /*return*/];
+                    case 11: return [2 /*return*/];
                 }
             });
         });
