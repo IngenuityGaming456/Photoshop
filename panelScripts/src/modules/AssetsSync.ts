@@ -13,7 +13,7 @@ export class AssetsSync implements IFactory{
     private psObj;
     private activeDocument
     private document;
-    private artLayers = [];
+    private artLayers = new Map();
     private modelFactory;
     
     constructor(modelFactory: ModelFactory, pFactory:PhotoshopFactory){
@@ -42,7 +42,7 @@ export class AssetsSync implements IFactory{
         /**as we are at the root of the assets folder */
         let level = 0;
         utlis.traverseObject(this.psObj.layers, this.getAllArtLayers.bind(this));
-        this.artLayers.reverse();
+        // this.artLayers.reverse();
         this.searchForChangedAssets(level, assetsPath, null, 'common', null);
     }
 
@@ -77,11 +77,10 @@ export class AssetsSync implements IFactory{
 
     private async handleFileSyncProcedure(file, assetsPath, platform, common, view){
 
-     
-        for(const artLayer of this.artLayers){
-
-            const imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
-            if( imageName === file && artLayer.type == "layer"){
+        const artLayer = this.artLayers.get(file);
+            
+            if( artLayer && artLayer.type == "layer"){
+                const imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
                 const name = artLayer.name;
                 // const name = this.removeExtensionFromFileName(file);
                 const type = artLayer.type;
@@ -112,11 +111,47 @@ export class AssetsSync implements IFactory{
                 const newLayerId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj);
                 await this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name);
             }
-        }
+     
+        // for(const artLayer of this.artLayers){
+
+        //     const imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
+        //     if( imageName === file && artLayer.type == "layer"){
+        //         const name = artLayer.name;
+        //         // const name = this.removeExtensionFromFileName(file);
+        //         const type = artLayer.type;
+        //         let viewId = this.getParentId(view, platform);
+        //         let parentId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/getParentId.jsx"), {"childName":artLayer.id, "parentId": viewId});
+        //         let parentX = 0;
+        //         let parentY = 0;
+        //         let filePath = path.join(assetsPath, file+".png")
+        //         let dimension = {
+        //             parentX,
+        //             parentY,
+        //             x:artLayer.bounds.left,
+        //             y:artLayer.bounds.top,
+        //             w: (artLayer.bounds.right - artLayer.bounds.left),
+        //             h: (artLayer.bounds.bottom - artLayer.bounds.top),
+        //         }
+        //         let creationObj = {
+        //             dimensions:dimension,
+        //             type:"artLayer",
+        //             childName:name,
+        //             layerID:[artLayer.id],
+        //             image:imageName,
+        //             parentId:parentId,
+        //             file:filePath
+        //         };
+        //         const bufferPayload = await this.generator.getLayerSettingsForPlugin(this.activeDocument.id, artLayer.id, packageJson.name);
+        //         await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: artLayer.id});
+        //         const newLayerId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj);
+        //         await this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name);
+        //     }
+        // }
     }
 
     private getAllArtLayers(artLayerRef) {
-        this.artLayers.push(artLayerRef);
+        // this.artLayers.push(artLayerRef);
+        this.artLayers.set(JSON.parse(artLayerRef.generatorSettings.PanelScriptsImage.json).image,artLayerRef)
     }
 
     private getParentId(view, platform) {
