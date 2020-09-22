@@ -574,19 +574,6 @@ export class utlis {
         }
     }
 
-    // public static getAssetsAndJson(key, activeDocument) {
-    //     const savedPath = activeDocument.directory;
-    //     const extIndex = activeDocument.name.search(".psd");
-    //     const fileName = activeDocument.name.slice(0, extIndex);
-    //     const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
-    //     const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
-    //     const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
-    //     return {
-    //         qAssetsPath,
-    //         qObj
-    //     }
-    // }
-
     public static getAssetsAndJson(key, activeDocument) {
         const savedPath = activeDocument.directory;
         // const extIndex = activeDocument.name.indexOf(".");
@@ -623,15 +610,12 @@ export class utlis {
         }
     }
 
-    public static copyFolder(directory, source , destination){
-
-        // let dir = fs.mkdirSync(path.join(destinationDir, directory.toString()), { recursive: true });
-
-        fsx.copy(path.join(directory, source.toString()), path.join(directory, destination.toString()), function(err){
-            console.log(err)
-            return false;
-        });
-        console.log("copied completed");
-        return true;
+    public static async copyFolder(directory, source , destination){
+        try {
+            await fsx.copy(path.join(directory, source.toString()), path.join(directory, destination.toString()));
+            console.log("copied completed");
+        } catch {
+            console.log("Error in file copy");
+        }
     }
 }

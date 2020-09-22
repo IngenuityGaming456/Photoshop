@@ -106,7 +106,6 @@ export class DocumentStarter implements IFactory {
         /**it will remove all the listeners and apply all the listeners again */
         this.restorePhotoshop();
         this.activeDocument = await this.documentManager.getDocument(openId);
-        // let da =  await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,packageJson.name + "Document");
         execute(this.startModel, {generator: this.generator, activeDocument: this.activeDocument});
         this.openDocumentData = await this.startModel.onPhotoshopStart();
         await this.setDocumentMetaData();
@@ -289,41 +288,39 @@ export class DocumentStarter implements IFactory {
         return this.activeDocument.name;
     }
 
-    private checkifDuplicateDocument(){
-        let generatorSettings = this.activeDocument.generatorSettings? this.activeDocument.generatorSettings:false;
-        let file = JSON.parse(generatorSettings.PanelScriptsDocument.json).originalFile;
-        if(generatorSettings)
-            return this.activeDocument.name !== file;
-        
-        return false;
+    private async checkIfDuplicateDocument(){
+        const file = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "New" + "Document");
+        return this.activeDocument.name !== file.originalFile;
     }
 
     private setDocId(){
         this.docId = Math.floor(Math.random() * 5000);
-
     }
 
-    /**it sets the doc id with which psd data folder created */
+    /**it sets the doc id with which psd data folder is created */
     private async setDocumentMetaData() {
         if (!this.openDocumentData) {
             this.setDocId();    
             let originalFileName = this.getOriginalFileName();
-            await this.generator.setDocumentSettingsForPlugin({docId: this.docId, originalFile:originalFileName}, packageJson.name + "Document");
+            await this.setDocGeneratorSettings(originalFileName);
+
         } else {
-            let ifCopiedDoc = this.checkifDuplicateDocument();
-             
+            let ifCopiedDoc = await this.checkIfDuplicateDocument();
             const docIdObj = await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document");
             this.docId = docIdObj.docId;
-            if(ifCopiedDoc){
+            if(ifCopiedDoc) {
                 this.setDocId();
                 let originalFileName = this.getOriginalFileName();
-                await this.generator.setDocumentSettingsForPlugin({docId: this.docId, originalFile:originalFileName}, packageJson.name + "Document");
+                await this.setDocGeneratorSettings(originalFileName);
                 await utlis.copyFolder(this.activeDocument.directory, docIdObj.docId, this.docId);
-                
-            }            
-           
+            }
         }
         this.generator.emit(pc.generator.docId, this.docId);
+    }
+
+    private async setDocGeneratorSettings(originalFileName) {
+        await this.generator.setDocumentSettingsForPlugin({docId: this.docId}, packageJson.name + "Document");
+        await this.generator.setDocumentSettingsForPlugin({originalFile:originalFileName}, packageJson.name + "New" + "Document");
     }
 
     private createDependencies() {
