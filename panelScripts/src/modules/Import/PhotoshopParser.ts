@@ -26,8 +26,14 @@ export class PhotoshopParser implements IFactory {
         this.pObj = stats.qObj;
     }
 
+
+
     private getPView(view, platform){
         return this.checkViews(this.pObj, view, platform);
+    }
+
+    private checkIfView(viewLayersObj){
+        return viewLayersObj.hasOwnProperty('generatorSettings')?(viewLayersObj.generatorSettings.hasOwnProperty('PanelScripts')?JSON.parse(viewLayersObj.generatorSettings.PanelScripts.json):false):false;
     }
 
     private checkViews(pObj, view, platform){
@@ -36,7 +42,7 @@ export class PhotoshopParser implements IFactory {
             let viewLayersObj = pObj['layers'];
             for(let i in viewLayersObj){
                 if(viewLayersObj[i].name == view){
-                    let isView = viewLayersObj[i].hasOwnProperty('generatorSettings')?(viewLayersObj[i].generatorSettings.hasOwnProperty('PanelScripts')?JSON.parse(viewLayersObj[i].generatorSettings.PanelScripts.json):false):false;
+                    let isView = this.checkIfView(viewLayersObj[i]);
                     if(isView == "view")
                         return true;
                 }else{
@@ -111,12 +117,35 @@ export class PhotoshopParser implements IFactory {
         }
         return false;
     }
+    
+    /**
+     * function to0 get current view object
+     * @param view 
+     */
+    private getCurrentLayerType(psObj, layerType){
+        let res;
+        if(psObj.hasOwnProperty('layers')){
+            for(let i in psObj['layers']){ 
+                if(psObj['layers'][i].name === layerType && this.checkIfView(psObj['layers'][i])){
+                    return psObj['layers'][i];
+                }else{
+                    res = this.getCurrentLayerType(psObj['layers'][i], layerType);
+                    if(res)
+                        return res;
+                }
+
+            }
+        }
+    }
+
 
     /**driver function to get deleted object array */
-    private getPSObjects(platform){
+    private getPSObjects(view, platform){
         let psObj = this.pObj;
         let psObjArray = [];
-        return this.getDeletedArray(psObj, psObjArray, platform);
+        let currentPlatform = this.getCurrentLayerType(psObj, platform);
+        let curentView = this.getCurrentLayerType(currentPlatform, view);
+        return this.getDeletedArray(curentView, psObjArray, platform);
     }
 
     /**get the quest deleted objects */
@@ -126,7 +155,8 @@ export class PhotoshopParser implements IFactory {
 
             /**Iterate over every component of current layer */
             for(let i in psObj['layers']){ 
-                if((psObj['layers'][i].name !== platform) && (psObj['layers'][i].name !== "languages") && (psObj['layers'][i].name !== "common") && (psObj['layers'][i].name !== "download")){
+                
+                if((psObj['layers'][i].name !== platform) && (psObj['layers'][i].name !== "languages") && (psObj['layers'][i].name !== "common")){
                     let delImg = {};
                     delImg['id'] = psObj['layers'][i].id;
                     delImg['name'] = psObj['layers'][i].name;

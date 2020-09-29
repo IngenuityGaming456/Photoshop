@@ -39,14 +39,14 @@ export class PhotoshopFactory implements IFactory {
         this.platform = platform;
         for(let keys in parserObject) {
             let jsxParams: IJsxParam = {parentId: "", childName: "", type: ""};
-            if(!parserObject.hasOwnProperty(keys) || keys === "base") {
+            if(!parserObject.hasOwnProperty(keys) || !(parserObject[keys] instanceof Object)) {
                 continue;
             }
             layerType = parserObject[keys].type;
             await this.setParams(jsxParams, parserObject, keys, insertionPoint);
             if(!layerType && !jsxParams.childName) {
                 this.baseView = keys;
-                await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type);
+                await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type, assetsPath);
             } else {
                 this.baseView = parentKey;
                 const mappedKey = this.getMappedKey();
@@ -86,13 +86,13 @@ export class PhotoshopFactory implements IFactory {
         jsxParams.parentId = parserObject[keys].parent ? await this.findParentId(parserObject[keys].parent, insertionPoint) : insertionPoint;
     }
 
-    private async createBaseChild(jsxParams, keys, insertionPoint, parserObject, type?) {
+    private async createBaseChild(jsxParams, keys, insertionPoint, parserObject, type?, assetsPath?) {
         jsxParams.childName = keys;
         jsxParams.type = "layerSection";
         insertionPoint = await this.createBaseStruct(jsxParams);
         this.setBaseIds(keys, insertionPoint, type);
         await this.insertBaseMetaData(insertionPoint);
-        await this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type);
+        await this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type, assetsPath);
     }
 
     private setBaseIds(keys, insertionPoint, type?) {

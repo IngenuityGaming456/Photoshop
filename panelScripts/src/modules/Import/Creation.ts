@@ -100,8 +100,8 @@ export class Creation implements IFactory{
         for(let view of views) {
             const platformRef = utlis.getPlatformRef(view.platform, this.activeDocument);
             const commonId = utlis.getCommonId(platformRef);
-          
-            await this.pFactory.makeStruct(view.view, commonId, null, view.platform, "quest");
+          /**quest assets paths are provided to handle the case of view has image layer */
+            await this.pFactory.makeStruct(view, commonId, null, view.platform, "quest", this.qAssets);
         }
     }
     private async handleComponentsCreation(comps) {
