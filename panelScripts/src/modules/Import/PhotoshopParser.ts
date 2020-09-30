@@ -62,9 +62,11 @@ export class PhotoshopParser implements IFactory {
                         return true;
                 }else{
                     res = this.checkViews(viewLayersObj[i], view, platform)
+                    if(res)
+                        return res;
                 }
             }
-            return res;
+            
         }
         return false;
 
