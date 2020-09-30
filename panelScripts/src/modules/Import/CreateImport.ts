@@ -20,6 +20,7 @@ export class CreateImport implements IFactory{
     private readonly pParser;
     private readonly pFactory;
     private readonly modelFactory;
+    private deletedViews=[];
 
     public constructor(psParser: PhotoshopParser, pFactory: PhotoshopFactory, modelFactory: ModelFactory) {
         this.pFactory = pFactory;
@@ -63,8 +64,27 @@ export class CreateImport implements IFactory{
             }
             let abject = this.qObj[platform];
             const enObj:object = this.qObj[platform]["en"];
+            this.checkIfViewsDeleted(enObj, platform);
             this.compareViews(enObj, platform);
         }
+    }
+
+    checkIfViewsDeleted(enObj, platform){
+        let questViewsArr=[];
+        for(const view in enObj){
+            questViewsArr.push(view);
+        }
+        /**function will return deleted views */
+        let photoShopViewsObj = this.pParser.compareWithPhotoShopViews(questViewsArr, platform);
+
+        let diff;
+        diff = photoShopViewsObj.filter((x)=>!questViewsArr.includes(x.name));
+
+        for (const i in diff){
+            this.deletedViews.push(diff[i].name);
+        }
+        this.findAndHandleDeletedElements(enObj ,photoShopViewsObj, diff, platform);
+
     }
 
     /**
@@ -78,16 +98,21 @@ export class CreateImport implements IFactory{
             if(!enObj.hasOwnProperty(view)) {
                 continue;
             }
-            const pView:boolean = this.pParser.getPView(view, platform);
+            const pView:boolean = this.pParser.getPView(view, platform); 
             if(!pView) {
+                enObj[view].base=true;
                 this.result.create.views.push({
-                    view : enObj[view],
-                    platform
+                    [view]:enObj[view],
+                    platform,
                 });
             }else{
                 this.compareComponents(enObj[view], view, platform);
+                /**if view is newly added then dont check for edit, delete or rename */
+                if( !this.deletedViews.includes(view)){
+                    this.isDelete(enObj, enObj[view], view, platform);
+                }
             }
-            this.isDelete(enObj, enObj[view], platform);
+            
         }
     }
 
@@ -252,11 +277,15 @@ export class CreateImport implements IFactory{
      * @param view - current view
      * @param platform - current platform
      */
-    private isDelete(enObj:object, viewObj, platform:string):void{
-        let psObjArray:Array<any> = this.pParser.getPSObjects(platform);
+    private isDelete(enObj:object, viewObj, view, platform:string):void{
+        let psObjArray:Array<any> = this.pParser.getPSObjects(view, platform);
         let qObjArray:Array<any> = this.getQuestObjects(viewObj);
         let diff:Array<object>;
         diff = psObjArray.filter((x)=>!qObjArray.includes(x.id));
+        this.findAndHandleDeletedElements(enObj ,psObjArray, diff, platform);
+    }
+
+    private findAndHandleDeletedElements(enObj ,psObjArray, diff, platform){
         if(diff.length>0) {
             const delItems = [];
             for(const psObj of psObjArray) {

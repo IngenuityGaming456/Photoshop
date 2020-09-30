@@ -26,6 +26,21 @@ export class PhotoshopParser implements IFactory {
         this.pObj = stats.qObj;
     }
 
+    private compareWithPhotoShopViews(questViews, platform){
+        let platformLayer = this.getCurrentLayerType(this.pObj, platform);
+        let commonLayer = this.getCurrentLayerType(platformLayer, 'common');
+        let photoshopViews = [];
+        if(commonLayer.hasOwnProperty('layers')){
+            for(const viewLayer in commonLayer['layers'] ){
+                photoshopViews.push({
+                    name:commonLayer['layers'][viewLayer].name, id:commonLayer['layers'][viewLayer].id, type:"view"
+                });
+             }
+        }
+
+        return photoshopViews;
+        
+    }
 
 
     private getPView(view, platform){
@@ -126,7 +141,7 @@ export class PhotoshopParser implements IFactory {
         let res;
         if(psObj.hasOwnProperty('layers')){
             for(let i in psObj['layers']){ 
-                if(psObj['layers'][i].name === layerType && this.checkIfView(psObj['layers'][i])){
+                if(psObj['layers'][i].name === layerType){
                     return psObj['layers'][i];
                 }else{
                     res = this.getCurrentLayerType(psObj['layers'][i], layerType);
@@ -155,18 +170,15 @@ export class PhotoshopParser implements IFactory {
 
             /**Iterate over every component of current layer */
             for(let i in psObj['layers']){ 
-                
-                if((psObj['layers'][i].name !== platform) && (psObj['layers'][i].name !== "languages") && (psObj['layers'][i].name !== "common")){
-                    let delImg = {};
-                    delImg['id'] = psObj['layers'][i].id;
-                    delImg['name'] = psObj['layers'][i].name;
-                    delImg['type'] = psObj['layers'][i].type;
-                    const view = psObj['layers'][i].generatorSettings && psObj['layers'][i].generatorSettings[this._pluginId];
-                    if(view) {
-                        delImg["isView"] = true;
-                    }
-                    psObjArray.push(delImg);
+                let delImg = {};
+                delImg['id'] = psObj['layers'][i].id;
+                delImg['name'] = psObj['layers'][i].name;
+                delImg['type'] = psObj['layers'][i].type;
+                const view = psObj['layers'][i].generatorSettings && psObj['layers'][i].generatorSettings[this._pluginId];
+                if(view) {
+                    delImg["isView"] = true;
                 }
+                psObjArray.push(delImg);
                 this.getDeletedArray(psObj['layers'][i], psObjArray, platform)
             }
         }
