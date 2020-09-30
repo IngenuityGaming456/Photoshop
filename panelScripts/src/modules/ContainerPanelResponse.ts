@@ -83,6 +83,7 @@ export class ContainerPanelResponse implements IFactory {
     }
 
     private async getDataForChanges(type) {
+        this.activeDocument = await this.documentManager.getDocument(this.activeDocument.id);
         this.setAutomationToYes();
         const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
@@ -114,7 +115,7 @@ export class ContainerPanelResponse implements IFactory {
         }
     }
 
-    private async makePlatforms(platform, type) {
+    private async makePlatforms(platform, type) { 
         const platformMap = this.modelFactory.getMappingModel().getPlatformMap();
         const platformJson = platformMap.get(platform);
         await this.photoshopFactory.makeStruct(platformJson, null, null, null, type);
