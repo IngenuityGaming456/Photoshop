@@ -241,7 +241,7 @@ export class utlis {
             return null;
         }
     }
-
+ 
     public static spliceFromIndexes(arr, indexArr) {
         const indexLength = indexArr.length;
         for (let i = 0; i < indexLength; i++) {
@@ -591,12 +591,15 @@ export class utlis {
     }
 
     public static recurFiles(fileName, folderPath) {
+        let res;
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
             const filePath = path.join(folderPath, file);
             const stats = fs.statSync(filePath);
             if(stats.isDirectory()) {
-                return utlis.recurFiles(fileName, filePath);
+                res= utlis.recurFiles(fileName, filePath);
+                if(res)
+                    return res;  
             }
             // if(file.split('.').slice(0, -1).join('.') === fileName)
             const fileExtIndex = file.search(".png");
