@@ -1,6 +1,6 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {utlis} from "../utils/utils";
-import {getAllDirectories, getAllFiles} from "../utils/assetsUtils";
+import {getAllDirectories, getAllFiles, getFolderByName} from "../utils/assetsUtils";
 import * as path from "path";
 import {PhotoshopFactory} from "./PhotoshopFactory";
 import {ModelFactory} from "../models/ModelFactory";
@@ -38,11 +38,20 @@ export class AssetsSync implements IFactory{
     }
 
     private checkUpper(qAssetsPath) {
-
+        const changePath = path.join(qAssetsPath, "change");
+        if(fs.existsSync(changePath)) {
+            this.passFolder(changePath);
+        }
     }
 
     private checkAllCommon(qAssetsPath) {
-
+        const plats = getAllDirectories(qAssetsPath);
+        for(let plat of plats) {
+            const changePath = path.join(qAssetsPath, plat, "common", "change");
+            if(fs.existsSync(changePath)) {
+                this.passFolder(changePath);
+            }
+        }
     }
 
     private checkAllViews(qAssetsPath) {
