@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PanelView = void 0;
 class PanelView {
     constructor(eventsObj) {
         this.mappedLi = new Map();
@@ -28,13 +29,20 @@ class PanelView {
     }
     createLIBox(innerText, color, parent, ulString) {
         const li = document.createElement("li");
-        li.innerText = innerText;
+        const date = new Date();
+        li.innerText = innerText + `   [${date.getHours()}hr ${date.getMinutes()}min ${date.getMilliseconds()}msec]`;
         this.setElementColour(li, color);
         parent.append(li);
         if (ulString) {
-            //this.storeStatus(innerText, color, ulString);
+            this.storeStatus(innerText, color, ulString);
         }
+        this.scrollPage(li);
         return li;
+    }
+    scrollPage(item) {
+        const rect = item.getBoundingClientRect();
+        window.scrollTo(0, rect.top);
+        console.log(rect.top, rect.right, rect.bottom, rect.left);
     }
     onWriteData(item) {
         if (item.ulString === "status") {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PanelModel = void 0;
 const fs = require("fs");
 class PanelModel {
     constructor(eventsObj) {

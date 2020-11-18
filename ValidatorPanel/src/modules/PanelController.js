@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PanelController = void 0;
 const io = require("socket.io-client");
 class PanelController {
     constructor(eventsObj, viewObj, modelObj) {
@@ -7,17 +8,11 @@ class PanelController {
         this.viewObj = viewObj;
         this.modelObj = modelObj;
         this.instantiateCSInterface();
-        this.makePanelPersistent();
         this.subscribeListeners();
         this.listenToSocket();
     }
     instantiateCSInterface() {
         this.csInterface = new CSInterface();
-    }
-    makePanelPersistent() {
-        const event = new CSEvent("com.adobe.PhotoshopPersistent", "APPLICATION");
-        event.extensionId = "com.example.validatorPanel.extension";
-        CSInterface.dispatchEvent(event);
     }
     subscribeListeners() {
         this.eventsObj.on("writeData", data => {
