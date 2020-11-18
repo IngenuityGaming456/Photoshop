@@ -53,6 +53,8 @@ var menuLabels = require("../../res/menuLables");
 var MenuProxyManager = /** @class */ (function () {
     function MenuProxyManager(modelFactory) {
         this.menuStates = [];
+        this.promiseCallQueue = [];
+        this.queueResolveStatus = null;
         this.modelFactory = modelFactory;
     }
     MenuProxyManager.prototype.execute = function (params) {
@@ -74,8 +76,8 @@ var MenuProxyManager = /** @class */ (function () {
     };
     MenuProxyManager.prototype.subscribeListeners = function () {
         var _this = this;
-        this.docEmitter.on(constants_1.photoshopConstants.logger.currentDocument, function () { return _this.enableAllMenuItems(); });
-        this.docEmitter.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.disableAllMenuItems(); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.currentDocument, function () { return _this.modifyAllMenuItems("en", true); });
+        this.docEmitter.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.modifyAllMenuItems("dis", false); });
     };
     MenuProxyManager.prototype.addMenuItems = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -135,59 +137,50 @@ var MenuProxyManager = /** @class */ (function () {
             });
         });
     };
-    MenuProxyManager.prototype.enableAllMenuItems = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _i, menu;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _a = [];
-                        for (_b in menuLabels)
-                            _a.push(_b);
-                        _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
-                        menu = _a[_i];
-                        if (!(menuLabels.hasOwnProperty(menu) && menuLabels[menu].enabled !== false)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.generator.toggleMenu(menuLabels[menu].label, true, false, menuLabels[menu].displayName)];
-                    case 2:
-                        _c.sent();
-                        _c.label = 3;
-                    case 3:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
-                }
-            });
+    MenuProxyManager.prototype.modifyAllMenuItems = function (key, enable) {
+        var _this = this;
+        if (this.canPushToQueue(key, enable)) {
+            key && this.promiseCallQueue.push(key);
+            console.log(JSON.stringify({ queue: this.promiseCallQueue }));
+        }
+        else {
+            return;
+        }
+        if (this.isQueueBusy() && key) {
+            return;
+        }
+        var p = [];
+        for (var menu in menuLabels) {
+            if (menuLabels.hasOwnProperty(menu)) {
+                p.push(this.generator.toggleMenu(menuLabels[menu].label, enable, false, menuLabels[menu].displayName));
+            }
+        }
+        Promise.all(p).then(function () {
+            console.log("All Elements Settled with " + enable);
+            _this.promiseCallQueue.splice(0, 1);
+            _this.logEndStatus(enable);
+            console.log(JSON.stringify({ queue: _this.promiseCallQueue }));
+            if (_this.canQueueProcess()) {
+                enable = _this.promiseCallQueue[0] === "en";
+                _this.modifyAllMenuItems(undefined, enable);
+            }
         });
     };
-    MenuProxyManager.prototype.disableAllMenuItems = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _i, menu;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _a = [];
-                        for (_b in menuLabels)
-                            _a.push(_b);
-                        _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 4];
-                        menu = _a[_i];
-                        if (!menuLabels.hasOwnProperty(menu)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.generator.toggleMenu(menuLabels[menu].label, false, false, menuLabels[menu].displayName)];
-                    case 2:
-                        _c.sent();
-                        _c.label = 3;
-                    case 3:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
+    MenuProxyManager.prototype.isQueueBusy = function () {
+        return this.promiseCallQueue.length > 1;
+    };
+    MenuProxyManager.prototype.canQueueProcess = function () {
+        return this.promiseCallQueue.length > 0;
+    };
+    MenuProxyManager.prototype.canPushToQueue = function (key, enable) {
+        var queueLength = this.promiseCallQueue.length;
+        return (queueLength === 0 && this.queueResolveStatus !== enable) || (queueLength > 0 && this.promiseCallQueue[queueLength - 1] !== key);
+    };
+    MenuProxyManager.prototype.logEndStatus = function (enable) {
+        this.queueResolveStatus = enable;
+        if (enable) {
+            this.docEmitter.emit("logStatus", "Menu Stabilized");
+        }
     };
     return MenuProxyManager;
 }());

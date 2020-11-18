@@ -58,6 +58,10 @@ export class NoDataPhotoshopModel implements IDataSubModel{
         return null;
     }
 
+    accessModifiedIds() {
+        return [];
+    }
+
     public makeElementalObject() {
         const elementalObj = {};
         for (let item of this.questComponents) {

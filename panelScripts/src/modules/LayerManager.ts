@@ -4,7 +4,7 @@ import * as path from "path";
 import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
-
+import {utlis} from "../utils/utils";
 let LayerClass = require("../../lib/dom/layer.js");
 let packageJson = require("../../package.json");
 
@@ -12,7 +12,6 @@ export class LayerManager implements IFactory{
     private  _generator;
     private  _activeDocument: Document;
     private  pluginId: string;
-    public static promiseArray: Array<Promise<any>> = [];
     private eventName: string;
     private selectedLayers = [];
     private localisedLayers = [];
@@ -55,6 +54,7 @@ export class LayerManager implements IFactory{
         this._generator.on(pc.generator.duplicate, () => {
             if(this.eventName !== Events.OTHER) {
                 this.eventName = Events.DUPLICATE;
+                console.log(this.eventName);
             }
         });
         this.docEmitter.on(pc.localisation, localisedLayers => {
@@ -75,7 +75,7 @@ export class LayerManager implements IFactory{
         if(isNewDocument) {
             this.constructQueuedArray(eventLayers);
             this.docEmitter.once(pc.logger.currentDocument, async ()=> {
-                await this.handleImportEvent(this.queuedImageLayers, undefined);
+                await this.handleImportEvent(this.queuedImageLayers);
                 this.queuedImageLayers = [];
             });
             return;
@@ -120,11 +120,16 @@ export class LayerManager implements IFactory{
             default :
                 const mappedIds = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).getMappedIds();
                 if(mappedIds.length) {
-                    await this.handleDuplicate(changedLayers, mappedIds, []);
+                    await this.handleMappedDuplicate(changedLayers, mappedIds, []);
                 } else {
-                    await this.handleImportEvent(changedLayers, undefined);
+                    await this.handleImportEvent(changedLayers);
                 }
         }
+    }
+
+    private async handleMappedDuplicate(changedLayers, parentLayers, deletedLayers) {
+        const referredIds = await this.handleDuplicate(changedLayers, parentLayers, deletedLayers);
+        utlis.spliceFromIdArray(parentLayers, referredIds);
     }
 
     private async handleDuplicateEvent(changedLayers) {
@@ -146,7 +151,7 @@ export class LayerManager implements IFactory{
 
     private async handleDuplicate(changedLayers, parentLayers, deletedLayers) {
         const addedLayers = this.handleEvent(changedLayers, undefined);
-        await this.getImageDataOfEvent(addedLayers, parentLayers, deletedLayers);
+        return await this.getImageDataOfEvent(addedLayers, parentLayers, deletedLayers);
     }
 
     private handleEvent(changedLayers, addedLayers) {
@@ -165,26 +170,25 @@ export class LayerManager implements IFactory{
         return addedLayers;
     }
 
-    private async handleImportEvent(changedLayers, promiseArray: Array<Promise<any>>) {
-        promiseArray = promiseArray || [];
+    private async handleImportEvent(changedLayers) {
         const layersCount = changedLayers.length;
         for(let i=0;i<layersCount;i++) {
             const change = changedLayers[i];
             if(change.hasOwnProperty("added") && change.type === "layer") {
                 try {
-                    await this.getImageData(change.id, promiseArray);
+                    await this.getImageData(change.id);
                     console.log("Pixels Added");
                 } catch(err) {
                     console.log("error occured while pixel update");
                 }
             }
             if(change.hasOwnProperty("layers")) {
-                await this.handleImportEvent(change.layers, promiseArray);
+                await this.handleImportEvent(change.layers);
             }
         }
     }
 
-    private async getImageData(layerId: number, promiseArray: Array<Promise<any>>) {
+    private async getImageData(layerId: number) {
         let pixmap = await this._generator.getPixmap(this._activeDocument.id, layerId, {scaleX: 0.5, scaleY: 0.5});
         let pixmapBuffer = Buffer.from(pixmap.pixels);
         let cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
@@ -197,10 +201,12 @@ export class LayerManager implements IFactory{
     }
 
     private async getImageDataOfEvent(layersArray, parentLayers, deletedLayers) {
-        //console.log("Paste Image Pixel Data Addition Started");
+        const referredIds = [];
         const layersCount = layersArray.length;
         for(let i=0;i<layersCount;i++) {
-            const copiedLayerRef = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
+            const refObject = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
+            const copiedLayerRef = refObject?.ref;
+            refObject && referredIds.push(refObject.id);
             if(copiedLayerRef instanceof LayerClass.LayerGroup) {
                 await this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id);
                 const pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
@@ -212,6 +218,7 @@ export class LayerManager implements IFactory{
                 copiedLayerRef && await this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id);
             }
         }
+        return referredIds;
     }
 
     private getCorrectCopiedLayerRef(layerName, parentLayers) {
@@ -219,7 +226,7 @@ export class LayerManager implements IFactory{
             const ref = this.findLayerRef(this._activeDocument.layers.layers,
                 id);
             if(ref && ref.layer && ref.layer.name === layerName || ref && ref.name && ref.name === layerName) {
-                return ref;
+                return {ref, id};
             }
         }
         return null;
@@ -273,13 +280,15 @@ export class LayerManager implements IFactory{
         return cBuffer;
     }
 
-    private setLayerSettings(bufferPayload, layerId): Promise<any> {
+    private async setLayerSettings(bufferPayload, layerId): Promise<any> {
         if(Object.keys(bufferPayload).length) {
-            const promise = this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
-            LayerManager.promiseArray.push(promise);
-            return promise;
+            try {
+                await this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
+                console.log(`pixels added for id ${layerId}`)
+            } catch(err) {
+                console.log("error in pixel Mapping");
+            }
         }
-        return Promise.resolve();
     }
 }
 

@@ -12,7 +12,8 @@
         },
         "fiveOfAKindContainer": {
             "type": "container",
-            "id": "fiveOfAKindContainer"
+            "id": "fiveOfAKindContainer",
+            "leaf": true
         },
         "buttonsContainer": {
             "type": "container",
@@ -71,28 +72,34 @@
         "AutoPlayOnBtnContainer": {
             "type": "container",
             "id": "AutoPlayOnBtnContainer",
-            "parent": "buttonsContainer"
+            "parent": "buttonsContainer",
+            "leaf": true
         },
         "promoMessageContainer": {
             "type": "container",
-            "id": "promoMessageContainer"
+            "id": "promoMessageContainer",
+            "leaf": true
         },
         "reelsContainer": {
             "type": "container",
-            "id": "reelsContainer"
+            "id": "reelsContainer",
+            "noElement": true
         },
         "reelsBGContainer": {
             "type": "container",
             "id": "reelsBGContainer",
-            "parent": "reelsContainer"
+            "parent": "reelsContainer",
+            "leaf": true
         },
         "gameLogoContainer": {
             "type": "container",
-            "id": "gameLogoContainer"
+            "id": "gameLogoContainer",
+            "leaf": true
         },
         "Symbols": {
             "type": "container",
-            "id": "Symbols"
+            "id": "Symbols",
+            "leaf": true
         }
     }
 }

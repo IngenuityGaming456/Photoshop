@@ -41,7 +41,7 @@ var path = require("path");
 var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
 var JsonComponents_1 = require("./JsonComponents");
 var constants_1 = require("../constants");
-var utils_1 = require("../utils/utils");
+var PhotoshopFactoryHelpers_1 = require("./PhotoshopFactoryHelpers");
 var packageJson = require("../../package.json");
 var PhotoshopFactory = /** @class */ (function () {
     function PhotoshopFactory(modelFactory) {
@@ -76,16 +76,16 @@ var PhotoshopFactory = /** @class */ (function () {
                         if (!(_i < _a.length)) return [3 /*break*/, 7];
                         keys = _a[_i];
                         jsxParams = { parentId: "", childName: "", type: "" };
-                        if (!parserObject.hasOwnProperty(keys) || keys === "base") {
+                        if (!parserObject.hasOwnProperty(keys) || !(parserObject[keys] instanceof Object)) {
                             return [3 /*break*/, 6];
                         }
                         layerType = parserObject[keys].type;
-                        return [4 /*yield*/, this.setParams(jsxParams, parserObject, keys, insertionPoint)];
+                        return [4 /*yield*/, this.setParams(jsxParams, parserObject, keys, insertionPoint, assetsPath)];
                     case 2:
                         _c.sent();
                         if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 4];
                         this.baseView = keys;
-                        return [4 /*yield*/, this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type)];
+                        return [4 /*yield*/, this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type, assetsPath)];
                     case 3:
                         _c.sent();
                         return [3 /*break*/, 6];
@@ -96,7 +96,7 @@ var PhotoshopFactory = /** @class */ (function () {
                             this.photoshopModel.automationOn = true;
                         }
                         this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath)];
+                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type)];
                     case 5:
                         _c.sent();
                         this.photoshopModel.automationOn = false;
@@ -110,30 +110,23 @@ var PhotoshopFactory = /** @class */ (function () {
         });
     };
     PhotoshopFactory.prototype.getMappedKey = function () {
+        var _a, _b;
         var mappedPlatform = this.photoshopModel.mappedPlatformObj;
-        if (this.platform && this.platform in mappedPlatform) {
-            return mappedPlatform[this.platform][this.baseView]["mapping"];
+        if (this.platform && (this.platform in mappedPlatform || "noConnection" in mappedPlatform)) {
+            return (_b = (_a = mappedPlatform[this.platform]) === null || _a === void 0 ? void 0 : _a[this.baseView]["mapping"]) !== null && _b !== void 0 ? _b : mappedPlatform["noConnection"][this.baseView]["mapping"];
         }
         return null;
     };
-    PhotoshopFactory.prototype.setParams = function (jsxParams, parserObject, keys, insertionPoint) {
+    PhotoshopFactory.prototype.setParams = function (jsxParams, parserObject, keys, insertionPoint, assetsPath) {
         return __awaiter(this, void 0, void 0, function () {
-            var jsxDim, _a, _b;
+            var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        if ("x" in parserObject[keys] && "y" in parserObject[keys]) {
-                            jsxDim = jsxParams["dimensions"] = {};
-                            jsxDim["x"] = parserObject[keys].x;
-                            jsxDim["y"] = parserObject[keys].y;
-                            jsxDim["h"] = parserObject[keys].h || parserObject[keys].height;
-                            jsxDim["w"] = parserObject[keys].w || parserObject[keys].width;
-                            jsxDim["parentX"] = parserObject[keys].parentX;
-                            jsxDim["parentY"] = parserObject[keys].parentY;
-                        }
-                        if (parserObject[keys].image) {
-                            jsxParams.image = parserObject[keys].image;
-                        }
+                        PhotoshopFactoryHelpers_1.addDimensionsToParams(jsxParams, parserObject, keys);
+                        PhotoshopFactoryHelpers_1.addImageToParams(jsxParams, parserObject, keys, assetsPath);
+                        PhotoshopFactoryHelpers_1.addFramesToParams(jsxParams, parserObject, keys, assetsPath);
+                        PhotoshopFactoryHelpers_1.addTextToParams(jsxParams, parserObject, keys, assetsPath);
                         jsxParams.leaf = parserObject[keys].leaf;
                         jsxParams.childName = parserObject[keys].id;
                         _a = jsxParams;
@@ -152,7 +145,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.createBaseChild = function (jsxParams, keys, insertionPoint, parserObject, type) {
+    PhotoshopFactory.prototype.createBaseChild = function (jsxParams, keys, insertionPoint, parserObject, type, assetsPath) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -166,7 +159,7 @@ var PhotoshopFactory = /** @class */ (function () {
                         return [4 /*yield*/, this.insertBaseMetaData(insertionPoint)];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type)];
+                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type, assetsPath)];
                     case 3:
                         _a.sent();
                         return [2 /*return*/];
@@ -217,7 +210,7 @@ var PhotoshopFactory = /** @class */ (function () {
             });
         });
     };
-    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type, assetsPath, dimensions) {
+    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type) {
         return __awaiter(this, void 0, void 0, function () {
             var jsonMap, element, childId;
             return __generator(this, function (_a) {
@@ -228,9 +221,6 @@ var PhotoshopFactory = /** @class */ (function () {
                         if (!(element instanceof JsonComponents_1.PhotoshopJsonComponent)) return [3 /*break*/, 2];
                         jsxParams.type = element.getType();
                         jsxParams.subType = element.getSubType();
-                        if (layerType === "image") {
-                            jsxParams.file = utils_1.utlis.recurFiles(jsxParams.image, assetsPath);
-                        }
                         return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
                     case 1:
                         childId = _a.sent();
@@ -275,7 +265,7 @@ var PhotoshopFactory = /** @class */ (function () {
             if (!mappedView.hasOwnProperty(key)) {
                 continue;
             }
-            var typeArray = elementalMap[key][mappedView[key]][layerType];
+            var typeArray = key === "noConnection" ? elementalMap[this.platform][mappedView[key]][layerType] : elementalMap[key][mappedView[key]][layerType];
             var mappedLayer = typeArray.find(function (item) {
                 if (item.name === jsxParams.childName) {
                     return true;

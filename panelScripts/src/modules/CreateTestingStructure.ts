@@ -8,7 +8,7 @@ export class CreateTestingStructure implements IFactory {
     private modelFactory;
 
     public constructor(modelFactory: ModelFactory) {
-        this.modifiedIds = (modelFactory.getPhotoshopModel() as PhotoshopModelApp).allModifiedIds;
+        this.modifiedIds = (modelFactory.getPhotoshopModel() as PhotoshopModelApp).allModifiedIds || [];
         this.modelFactory = modelFactory;
     }
     public async execute(params: IParams) {

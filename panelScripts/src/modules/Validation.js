@@ -645,21 +645,32 @@ var Validation = /** @class */ (function () {
         return this;
     };
     Validation.prototype.isErrorFree = function (eventLayers, callback) {
+        var e_10, _a;
         var errorData = callback(eventLayers);
-        if (errorData) {
-            utils_1.utlis.spliceFrom(errorData.id, this.layersErrorData);
-            this.docEmitter.emit(constants_1.photoshopConstants.logger.removeError, eventLayers[0].id);
+        try {
+            for (var errorData_1 = __values(errorData), errorData_1_1 = errorData_1.next(); !errorData_1_1.done; errorData_1_1 = errorData_1.next()) {
+                var errorElm = errorData_1_1.value;
+                utils_1.utlis.spliceFrom(errorElm.id, this.layersErrorData);
+                this.docEmitter.emit(constants_1.photoshopConstants.logger.removeError, errorElm.id);
+            }
+        }
+        catch (e_10_1) { e_10 = { error: e_10_1 }; }
+        finally {
+            try {
+                if (errorData_1_1 && !errorData_1_1.done && (_a = errorData_1.return)) _a.call(errorData_1);
+            }
+            finally { if (e_10) throw e_10.error; }
         }
     };
     Validation.prototype.errorFreeFromRename = function (eventLayers) {
-        return this.layersErrorData.find(function (item) {
+        return this.layersErrorData.filter(function (item) {
             if (item.id === eventLayers[0].id && !~eventLayers[0].name.search(/(Error)/)) {
                 return true;
             }
         });
     };
     Validation.prototype.errorFreeFromDeletion = function (eventLayers) {
-        return this.layersErrorData.find(function (item) {
+        return this.layersErrorData.filter(function (item) {
             var isInDeletedLayers = utils_1.utlis.isIDExists(item.id, eventLayers);
             if (isInDeletedLayers) {
                 return true;

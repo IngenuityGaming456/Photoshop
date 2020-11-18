@@ -1,11 +1,10 @@
 import {IJsonStorage, IState} from "../interfaces/interfaces";
 import {FirstRender} from "./FirstRender";
 import {OtherRenders} from "./OtherRenders";
-import {utils} from "../utils/utils";
 
 export class StateContext {
     private readonly firstRender: IState;
-    private readonly otherRenders: IState;
+    protected otherRenders: IState;
     private currentState: IState;
 
     public constructor() {
@@ -33,8 +32,8 @@ export class StateContext {
         return this.currentState.isChecked(childLabel, key);
     }
 
-    public isDisabled(childLabel, type?, isContainer?) {
-        return this.currentState.isDisabled(childLabel, type, isContainer);
+    public isDisabled(childLabel, type?, isContainer?, questElements?) {
+        return this.currentState.isDisabled(childLabel, type, isContainer, questElements);
     }
 
 }

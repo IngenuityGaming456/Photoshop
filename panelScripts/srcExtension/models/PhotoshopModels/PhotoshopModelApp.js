@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -174,9 +174,13 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
     PhotoshopModelApp.prototype.handleData = function () {
         _super.prototype.handleData.call(this);
         this.localisationStruct = this.accessDocLocalisationStruct();
+        this.modifiedIds = this.accessModifiedIds();
     };
     PhotoshopModelApp.prototype.accessDocLocalisationStruct = function () {
         return this.subPhotoshopModel.accessDocLocalisationStruct();
+    };
+    PhotoshopModelApp.prototype.accessModifiedIds = function () {
+        return this.subPhotoshopModel.accessModifiedIds();
     };
     PhotoshopModelApp.prototype.storeSelectedName = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -223,6 +227,7 @@ var PhotoshopModelApp = /** @class */ (function (_super) {
     PhotoshopModelApp.prototype.getWriteData = function () {
         _super.prototype.getWriteData.call(this);
         this.writeData["docLocalisationStruct"] = this.localisationStruct;
+        this.writeData["modifiedIds"] = this.modifiedIds;
     };
     Object.defineProperty(PhotoshopModelApp.prototype, "selectedName", {
         get: function () {

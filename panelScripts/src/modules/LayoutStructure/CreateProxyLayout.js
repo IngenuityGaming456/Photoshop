@@ -105,7 +105,7 @@ var CreateProxyLayout = /** @class */ (function () {
                         return [4 /*yield*/, this.modifyParentNames()];
                     case 3:
                         _b.sent();
-                        this.checkSymbols();
+                        this.checkLayers();
                         this.checkImageFolder();
                         return [4 /*yield*/, this.checkLocalisationStruct()];
                     case 4:
@@ -157,6 +157,7 @@ var CreateProxyLayout = /** @class */ (function () {
                         for (i = 0; i < noOfArtLayers; i++) {
                             generatorJson = this.artLayers[i].generatorSettings[packageJson.name];
                             if (!generatorJson) {
+                                this.logError(this.artLayers[i].id, this.artLayers[i].name, this.artLayers[i].name + " has no Generator Settings. Delete and ReTry");
                                 continue;
                             }
                             keyPixmap = JSON.parse(generatorJson.json);
@@ -267,31 +268,16 @@ var CreateProxyLayout = /** @class */ (function () {
             });
         });
     };
-    CreateProxyLayout.prototype.checkSymbols = function () {
-        utils_1.utlis.traverseBaseFreeGame(this.document.layers, this.inspectSymbols.bind(this));
+    CreateProxyLayout.prototype.checkLayers = function () {
+        utils_1.utlis.traverseObject(this.document.layers, undefined, this.inspectLayers.bind(this));
     };
-    CreateProxyLayout.prototype.inspectSymbols = function (viewLayer) {
-        var e_2, _a;
-        var _this = this;
-        if (!viewLayer.layers) {
-            return;
+    CreateProxyLayout.prototype.inspectLayers = function (layerSec) {
+        var type = utils_1.utlis.getGenSettings(layerSec, packageJson.name);
+        if (type === "symbol") {
+            this.checkIfStaticEmpty(layerSec);
         }
-        try {
-            for (var _b = __values(viewLayer.layers), _c = _b.next(); !_c.done; _c = _b.next()) {
-                var item = _c.value;
-                if (item.name === constants_1.photoshopConstants.generatorButtons.symbols && item.layers) {
-                    item.layers.forEach(function (itemS) {
-                        _this.checkIfStaticEmpty(itemS);
-                    });
-                }
-            }
-        }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
-        finally {
-            try {
-                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-            }
-            finally { if (e_2) throw e_2.error; }
+        if (type === "bitmap" || type === "meter") {
+            this.isEmpty(layerSec, layerSec.name + " is empty");
         }
     };
     CreateProxyLayout.prototype.checkIfStaticEmpty = function (item) {
@@ -299,31 +285,35 @@ var CreateProxyLayout = /** @class */ (function () {
         if (item.type === "layerSection") {
             item.layers && item.layers.forEach(function (itemS) {
                 if (itemS.name === constants_1.photoshopConstants.static) {
-                    if (!itemS.layers) {
-                        _this.logError(itemS.id, itemS.name, "Symbol with name " + item.name + " has empty Static folder");
-                    }
-                    else {
-                        _this.removeError(itemS.id);
-                    }
+                    _this.isEmpty(itemS, "Symbol with name " + item.name + " has empty Static folder");
                 }
             });
         }
     };
+    CreateProxyLayout.prototype.isEmpty = function (itemS, message) {
+        if (!itemS.layers) {
+            this.logError(itemS.id, itemS.name, message);
+        }
+        else {
+            this.removeError(itemS.id);
+        }
+    };
     CreateProxyLayout.prototype.checkImageFolder = function () {
         this.assetsPath = this.getPath();
-        // if(!this.isPluginEnabled()) {
-        //     this.logError(1001, "", "Image Assets plugin is not on.");
-        // } else {
-        //     this.removeError(1001);
-        // }
+        if (!this.isPluginEnabled() && ~__dirname.search("Generator")) {
+            this.logError(1001, "", "Image Assets plugin is not on.");
+        }
+        else {
+            this.removeError(1001);
+        }
     };
     CreateProxyLayout.prototype.isPluginEnabled = function () {
         return this.imageState.state;
     };
     CreateProxyLayout.prototype.checkLocalisationStruct = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var localisationStruct, langIds, langIds_1, langIds_1_1, id, idRef, e_3_1;
-            var e_3, _a;
+            var localisationStruct, langIds, langIds_1, langIds_1_1, id, idRef, e_2_1;
+            var e_2, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -350,14 +340,14 @@ var CreateProxyLayout = /** @class */ (function () {
                         return [3 /*break*/, 2];
                     case 5: return [3 /*break*/, 8];
                     case 6:
-                        e_3_1 = _b.sent();
-                        e_3 = { error: e_3_1 };
+                        e_2_1 = _b.sent();
+                        e_2 = { error: e_2_1 };
                         return [3 /*break*/, 8];
                     case 7:
                         try {
                             if (langIds_1_1 && !langIds_1_1.done && (_a = langIds_1.return)) _a.call(langIds_1);
                         }
-                        finally { if (e_3) throw e_3.error; }
+                        finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }
@@ -382,7 +372,7 @@ var CreateProxyLayout = /** @class */ (function () {
         });
     };
     CreateProxyLayout.prototype.getHierarchyStructure = function (idLayers, hierarchyStruct, wholeHierarchy) {
-        var e_4, _a;
+        var e_3, _a;
         var hierarchyClone = [];
         try {
             for (var idLayers_1 = __values(idLayers), idLayers_1_1 = idLayers_1.next(); !idLayers_1_1.done; idLayers_1_1 = idLayers_1.next()) {
@@ -403,12 +393,12 @@ var CreateProxyLayout = /** @class */ (function () {
                 }
             }
         }
-        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
         finally {
             try {
                 if (idLayers_1_1 && !idLayers_1_1.done && (_a = idLayers_1.return)) _a.call(idLayers_1);
             }
-            finally { if (e_4) throw e_4.error; }
+            finally { if (e_3) throw e_3.error; }
         }
         if (~hierarchyClone.indexOf(true)) {
             hierarchyClone = __spread(hierarchyStruct, hierarchyClone);
@@ -421,8 +411,8 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.sendLocalisationResponse = function (platfromId, langId, wholeHierarchyStruct) {
         return __awaiter(this, void 0, void 0, function () {
-            var wholeHierarchyStruct_1, wholeHierarchyStruct_1_1, hierarchyStruct, hierarchyArray, trueIndex, responseObj, response, isTrue, e_5_1;
-            var e_5, _a;
+            var wholeHierarchyStruct_1, wholeHierarchyStruct_1_1, hierarchyStruct, hierarchyArray, trueIndex, responseObj, response, isTrue, e_4_1;
+            var e_4, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -450,14 +440,14 @@ var CreateProxyLayout = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 4: return [3 /*break*/, 7];
                     case 5:
-                        e_5_1 = _b.sent();
-                        e_5 = { error: e_5_1 };
+                        e_4_1 = _b.sent();
+                        e_4 = { error: e_4_1 };
                         return [3 /*break*/, 7];
                     case 6:
                         try {
                             if (wholeHierarchyStruct_1_1 && !wholeHierarchyStruct_1_1.done && (_a = wholeHierarchyStruct_1.return)) _a.call(wholeHierarchyStruct_1);
                         }
-                        finally { if (e_5) throw e_5.error; }
+                        finally { if (e_4) throw e_4.error; }
                         return [7 /*endfinally*/];
                     case 7: return [2 /*return*/];
                 }
@@ -517,11 +507,13 @@ var CreateProxyLayout = /** @class */ (function () {
     };
     CreateProxyLayout.prototype.initializeLayout = function () {
         var layout = FactoryClass_1.inject({ ref: CreateLayoutStructure_1.CreateLayoutStructure, dep: [ModelFactory_1.ModelFactory], isNonSingleton: true });
-        FactoryClass_1.execute(layout, { storage: {
+        FactoryClass_1.execute(layout, {
+            storage: {
                 layerMap: this.layerMap,
                 bufferMap: this.bufferMap,
                 assetsPath: this.assetsPath,
-            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
+            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter
+        });
     };
     CreateProxyLayout.prototype.logError = function (id, name, errorType) {
         if (!utils_1.utlis.isIDExists(id, this.errorData)) {

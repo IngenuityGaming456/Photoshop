@@ -61,16 +61,42 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Creation = void 0;
 var utils_1 = require("../../utils/utils");
 var path = require("path");
+var constants_1 = require("../../constants");
 var Creation = /** @class */ (function () {
-    function Creation() {
+    function Creation(modelFactory) {
+        this.modelFactory = modelFactory;
     }
     Creation.prototype.execute = function (params) {
-        this.diffObj = params.storage.result;
-        this.pFactory = params.storage.pFactory;
-        this.generator = params.generator;
-        this.activeDocument = params.activeDocument;
-        this.qAssets = params.storage.qAssets;
-        this.handleChangesInPS();
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.diffObj = params.storage.result;
+                        this.pFactory = params.storage.pFactory;
+                        this.generator = params.generator;
+                        this.activeDocument = params.activeDocument;
+                        this.qAssets = params.storage.qAssets;
+                        this.docEmitter = params.docEmitter;
+                        this.subscribeListeners();
+                        this.isReady();
+                        return [4 /*yield*/, this.handleChangesInPS()];
+                    case 1:
+                        _a.sent();
+                        this.controlQuestPanel();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Creation.prototype.subscribeListeners = function () {
+        var _this = this;
+        this.docEmitter.on(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, function (socket) { return _this.onSocketUpdate(socket); });
+    };
+    Creation.prototype.isReady = function () {
+        this.docEmitter.emit("creationReady");
+    };
+    Creation.prototype.onSocketUpdate = function (socket) {
+        this.socket = socket;
     };
     Creation.prototype.handleChangesInPS = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -253,47 +279,66 @@ var Creation = /** @class */ (function () {
     };
     Creation.prototype.handleCreation = function (createObj) {
         return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var _a, _b, _i, key, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0: return [4 /*yield*/, this.handleViewCreation(createObj["views"])];
                     case 1:
-                        _a.sent();
-                        return [4 /*yield*/, this.handleComponentsCreation(createObj["container"])];
+                        _d.sent();
+                        _a = [];
+                        for (_b in createObj)
+                            _a.push(_b);
+                        _i = 0;
+                        _d.label = 2;
                     case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.handleComponentsCreation(createObj["image"])];
+                        if (!(_i < _a.length)) return [3 /*break*/, 6];
+                        key = _a[_i];
+                        if (!createObj.hasOwnProperty(key)) {
+                            return [3 /*break*/, 5];
+                        }
+                        _c = key !== "views";
+                        if (!_c) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.handleComponentsCreation(createObj[key])];
                     case 3:
-                        _a.sent();
-                        return [2 /*return*/];
+                        _c = (_d.sent());
+                        _d.label = 4;
+                    case 4:
+                        _c;
+                        _d.label = 5;
+                    case 5:
+                        _i++;
+                        return [3 /*break*/, 2];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
     };
     Creation.prototype.handleViewCreation = function (views) {
         return __awaiter(this, void 0, void 0, function () {
-            var views_1, views_1_1, view, platformRef, commonId, e_1_1;
-            var e_1, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var views_1, views_1_1, view, platformRef, commonId, viewName, e_1_1;
+            var e_1, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        _b.trys.push([0, 5, 6, 7]);
+                        _c.trys.push([0, 5, 6, 7]);
                         views_1 = __values(views), views_1_1 = views_1.next();
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
                         if (!!views_1_1.done) return [3 /*break*/, 4];
                         view = views_1_1.value;
                         platformRef = utils_1.utlis.getPlatformRef(view.platform, this.activeDocument);
                         commonId = utils_1.utlis.getCommonId(platformRef);
-                        return [4 /*yield*/, this.pFactory.makeStruct(view.view, commonId, null, view.platform, "quest")];
+                        viewName = Object.keys(view)[0];
+                        return [4 /*yield*/, this.pFactory.makeStruct((_b = {}, _b[viewName] = {}, _b), commonId, null, view.platform, "quest", this.qAssets)];
                     case 2:
-                        _b.sent();
-                        _b.label = 3;
+                        _c.sent();
+                        _c.label = 3;
                     case 3:
                         views_1_1 = views_1.next();
                         return [3 /*break*/, 1];
                     case 4: return [3 /*break*/, 7];
                     case 5:
-                        e_1_1 = _b.sent();
+                        e_1_1 = _c.sent();
                         e_1 = { error: e_1_1 };
                         return [3 /*break*/, 7];
                     case 6:
@@ -308,34 +353,40 @@ var Creation = /** @class */ (function () {
         });
     };
     Creation.prototype.handleComponentsCreation = function (comps) {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var comps_1, comps_1_1, comp, compId, e_2_1;
-            var e_2, _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var comps_1, comps_1_1, comp, compId, elementalMap, currentView, e_2_1;
+            var e_2, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
-                        _c.trys.push([0, 5, 6, 7]);
+                        _d.trys.push([0, 5, 6, 7]);
                         comps_1 = __values(comps), comps_1_1 = comps_1.next();
-                        _c.label = 1;
+                        _d.label = 1;
                     case 1:
                         if (!!comps_1_1.done) return [3 /*break*/, 4];
                         comp = comps_1_1.value;
                         compId = comp.key.id;
-                        return [4 /*yield*/, this.pFactory.makeStruct((_b = {}, _b[compId] = comp.key, _b), comp.viewId, comp.view, comp.platform, "quest", this.qAssets)];
+                        if (!comp.viewId) {
+                            elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+                            currentView = elementalMap[comp.platform][comp.view];
+                            comp.viewId = (_a = currentView === null || currentView === void 0 ? void 0 : currentView.base) === null || _a === void 0 ? void 0 : _a.id;
+                        }
+                        return [4 /*yield*/, this.pFactory.makeStruct((_c = {}, _c[compId] = comp.key, _c), comp.viewId, comp.view, comp.platform, "quest", this.qAssets)];
                     case 2:
-                        _c.sent();
-                        _c.label = 3;
+                        _d.sent();
+                        _d.label = 3;
                     case 3:
                         comps_1_1 = comps_1.next();
                         return [3 /*break*/, 1];
                     case 4: return [3 /*break*/, 7];
                     case 5:
-                        e_2_1 = _c.sent();
+                        e_2_1 = _d.sent();
                         e_2 = { error: e_2_1 };
                         return [3 /*break*/, 7];
                     case 6:
                         try {
-                            if (comps_1_1 && !comps_1_1.done && (_a = comps_1.return)) _a.call(comps_1);
+                            if (comps_1_1 && !comps_1_1.done && (_b = comps_1.return)) _b.call(comps_1);
                         }
                         finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
@@ -398,6 +449,29 @@ var Creation = /** @class */ (function () {
                         finally { if (e_3) throw e_3.error; }
                         return [7 /*endfinally*/];
                     case 10: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Creation.prototype.controlQuestPanel = function () {
+        var layers = this.activeDocument.layers.layers;
+        utils_1.utlis.traverseObject(layers, undefined, this.onLayerContainers.bind(this));
+    };
+    Creation.prototype.onLayerContainers = function (layerSection) {
+        return __awaiter(this, void 0, void 0, function () {
+            var nameObj, elementView, elementPlatform;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        nameObj = utils_1.utlis.isNameExists(layerSection.name, this.modelFactory.getPhotoshopModel().allQuestItems);
+                        if (!nameObj) return [3 /*break*/, 2];
+                        elementView = utils_1.utlis.getElementView(layerSection, this.activeDocument.layers);
+                        elementPlatform = utils_1.utlis.getElementPlatform(layerSection, this.activeDocument.layers);
+                        return [4 /*yield*/, utils_1.utlis.sendResponseToPanel(elementView, elementPlatform, layerSection.name, "CheckIntoContainerPanel", "checkFinished", this.socket)];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
                 }
             });
         });

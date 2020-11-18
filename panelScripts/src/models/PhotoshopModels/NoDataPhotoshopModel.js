@@ -60,6 +60,9 @@ var NoDataPhotoshopModel = /** @class */ (function () {
     NoDataPhotoshopModel.prototype.accessDocLocalisationStruct = function () {
         return null;
     };
+    NoDataPhotoshopModel.prototype.accessModifiedIds = function () {
+        return [];
+    };
     NoDataPhotoshopModel.prototype.makeElementalObject = function () {
         var e_1, _a;
         var elementalObj = {};

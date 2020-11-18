@@ -38,7 +38,7 @@ var EventsManager = /** @class */ (function () {
                 .isMovedEvent(eventCopy);
         }
         catch (err) {
-            console.log("Event Dispatched");
+            console.log(err);
         }
     };
     EventsManager.prototype.subscribeListeners = function () {
@@ -159,7 +159,7 @@ var EventsManager = /** @class */ (function () {
                 this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, event.layers, this.isNewDocument);
             }
             else {
-                var parsedEvent = utils_1.utlis.getParsedEvent(addedPath.reverse(), event.layers);
+                var parsedEvent = utils_1.utlis.getParsedEvent(addedPath.reverse(), event.layers, { index: 0 }, null);
                 this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, parsedEvent, this.isNewDocument);
             }
             throw new Error("Added Event Dispatched");
@@ -192,6 +192,9 @@ var EventsManager = /** @class */ (function () {
             var subLayer = layers[i];
             if (subLayer.hasOwnProperty("added")) {
                 subPathArray.push(i);
+                if (layersCount === 1) {
+                    subPathArray.push(-1);
+                }
                 continue;
             }
             var addedResult = subLayer.layers && this.isAtLevel(subLayer.layers, "added");

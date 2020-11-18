@@ -109,7 +109,7 @@ var ContainerPanelResponse = /** @class */ (function () {
                         if (!element) return [3 /*break*/, 4];
                         elementView = utils_1.utlis.getElementView(element, activeDocumentCopy._layers);
                         elementPlatform = utils_1.utlis.getElementPlatform(element, activeDocumentCopy._layers);
-                        return [4 /*yield*/, this.sendResponseToPanel(elementView, elementPlatform, element.name)];
+                        return [4 /*yield*/, utils_1.utlis.sendResponseToPanel(elementView, elementPlatform, element.name, constants_1.photoshopConstants.socket.uncheckFromContainerPanel, "uncheckFinished", this.socket)];
                     case 3:
                         _b.sent();
                         _b.label = 4;
@@ -134,38 +134,29 @@ var ContainerPanelResponse = /** @class */ (function () {
             });
         });
     };
-    ContainerPanelResponse.prototype.sendResponseToPanel = function (elementView, elementPlatform, elementName) {
-        var _this = this;
-        return new Promise(function (resolve) {
-            var eventNames = _this.socket.eventNames();
-            if (~eventNames.indexOf("uncheckFinished")) {
-                _this.socket.removeAllListeners("uncheckFinished");
-            }
-            _this.socket.on("uncheckFinished", function () { return resolve(); });
-            _this.socket.emit(constants_1.photoshopConstants.socket.uncheckFromContainerPanel, elementPlatform, elementView, elementName);
-        });
-    };
     ContainerPanelResponse.prototype.getDataForChanges = function (type) {
         return __awaiter(this, void 0, void 0, function () {
-            var previousResponse, currentResponse;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var _a, previousResponse, currentResponse;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
+                        _a = this;
+                        return [4 /*yield*/, this.documentManager.getDocument(this.activeDocument.id)];
+                    case 1:
+                        _a.activeDocument = _b.sent();
                         this.setAutomationToYes();
                         previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
                         currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
-                        if (!previousResponse) return [3 /*break*/, 2];
+                        if (!previousResponse) return [3 /*break*/, 3];
                         return [4 /*yield*/, this.getChanges(previousResponse, currentResponse, type)];
-                    case 1:
-                        _a.sent();
-                        return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, this.construct(currentResponse, type)];
-                    case 3:
-                        _a.sent();
-                        _a.label = 4;
+                    case 2:
+                        _b.sent();
+                        return [3 /*break*/, 5];
+                    case 3: return [4 /*yield*/, this.construct(currentResponse, type)];
                     case 4:
-                        setTimeout(function () { return _this.resetMappedIds(); }, 0);
+                        _b.sent();
+                        _b.label = 5;
+                    case 5:
                         this.setAutomationToNo();
                         return [2 /*return*/];
                 }
@@ -425,10 +416,6 @@ var ContainerPanelResponse = /** @class */ (function () {
     };
     ContainerPanelResponse.prototype.onCurrentDocument = function () {
         this.socket.emit(constants_1.photoshopConstants.socket.enablePage);
-    };
-    ContainerPanelResponse.prototype.resetMappedIds = function () {
-        var mappedIds = this.modelFactory.getPhotoshopModel().getMappedIds();
-        mappedIds.length = 0;
     };
     ContainerPanelResponse.prototype.setAutomationToYes = function () {
         this.modelFactory.getPhotoshopModel().setAutomation = true;

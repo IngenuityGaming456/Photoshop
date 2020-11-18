@@ -42,6 +42,7 @@ export class DocumentStarter implements IFactory {
     private docEmitter;
     private loggerEmitter;
     private htmlSocket;
+    private selfHtmlSocket;
     private checkedBoxes;
     private connectedSockets = {};
     private activeId = {id: null};
@@ -109,13 +110,14 @@ export class DocumentStarter implements IFactory {
         execute(this.startModel, {generator: this.generator, activeDocument: this.activeDocument});
         this.openDocumentData = await this.startModel.onPhotoshopStart();
         await this.setDocumentMetaData();
-        this.sendToHTMLSocket();
+        utlis.sendToSocket(this.htmlSocket, [this.activeDocument.directory, this.docId], pc.socket.docOpen);
         this.instantiateStateEvent();
         this.instantiateDocumentModel();
         this.createObjects();
         await this.addMenuItems();
         this.createDependencies();
         await this.addDocumentStatus();
+        utlis.sendToSocket(this.selfHtmlSocket, [this.modelFactory.getPhotoshopModel().allQuestItems], "questItems");
     }
 
     private createSocket() {
@@ -173,6 +175,7 @@ export class DocumentStarter implements IFactory {
     }
 
     private createSelfHTMLSocket(socket) {
+        this.selfHtmlSocket = socket;
         socket.on("getRefreshResponse", storage => {
             this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
         });
@@ -276,6 +279,9 @@ export class DocumentStarter implements IFactory {
         this.docEmitter.on(pc.logger.containerPanelReady, () => {
             this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
         });
+        this.docEmitter.on("creationReady", () => {
+            this.docEmitter.emit(pc.logger.getUpdatedHTMLSocket, this.htmlSocket);
+        });
         this.generator.on(pc.generator.closedDocument, (closeId) => {
             this.onDocumentClose(closeId);
         });
@@ -347,7 +353,7 @@ export class DocumentStarter implements IFactory {
         execute(selfAddedStructures, {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: {documentManager: this.documentManager}
         });
-        const psParser = inject({ ref:PhotoshopParser, dep: [] });
+        inject({ ref:PhotoshopParser, dep: [] });
     }
 
     private stabalizeDocument() {

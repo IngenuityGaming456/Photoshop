@@ -153,11 +153,14 @@ export class PhotoshopModel implements IModel {
                 this.questViews.push(key);
                 this.storeItems(item[key]);
             }
-            this.pushToItems(key);
+            this.pushToItems(key, item);
         });
     }
 
-    private pushToItems(key) {
+    private pushToItems(key, item) {
+        if(item[key].id) {
+            key = item[key].id;
+        }
         if (!utlis.isKeyExists(this.questItems, key)) {
             this.questItems.push(key);
         }
@@ -321,7 +324,7 @@ export class PhotoshopModel implements IModel {
     }
 
     public getElementalObject() {
-        this.subPhotoshopModel
+        return this.subPhotoshopModel;
     }
 
 }

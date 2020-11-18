@@ -50,6 +50,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LayerManager = void 0;
 var path = require("path");
 var constants_1 = require("../constants");
+var utils_1 = require("../utils/utils");
 var LayerClass = require("../../lib/dom/layer.js");
 var packageJson = require("../../package.json");
 var LayerManager = /** @class */ (function () {
@@ -91,6 +92,7 @@ var LayerManager = /** @class */ (function () {
         this._generator.on(constants_1.photoshopConstants.generator.duplicate, function () {
             if (_this.eventName !== Events.OTHER) {
                 _this.eventName = Events.DUPLICATE;
+                console.log(_this.eventName);
             }
         });
         this.docEmitter.on(constants_1.photoshopConstants.localisation, function (localisedLayers) {
@@ -127,7 +129,7 @@ var LayerManager = /** @class */ (function () {
                             this.docEmitter.once(constants_1.photoshopConstants.logger.currentDocument, function () { return __awaiter(_this, void 0, void 0, function () {
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
-                                        case 0: return [4 /*yield*/, this.handleImportEvent(this.queuedImageLayers, undefined)];
+                                        case 0: return [4 /*yield*/, this.handleImportEvent(this.queuedImageLayers)];
                                         case 1:
                                             _a.sent();
                                             this.queuedImageLayers = [];
@@ -243,15 +245,29 @@ var LayerManager = /** @class */ (function () {
                     case 5:
                         mappedIds = this.modelFactory.getPhotoshopModel().getMappedIds();
                         if (!mappedIds.length) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this.handleDuplicate(changedLayers, mappedIds, [])];
+                        return [4 /*yield*/, this.handleMappedDuplicate(changedLayers, mappedIds, [])];
                     case 6:
                         _b.sent();
                         return [3 /*break*/, 9];
-                    case 7: return [4 /*yield*/, this.handleImportEvent(changedLayers, undefined)];
+                    case 7: return [4 /*yield*/, this.handleImportEvent(changedLayers)];
                     case 8:
                         _b.sent();
                         _b.label = 9;
                     case 9: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    LayerManager.prototype.handleMappedDuplicate = function (changedLayers, parentLayers, deletedLayers) {
+        return __awaiter(this, void 0, void 0, function () {
+            var referredIds;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.handleDuplicate(changedLayers, parentLayers, deletedLayers)];
+                    case 1:
+                        referredIds = _a.sent();
+                        utils_1.utlis.spliceFromIdArray(parentLayers, referredIds);
+                        return [2 /*return*/];
                 }
             });
         });
@@ -296,9 +312,7 @@ var LayerManager = /** @class */ (function () {
                     case 0:
                         addedLayers = this.handleEvent(changedLayers, undefined);
                         return [4 /*yield*/, this.getImageDataOfEvent(addedLayers, parentLayers, deletedLayers)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
+                    case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -319,13 +333,12 @@ var LayerManager = /** @class */ (function () {
         }
         return addedLayers;
     };
-    LayerManager.prototype.handleImportEvent = function (changedLayers, promiseArray) {
+    LayerManager.prototype.handleImportEvent = function (changedLayers) {
         return __awaiter(this, void 0, void 0, function () {
             var layersCount, i, change, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        promiseArray = promiseArray || [];
                         layersCount = changedLayers.length;
                         i = 0;
                         _a.label = 1;
@@ -336,7 +349,7 @@ var LayerManager = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.getImageData(change.id, promiseArray)];
+                        return [4 /*yield*/, this.getImageData(change.id)];
                     case 3:
                         _a.sent();
                         console.log("Pixels Added");
@@ -347,7 +360,7 @@ var LayerManager = /** @class */ (function () {
                         return [3 /*break*/, 5];
                     case 5:
                         if (!change.hasOwnProperty("layers")) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this.handleImportEvent(change.layers, promiseArray)];
+                        return [4 /*yield*/, this.handleImportEvent(change.layers)];
                     case 6:
                         _a.sent();
                         _a.label = 7;
@@ -359,7 +372,7 @@ var LayerManager = /** @class */ (function () {
             });
         });
     };
-    LayerManager.prototype.getImageData = function (layerId, promiseArray) {
+    LayerManager.prototype.getImageData = function (layerId) {
         return __awaiter(this, void 0, void 0, function () {
             var pixmap, pixmapBuffer, cBuffer, base64Pixmap, bufferPayload;
             return __generator(this, function (_a) {
@@ -381,16 +394,19 @@ var LayerManager = /** @class */ (function () {
     };
     LayerManager.prototype.getImageDataOfEvent = function (layersArray, parentLayers, deletedLayers) {
         return __awaiter(this, void 0, void 0, function () {
-            var layersCount, i, copiedLayerRef, pastedLayerRef, _a;
+            var referredIds, layersCount, i, refObject, copiedLayerRef, pastedLayerRef, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        referredIds = [];
                         layersCount = layersArray.length;
                         i = 0;
                         _b.label = 1;
                     case 1:
                         if (!(i < layersCount)) return [3 /*break*/, 8];
-                        copiedLayerRef = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
+                        refObject = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
+                        copiedLayerRef = refObject === null || refObject === void 0 ? void 0 : refObject.ref;
+                        refObject && referredIds.push(refObject.id);
                         if (!(copiedLayerRef instanceof LayerClass.LayerGroup)) return [3 /*break*/, 4];
                         return [4 /*yield*/, this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id)];
                     case 2:
@@ -416,7 +432,7 @@ var LayerManager = /** @class */ (function () {
                     case 7:
                         i++;
                         return [3 /*break*/, 1];
-                    case 8: return [2 /*return*/];
+                    case 8: return [2 /*return*/, referredIds];
                 }
             });
         });
@@ -428,7 +444,7 @@ var LayerManager = /** @class */ (function () {
                 var id = parentLayers_1_1.value;
                 var ref = this.findLayerRef(this._activeDocument.layers.layers, id);
                 if (ref && ref.layer && ref.layer.name === layerName || ref && ref.name && ref.name === layerName) {
-                    return ref;
+                    return { ref: ref, id: id };
                 }
             }
         }
@@ -517,14 +533,29 @@ var LayerManager = /** @class */ (function () {
         return cBuffer;
     };
     LayerManager.prototype.setLayerSettings = function (bufferPayload, layerId) {
-        if (Object.keys(bufferPayload).length) {
-            var promise = this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
-            LayerManager.promiseArray.push(promise);
-            return promise;
-        }
-        return Promise.resolve();
+        return __awaiter(this, void 0, void 0, function () {
+            var err_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!Object.keys(bufferPayload).length) return [3 /*break*/, 4];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId)];
+                    case 2:
+                        _a.sent();
+                        console.log("pixels added for id " + layerId);
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_2 = _a.sent();
+                        console.log("error in pixel Mapping");
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
     };
-    LayerManager.promiseArray = [];
     return LayerManager;
 }());
 exports.LayerManager = LayerManager;

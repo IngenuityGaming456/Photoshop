@@ -23,7 +23,7 @@ export class CreateLayoutStructure implements IFactory {
 
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
-        this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds || [];
         this.modifiedIds.length = 0;
     }
 
@@ -136,7 +136,7 @@ export class CreateLayoutStructure implements IFactory {
     private async handleBufferValue(layerValue, key) {
         const layerRef = this._activeDocument.layers.findLayer(key);
         if (layerValue.frequency === 1 || (layerRef && utlis.getElementName(layerRef, pc.languages))) {
-            this.modifiedIds.push(key);
+            !~this.modifiedIds.indexOf(key) && this.modifiedIds.push(key);
             await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"),
                 {id: key});
         }

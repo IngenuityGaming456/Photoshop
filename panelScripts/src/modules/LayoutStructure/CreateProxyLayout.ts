@@ -25,8 +25,8 @@ export class CreateProxyLayout implements IFactory {
     private imageState;
 
     public constructor(modelFactory: ModelFactory) {
-         this.modelFactory = modelFactory;
-         this.errorData = this.modelFactory.getPhotoshopModel().allLayersErrorData;
+        this.modelFactory = modelFactory;
+        this.errorData = this.modelFactory.getPhotoshopModel().allLayersErrorData;
     }
 
     public async execute(params: IParams) {
@@ -38,7 +38,7 @@ export class CreateProxyLayout implements IFactory {
         this.document = await this.generator.getDocumentInfo(undefined);
         await this.updateActiveDocument();
         await this.modifyParentNames();
-        this.checkSymbols();
+        this.checkLayers();
         this.checkImageFolder();
         await this.checkLocalisationStruct();
         this.checkIsLayoutSuccessful();
@@ -60,7 +60,8 @@ export class CreateProxyLayout implements IFactory {
         let keyPixmap, generatorJson;
         for (let i = 0; i < noOfArtLayers; i++) {
             generatorJson = this.artLayers[i].generatorSettings[packageJson.name];
-            if(!generatorJson) {
+            if (!generatorJson) {
+                this.logError(this.artLayers[i].id, this.artLayers[i].name, `${this.artLayers[i].name} has no Generator Settings. Delete and ReTry`);
                 continue;
             }
             keyPixmap = JSON.parse(generatorJson.json);
@@ -82,7 +83,7 @@ export class CreateProxyLayout implements IFactory {
     private async getBufferFrequency(layerMap) {
         this.layerMap = layerMap;
         const layerMapKeys = layerMap.keys();
-        for(let key of layerMapKeys) {
+        for (let key of layerMapKeys) {
             const value = layerMap.get(key);
             let bufferObj = this.bufferMap.get(value.buffer);
             bufferObj.freq++;
@@ -96,18 +97,18 @@ export class CreateProxyLayout implements IFactory {
     }
 
     async modifyPathNames(value, key, bufferObj) {
-        if(value.frequency === 1) {
+        if (value.frequency === 1) {
             bufferObj.parentName = value.name;
             await this.setToNameCache(value.name, key);
         }
     }
 
     private async setToNameCache(layerName, key) {
-        if(!~this.nameCache.indexOf(layerName)) {
+        if (!~this.nameCache.indexOf(layerName)) {
             this.nameCache.push(layerName);
         } else {
             const layerRef = this.activeDocument.layers.findLayer(key);
-            if(utlis.getElementName(layerRef, pc.languages)) {
+            if (utlis.getElementName(layerRef, pc.languages)) {
                 return;
             }
             this.logError(key, layerName, `Error in name of ${layerName} with id ${key}`);
@@ -115,44 +116,45 @@ export class CreateProxyLayout implements IFactory {
         }
     }
 
-    private checkSymbols() {
-        utlis.traverseBaseFreeGame(this.document.layers, this.inspectSymbols.bind(this));
+    private checkLayers() {
+        utlis.traverseObject(this.document.layers, undefined, this.inspectLayers.bind(this));
     }
 
-    private inspectSymbols(viewLayer) {
-        if(!viewLayer.layers) {
-            return;
+    private inspectLayers(layerSec) {
+        const type = utlis.getGenSettings(layerSec, packageJson.name);
+        if(type === "symbol") {
+            this.checkIfStaticEmpty(layerSec);
         }
-        for(let item of viewLayer.layers) {
-            if(item.name === pc.generatorButtons.symbols && item.layers) {
-                item.layers.forEach(itemS => {
-                    this.checkIfStaticEmpty(itemS);
-                });
-            }
+        if(type === "bitmap" || type === "meter") {
+            this.isEmpty(layerSec, `${layerSec.name} is empty`);
         }
     }
 
     private checkIfStaticEmpty(item) {
-        if(item.type === "layerSection") {
+        if (item.type === "layerSection") {
             item.layers && item.layers.forEach(itemS => {
-                if(itemS.name === pc.static) {
-                    if (!itemS.layers) {
-                        this.logError(itemS.id, itemS.name, `Symbol with name ${item.name} has empty Static folder`);
-                    } else {
-                        this.removeError(itemS.id);
-                    }
+                if (itemS.name === pc.static) {
+                    this.isEmpty(itemS, `Symbol with name ${item.name} has empty Static folder`);
                 }
             });
         }
     }
 
+    private isEmpty(itemS, message) {
+        if (!itemS.layers) {
+            this.logError(itemS.id, itemS.name, message);
+        } else {
+            this.removeError(itemS.id);
+        }
+    }
+
     private checkImageFolder() {
         this.assetsPath = this.getPath();
-        // if(!this.isPluginEnabled()) {
-        //     this.logError(1001, "", "Image Assets plugin is not on.");
-        // } else {
-        //     this.removeError(1001);
-        // }
+        if (!this.isPluginEnabled() && ~__dirname.search("Generator")) {
+            this.logError(1001, "", "Image Assets plugin is not on.");
+        } else {
+            this.removeError(1001);
+        }
     }
 
     private isPluginEnabled() {
@@ -161,11 +163,11 @@ export class CreateProxyLayout implements IFactory {
 
     private async checkLocalisationStruct() {
         const localisationStruct = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).docLocalisationStruct;
-        if(!localisationStruct) {
+        if (!localisationStruct) {
             return;
         }
         const langIds = localisationStruct && Object.keys(localisationStruct);
-        for(let id of langIds) {
+        for (let id of langIds) {
             const idRef = this.activeDocument.layers.findLayer(Number(id));
             await this.createLocalisationResponse(idRef);
         }
@@ -180,11 +182,11 @@ export class CreateProxyLayout implements IFactory {
 
     private getHierarchyStructure(idLayers, hierarchyStruct, wholeHierarchy) {
         let hierarchyClone = [];
-        for(let item of idLayers) {
-            if(item.layers) {
+        for (let item of idLayers) {
+            if (item.layers) {
                 hierarchyClone = [...hierarchyStruct];
                 hierarchyClone.push(item.id);
-                if(!item.layers.length) {
+                if (!item.layers.length) {
                     hierarchyClone.push(100000);
                     hierarchyClone.push(true);
                     break;
@@ -195,9 +197,9 @@ export class CreateProxyLayout implements IFactory {
                 hierarchyClone.push(true);
             }
         }
-        if(~hierarchyClone.indexOf(true)) {
+        if (~hierarchyClone.indexOf(true)) {
             hierarchyClone = [...hierarchyStruct, ...hierarchyClone];
-            if(!~hierarchyClone.indexOf(100000)) {
+            if (!~hierarchyClone.indexOf(100000)) {
                 hierarchyClone.push(100000);
                 hierarchyClone.push(true);
             }
@@ -206,15 +208,15 @@ export class CreateProxyLayout implements IFactory {
     }
 
     private async sendLocalisationResponse(platfromId, langId, wholeHierarchyStruct) {
-        for(let hierarchyStruct of wholeHierarchyStruct) {
+        for (let hierarchyStruct of wholeHierarchyStruct) {
             const hierarchyArray = [platfromId, langId, ...hierarchyStruct];
             const trueIndex = hierarchyArray.indexOf(true);
             const responseObj = {};
-            this.createObjectResponse(hierarchyArray, 0, trueIndex-2, responseObj);
+            this.createObjectResponse(hierarchyArray, 0, trueIndex - 2, responseObj);
             const response = [];
             response.push(responseObj);
             const isTrue = await this.sendResponse(response);
-            if(!isTrue) {
+            if (!isTrue) {
                 return;
             }
         }
@@ -226,14 +228,14 @@ export class CreateProxyLayout implements IFactory {
             response["id"] = hierarchyArray[index];
             response["layers"] = [];
             response["layers"][0] = {};
-            if(index === finalIndex) {
+            if (index === finalIndex) {
                 this.createObjectResponse(hierarchyArray, ++index, finalIndex, response["layers"]);
             } else {
                 this.createObjectResponse(hierarchyArray, ++index, finalIndex, response["layers"][0]);
             }
         } else {
-            let k=0;
-            for(let i=index;i<hierarchyArray.length-1;i=i+2) {
+            let k = 0;
+            for (let i = index; i < hierarchyArray.length - 1; i = i + 2) {
                 response[k] = {id: hierarchyArray[i]};
                 k++;
             }
@@ -249,7 +251,7 @@ export class CreateProxyLayout implements IFactory {
                 localisedLayers.notToBeLocalised.forEach(id => {
                     this.removeError(id);
                 });
-                if(localisedLayers.toBeLocalised.length) {
+                if (localisedLayers.toBeLocalised.length) {
                     resolve(false);
                 } else {
                     resolve(true);
@@ -261,7 +263,7 @@ export class CreateProxyLayout implements IFactory {
 
     private checkIsLayoutSuccessful() {
 
-        if(!this.errorData.length) {
+        if (!this.errorData.length) {
             this.initializeLayout();
         }
     }
@@ -274,15 +276,17 @@ export class CreateProxyLayout implements IFactory {
 
     private initializeLayout() {
         const layout = inject({ref: CreateLayoutStructure, dep: [ModelFactory], isNonSingleton: true});
-        execute(layout, {storage: {
+        execute(layout, {
+            storage: {
                 layerMap: this.layerMap,
                 bufferMap: this.bufferMap,
                 assetsPath: this.assetsPath,
-            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter});
+            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter
+        });
     }
 
     private logError(id, name, errorType) {
-        if(!utlis.isIDExists(id, this.errorData)) {
+        if (!utlis.isIDExists(id, this.errorData)) {
             this.errorData.push({id: id, name: name});
             this.docEmitter.emit(pc.logger.logError, id, name, errorType);
         }
@@ -296,5 +300,4 @@ export class CreateProxyLayout implements IFactory {
             this.docEmitter.emit(pc.logger.removeError, id);
         }
     }
-
 }

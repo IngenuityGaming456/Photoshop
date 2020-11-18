@@ -29,7 +29,7 @@ export class PhotoshopModelApp extends PhotoshopModel {
         super.subscribeListeners();
         this.generator.on(pc.generator.layersDeleted, eventLayers => this.onLayersDeleted(eventLayers));
         this.generator.on("select", () => this.storeSelectedName());
-        this.generator.on("select", () => this.storeSelectedIds())
+        this.generator.on("select", () => this.storeSelectedIds());
     }
 
     private onLayersDeleted(eventLayers) {
@@ -90,10 +90,15 @@ export class PhotoshopModelApp extends PhotoshopModel {
     protected handleData() {
         super.handleData();
         this.localisationStruct = this.accessDocLocalisationStruct();
+        this.modifiedIds = this.accessModifiedIds();
     }
 
     private accessDocLocalisationStruct() {
         return this.subPhotoshopModel.accessDocLocalisationStruct();
+    }
+
+    private accessModifiedIds() {
+        return this.subPhotoshopModel.accessModifiedIds();
     }
 
     private async storeSelectedName() {
@@ -117,6 +122,7 @@ export class PhotoshopModelApp extends PhotoshopModel {
     protected getWriteData() {
         super.getWriteData();
         this.writeData["docLocalisationStruct"] = this.localisationStruct;
+        this.writeData["modifiedIds"] = this.modifiedIds;
     }
 
     get selectedName() {

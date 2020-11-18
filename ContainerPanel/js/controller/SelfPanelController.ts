@@ -10,8 +10,11 @@ import * as io from "socket.io-client";
 
 export class SelfPanelController extends PanelControllerApp {
 
+    protected model: SelfPanelModel;
+    protected view: SelfPanelView;
+
     public constructor(eventsObj: EventEmitter, viewObj: SelfPanelView, mappingView: MappingView, modelObj: SelfPanelModel, stateContext: StateContext) {
-        super(eventsObj, viewObj, mappingView, modelObj as SelfPanelModel, stateContext)
+        super(eventsObj, viewObj, mappingView, modelObj, stateContext)
     }
 
     protected subscribeListeners() {
@@ -35,6 +38,10 @@ export class SelfPanelController extends PanelControllerApp {
             console.log("a user just connected");
             this.socket.emit("register", "SelfHtmlPanel");
         });
+        this.socket.on("questItems", (questItems) => {
+            this.model.storeQuestItems(questItems);
+            this.view.storeQuestItems(questItems);
+        });
     }
 
     protected sendStorage(storage: Array<Object>) {
@@ -47,6 +54,7 @@ export class SelfPanelController extends PanelControllerApp {
         const checkedBoxes = [];
         const responseArray = [];
         this.makeSubmission(checkedBoxes, responseArray);
+        (this.model as SelfPanelModel).processRefreshResponse(responseArray);
         (this.model as SelfPanelModel).processRefreshResponse(responseArray);
     }
 

@@ -79,7 +79,7 @@ var CreateLayoutStructure = /** @class */ (function () {
         //dirty hack for test
         this.modifiedIds = [];
         this.modelFactory = modelFactory;
-        this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modifiedIds = this.modelFactory.getPhotoshopModel().allModifiedIds || [];
         this.modifiedIds.length = 0;
     }
     CreateLayoutStructure.prototype.execute = function (params) {
@@ -285,7 +285,7 @@ var CreateLayoutStructure = /** @class */ (function () {
                     case 0:
                         layerRef = this._activeDocument.layers.findLayer(key);
                         if (!(layerValue.frequency === 1 || (layerRef && utils_1.utlis.getElementName(layerRef, constants_1.photoshopConstants.languages)))) return [3 /*break*/, 2];
-                        this.modifiedIds.push(key);
+                        !~this.modifiedIds.indexOf(key) && this.modifiedIds.push(key);
                         return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/addPath.jsx"), { id: key })];
                     case 1:
                         _a.sent();

@@ -148,7 +148,6 @@ var DocumentStarter = /** @class */ (function () {
                         return [4 /*yield*/, this.documentManager.getDocument(openId)];
                     case 1:
                         _a.activeDocument = _c.sent();
-                        // let da =  await this.generator.getDocumentSettingsForPlugin(this.activeDocument.id,packageJson.name + "Document");
                         FactoryClass_1.execute(this.startModel, { generator: this.generator, activeDocument: this.activeDocument });
                         _b = this;
                         return [4 /*yield*/, this.startModel.onPhotoshopStart()];
@@ -157,7 +156,7 @@ var DocumentStarter = /** @class */ (function () {
                         return [4 /*yield*/, this.setDocumentMetaData()];
                     case 3:
                         _c.sent();
-                        this.sendToHTMLSocket();
+                        utils_1.utlis.sendToSocket(this.htmlSocket, [this.activeDocument.directory, this.docId], constants_1.photoshopConstants.socket.docOpen);
                         this.instantiateStateEvent();
                         this.instantiateDocumentModel();
                         this.createObjects();
@@ -168,6 +167,7 @@ var DocumentStarter = /** @class */ (function () {
                         return [4 /*yield*/, this.addDocumentStatus()];
                     case 5:
                         _c.sent();
+                        utils_1.utlis.sendToSocket(this.selfHtmlSocket, [this.modelFactory.getPhotoshopModel().allQuestItems], "questItems");
                         return [2 /*return*/];
                 }
             });
@@ -226,6 +226,7 @@ var DocumentStarter = /** @class */ (function () {
     };
     DocumentStarter.prototype.createSelfHTMLSocket = function (socket) {
         var _this = this;
+        this.selfHtmlSocket = socket;
         socket.on("getRefreshResponse", function (storage) {
             _this.modelFactory.getPhotoshopModel().setRefreshResponse(storage);
         });
@@ -344,6 +345,9 @@ var DocumentStarter = /** @class */ (function () {
         this.docEmitter.on(constants_1.photoshopConstants.logger.containerPanelReady, function () {
             _this.docEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, _this.htmlSocket);
         });
+        this.docEmitter.on("creationReady", function () {
+            _this.docEmitter.emit(constants_1.photoshopConstants.logger.getUpdatedHTMLSocket, _this.htmlSocket);
+        });
         this.generator.on(constants_1.photoshopConstants.generator.closedDocument, function (closeId) {
             _this.onDocumentClose(closeId);
         });
@@ -354,17 +358,23 @@ var DocumentStarter = /** @class */ (function () {
     DocumentStarter.prototype.getOriginalFileName = function () {
         return this.activeDocument.name;
     };
-    DocumentStarter.prototype.checkifDuplicateDocument = function () {
-        var generatorSettings = this.activeDocument.generatorSettings ? this.activeDocument.generatorSettings : false;
-        var file = JSON.parse(generatorSettings.PanelScriptsDocument.json).originalFile;
-        if (generatorSettings)
-            return this.activeDocument.name !== file;
-        return false;
+    DocumentStarter.prototype.checkIfDuplicateDocument = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var file;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "New" + "Document")];
+                    case 1:
+                        file = _a.sent();
+                        return [2 /*return*/, this.activeDocument.name !== file.originalFile];
+                }
+            });
+        });
     };
     DocumentStarter.prototype.setDocId = function () {
         this.docId = Math.floor(Math.random() * 5000);
     };
-    /**it sets the doc id with which psd data folder created */
+    /**it sets the doc id with which psd data folder is created */
     DocumentStarter.prototype.setDocumentMetaData = function () {
         return __awaiter(this, void 0, void 0, function () {
             var originalFileName, ifCopiedDoc, docIdObj, originalFileName;
@@ -374,28 +384,44 @@ var DocumentStarter = /** @class */ (function () {
                         if (!!this.openDocumentData) return [3 /*break*/, 2];
                         this.setDocId();
                         originalFileName = this.getOriginalFileName();
-                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId, originalFile: originalFileName }, packageJson.name + "Document")];
+                        return [4 /*yield*/, this.setDocGeneratorSettings(originalFileName)];
                     case 1:
                         _a.sent();
-                        return [3 /*break*/, 6];
-                    case 2:
-                        ifCopiedDoc = this.checkifDuplicateDocument();
-                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
+                        return [3 /*break*/, 7];
+                    case 2: return [4 /*yield*/, this.checkIfDuplicateDocument()];
                     case 3:
+                        ifCopiedDoc = _a.sent();
+                        return [4 /*yield*/, this.generator.getDocumentSettingsForPlugin(this.activeDocument.id, packageJson.name + "Document")];
+                    case 4:
                         docIdObj = _a.sent();
                         this.docId = docIdObj.docId;
-                        if (!ifCopiedDoc) return [3 /*break*/, 6];
+                        if (!ifCopiedDoc) return [3 /*break*/, 7];
                         this.setDocId();
                         originalFileName = this.getOriginalFileName();
-                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId, originalFile: originalFileName }, packageJson.name + "Document")];
-                    case 4:
-                        _a.sent();
-                        return [4 /*yield*/, utils_1.utlis.copyFolder(this.activeDocument.directory, docIdObj.docId, this.docId)];
+                        return [4 /*yield*/, this.setDocGeneratorSettings(originalFileName)];
                     case 5:
                         _a.sent();
-                        _a.label = 6;
+                        return [4 /*yield*/, utils_1.utlis.copyFolder(this.activeDocument.directory, docIdObj.docId, this.docId)];
                     case 6:
+                        _a.sent();
+                        _a.label = 7;
+                    case 7:
                         this.generator.emit(constants_1.photoshopConstants.generator.docId, this.docId);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    DocumentStarter.prototype.setDocGeneratorSettings = function (originalFileName) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ docId: this.docId }, packageJson.name + "Document")];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.generator.setDocumentSettingsForPlugin({ originalFile: originalFileName }, packageJson.name + "New" + "Document")];
+                    case 2:
+                        _a.sent();
                         return [2 /*return*/];
                 }
             });
@@ -425,7 +451,7 @@ var DocumentStarter = /** @class */ (function () {
         FactoryClass_1.execute(selfAddedStructures, {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: { documentManager: this.documentManager }
         });
-        var psParser = FactoryClass_1.inject({ ref: PhotoshopParser_1.PhotoshopParser, dep: [] });
+        FactoryClass_1.inject({ ref: PhotoshopParser_1.PhotoshopParser, dep: [] });
     };
     DocumentStarter.prototype.stabalizeDocument = function () {
         var documentStabalizer = FactoryClass_1.inject({ ref: DocumentStabalizer_1.DocumentStabalizer, dep: [] });

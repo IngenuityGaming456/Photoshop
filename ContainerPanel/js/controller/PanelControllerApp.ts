@@ -25,6 +25,12 @@ export class PanelControllerApp extends PanelController {
     protected subscribeListeners() {
         super.subscribeListeners();
         this.eventsObj.on("safeToLock", this.onSafeToLock.bind(this));
+        this.eventsObj.on("checkChecked", (plat, view, key) => {
+            const output = utils.getCheckBox(plat, view, key, this.view.checkBoxArray);
+            if(output && output.checked) {
+                this.eventsObj.emit("Checked", plat, view, key);
+            }
+        })
     }
 
     protected listenToConnection() {

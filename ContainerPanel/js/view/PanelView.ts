@@ -6,7 +6,7 @@ export class PanelView {
     private eventsObj: EventEmitter;
     private leafsMap: Map<string, any>;
     public checkBoxArray: Array<HTMLElement> = [];
-    private stateContext: StateContext;
+    protected stateContext: StateContext;
     private safeToLock = [];
     protected baseDiv;
 
@@ -116,10 +116,8 @@ export class PanelView {
     private addContainerCheckbox(baseUL, type?) {
         const baseLI = baseUL.parentElement;
         const childInput = this.insertContainerCheckbox(baseLI);
-        childInput.checked = this.stateContext.isChecked(childInput, "");
-        childInput.disabled = this.stateContext.isDisabled(childInput, type, true);
+        this.checkAndDisable(childInput, "", type, true);
         this.isSafeToLock(childInput);
-
         this.checkBoxArray.push(childInput);
     }
 
@@ -208,8 +206,7 @@ export class PanelView {
         this.addSpan(childLI, key, null, type);
         const childInput = this.insertContainerCheckbox(childLI);
         parentUL.append(childLI);
-        childInput.checked = this.stateContext.isChecked(childInput, key);
-        childInput.disabled = this.stateContext.isDisabled(childInput);
+        this.checkAndDisable(childInput, key);
         childInput.addEventListener("click", event => {
             this.eventsObj.emit("ElementClick", event);
         });
@@ -230,6 +227,11 @@ export class PanelView {
         platformLI.append(parentUL);
         this.addContainerCheckbox(parentUL, true);
         baseDiv.append(platformLI);
+    }
+
+    protected checkAndDisable(input, key, type?, isContainer?) {
+        input.checked = this.stateContext.isChecked(input, key);
+        input.disabled = this.stateContext.isDisabled(input, type, isContainer);
     }
 
     private createBaseLabel(baseDiv, str) {

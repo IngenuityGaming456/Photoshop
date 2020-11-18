@@ -31,7 +31,7 @@ export class PanelModel {
         });
     }
 
-    private subscribeListeners() {
+    protected subscribeListeners() {
        this.eventsObj.on("ControllerInitialized", this.storageReady.bind(this));
     }
 

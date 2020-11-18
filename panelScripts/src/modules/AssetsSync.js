@@ -49,12 +49,13 @@ var __values = (this && this.__values) || function(o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssetsSync = void 0;
 var utils_1 = require("../utils/utils");
-var fs = require("fs");
+var assetsUtils_1 = require("../utils/assetsUtils");
 var path = require("path");
+var fs = require("fs");
 var packageJson = require("../../package.json");
 var AssetsSync = /** @class */ (function () {
     function AssetsSync(modelFactory, pFactory) {
-        this.artLayers = [];
+        this.artLayers = {};
         this.modelFactory = modelFactory;
         this.photoshopFactory = pFactory;
     }
@@ -70,65 +71,44 @@ var AssetsSync = /** @class */ (function () {
                         return [4 /*yield*/, this.generator.getDocumentInfo(undefined)];
                     case 1:
                         _a.document = _b.sent();
-                        this.getAssetsAndJson();
-                        this.assetsSyncDriver();
+                        this.artLayers = {};
+                        utils_1.utlis.traverseObject(this.document.layers, this.getAllArtLayers.bind(this));
+                        return [4 /*yield*/, this.startAssestsChange()];
+                    case 2:
+                        _b.sent();
                         return [2 /*return*/];
                 }
             });
         });
     };
-    AssetsSync.prototype.getAssetsAndJson = function () {
-        var stats = utils_1.utlis.getAssetsAndJson("Photoshop", this.activeDocument);
-        this.psAssetsPath = stats.qAssetsPath;
-        this.psObj = stats.qObj;
-    };
-    AssetsSync.prototype.assetsSyncDriver = function () {
-        var assetsPath = this.psAssetsPath;
-        /**as we are at the root of the assets folder */
-        var level = 0;
-        utils_1.utlis.traverseObject(this.psObj.layers, this.getAllArtLayers.bind(this));
-        this.artLayers.reverse();
-        this.searchForChangedAssets(level, assetsPath, null, 'common', null);
-    };
-    AssetsSync.prototype.searchForChangedAssets = function (level, assetsPath, platform, common, view) {
+    AssetsSync.prototype.startAssestsChange = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var files, files_1, files_1_1, file, filePath, stats, currentFile, e_1_1;
+            var savedPath, extIndex, fileName, changePath, changeFiles, changeFiles_1, changeFiles_1_1, changeFile, e_1_1;
             var e_1, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        files = fs.readdirSync(assetsPath);
+                        savedPath = this.activeDocument.directory;
+                        extIndex = this.activeDocument.name.search(".psd");
+                        fileName = this.activeDocument.name.slice(0, extIndex);
+                        changePath = savedPath + ("\\" + fileName + "-changeAssets");
+                        if (!fs.existsSync(changePath)) return [3 /*break*/, 8];
+                        changeFiles = assetsUtils_1.getAllFiles(changePath);
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 6, 7, 8]);
-                        files_1 = __values(files), files_1_1 = files_1.next();
+                        changeFiles_1 = __values(changeFiles), changeFiles_1_1 = changeFiles_1.next();
                         _b.label = 2;
                     case 2:
-                        if (!!files_1_1.done) return [3 /*break*/, 5];
-                        file = files_1_1.value;
-                        switch (level) {
-                            case 0:
-                                platform = file;
-                                break;
-                            case 1:
-                                common = file;
-                                break;
-                            case 2: view = file;
-                        }
-                        filePath = path.join(assetsPath, file);
-                        stats = fs.statSync(filePath);
-                        if (stats.isDirectory() && level <= 3) {
-                            this.searchForChangedAssets(level + 1, filePath, platform, common, view);
-                        }
-                        if (!(level === 4)) return [3 /*break*/, 4];
-                        currentFile = this.removeExtensionFromFileName(file);
-                        return [4 /*yield*/, this.handleFileSyncProcedure(currentFile, assetsPath, platform, common, view)];
+                        if (!!changeFiles_1_1.done) return [3 /*break*/, 5];
+                        changeFile = changeFiles_1_1.value;
+                        return [4 /*yield*/, this.handleFileSyncProcedure(utils_1.utlis.removeExtensionFromFileName(changeFile), changePath)];
                     case 3:
                         _b.sent();
-                        fs.unlinkSync(filePath);
+                        fs.unlinkSync(path.join(changePath, changeFile));
                         _b.label = 4;
                     case 4:
-                        files_1_1 = files_1.next();
+                        changeFiles_1_1 = changeFiles_1.next();
                         return [3 /*break*/, 2];
                     case 5: return [3 /*break*/, 8];
                     case 6:
@@ -137,7 +117,7 @@ var AssetsSync = /** @class */ (function () {
                         return [3 /*break*/, 8];
                     case 7:
                         try {
-                            if (files_1_1 && !files_1_1.done && (_a = files_1.return)) _a.call(files_1);
+                            if (changeFiles_1_1 && !changeFiles_1_1.done && (_a = changeFiles_1.return)) _a.call(changeFiles_1);
                         }
                         finally { if (e_1) throw e_1.error; }
                         return [7 /*endfinally*/];
@@ -146,27 +126,26 @@ var AssetsSync = /** @class */ (function () {
             });
         });
     };
-    AssetsSync.prototype.handleFileSyncProcedure = function (file, assetsPath, platform, common, view) {
+    AssetsSync.prototype.handleFileSyncProcedure = function (file, assetsPath) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, artLayer, imageName, name_1, type, viewId, parentId, parentX, parentY, filePath, dimension, creationObj, bufferPayload, newLayerId, e_2_1;
-            var e_2, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var artLayers, artLayers_1, artLayers_1_1, artLayer, name_1, parentId, parentX, parentY, filePath, dimension, creationObj, bufferPayload, newLayerId, e_2_1;
+            var e_2, _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        _d.trys.push([0, 9, 10, 11]);
-                        _a = __values(this.artLayers), _b = _a.next();
-                        _d.label = 1;
+                        artLayers = this.artLayers[file];
+                        _b.label = 1;
                     case 1:
-                        if (!!_b.done) return [3 /*break*/, 8];
-                        artLayer = _b.value;
-                        imageName = JSON.parse(artLayer.generatorSettings.PanelScriptsImage.json).image;
-                        if (!(imageName === file && artLayer.type == "layer")) return [3 /*break*/, 7];
-                        name_1 = artLayer.name;
-                        type = artLayer.type;
-                        viewId = this.getParentId(view, platform);
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/getParentId.jsx"), { "childName": artLayer.id, "parentId": viewId })];
+                        _b.trys.push([1, 10, 11, 12]);
+                        artLayers_1 = __values(artLayers), artLayers_1_1 = artLayers_1.next();
+                        _b.label = 2;
                     case 2:
-                        parentId = _d.sent();
+                        if (!!artLayers_1_1.done) return [3 /*break*/, 9];
+                        artLayer = artLayers_1_1.value;
+                        name_1 = artLayer.name;
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/getParentId.jsx"), { "childName": artLayer.id })];
+                    case 3:
+                        parentId = _b.sent();
                         parentX = 0;
                         parentY = 0;
                         filePath = path.join(assetsPath, file + ".png");
@@ -183,52 +162,51 @@ var AssetsSync = /** @class */ (function () {
                             type: "artLayer",
                             childName: name_1,
                             layerID: [artLayer.id],
-                            image: imageName,
+                            image: file,
                             parentId: parentId,
                             file: filePath
                         };
                         return [4 /*yield*/, this.generator.getLayerSettingsForPlugin(this.activeDocument.id, artLayer.id, packageJson.name)];
-                    case 3:
-                        bufferPayload = _d.sent();
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: artLayer.id })];
                     case 4:
-                        _d.sent();
-                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj)];
+                        bufferPayload = _b.sent();
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: artLayer.id })];
                     case 5:
-                        newLayerId = _d.sent();
-                        return [4 /*yield*/, this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name)];
+                        _b.sent();
+                        return [4 /*yield*/, this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj)];
                     case 6:
-                        _d.sent();
-                        _d.label = 7;
+                        newLayerId = _b.sent();
+                        return [4 /*yield*/, this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name)];
                     case 7:
-                        _b = _a.next();
-                        return [3 /*break*/, 1];
-                    case 8: return [3 /*break*/, 11];
-                    case 9:
-                        e_2_1 = _d.sent();
-                        e_2 = { error: e_2_1 };
-                        return [3 /*break*/, 11];
+                        _b.sent();
+                        _b.label = 8;
+                    case 8:
+                        artLayers_1_1 = artLayers_1.next();
+                        return [3 /*break*/, 2];
+                    case 9: return [3 /*break*/, 12];
                     case 10:
+                        e_2_1 = _b.sent();
+                        e_2 = { error: e_2_1 };
+                        return [3 /*break*/, 12];
+                    case 11:
                         try {
-                            if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                            if (artLayers_1_1 && !artLayers_1_1.done && (_a = artLayers_1.return)) _a.call(artLayers_1);
                         }
                         finally { if (e_2) throw e_2.error; }
                         return [7 /*endfinally*/];
-                    case 11: return [2 /*return*/];
+                    case 12: return [2 /*return*/];
                 }
             });
         });
     };
     AssetsSync.prototype.getAllArtLayers = function (artLayerRef) {
-        this.artLayers.push(artLayerRef);
-    };
-    AssetsSync.prototype.getParentId = function (view, platform) {
-        var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
-        var currentView = elementalMap[platform][view];
-        return currentView.base.id;
-    };
-    AssetsSync.prototype.removeExtensionFromFileName = function (file) {
-        return file.split('.').slice(0, -1).join('.');
+        var _a;
+        var _b;
+        if (!artLayerRef.generatorSettings) {
+            return;
+        }
+        var imageName = JSON.parse(artLayerRef.generatorSettings.PanelScriptsImage.json).image;
+        (_a = (_b = this.artLayers)[imageName]) !== null && _a !== void 0 ? _a : (_b[imageName] = []);
+        this.artLayers[imageName].push(artLayerRef);
     };
     return AssetsSync;
 }());

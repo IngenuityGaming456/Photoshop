@@ -35,10 +35,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SelfAddedStructures = void 0;
 var constants_1 = require("../constants");
 var utils_1 = require("../utils/utils");
+var packageJson = require("../../package.json");
 var SelfAddedStructures = /** @class */ (function () {
     function SelfAddedStructures(modelFactory) {
         this.modelFactory = modelFactory;
@@ -48,11 +60,84 @@ var SelfAddedStructures = /** @class */ (function () {
         this.activeDocument = params.activeDocument;
         this.documentManager = params.storage.documentManager;
         this.docEmitter = params.docEmitter;
+        this.pluginId = packageJson.name;
         this.subscribeListeners();
     };
     SelfAddedStructures.prototype.subscribeListeners = function () {
         var _this = this;
-        this.generator.on(constants_1.photoshopConstants.generator.layersAdded, function (addedLayers) { return _this.onLayersAdded(addedLayers); });
+        this.generator.on(constants_1.photoshopConstants.generator.layersAdded, function (addedLayers) {
+            _this.onLayersAdded(addedLayers);
+        });
+        this.generator.on(constants_1.photoshopConstants.generator.layersMoved, function (movedLayers) {
+            _this.onLayersMoved(movedLayers);
+        });
+    };
+    SelfAddedStructures.prototype.onLayersMoved = function (movedLayers) {
+        return __awaiter(this, void 0, void 0, function () {
+            var lastLayerObj, parentId, _a, _b, childItem, e_1_1;
+            var e_1, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        lastLayerObj = utils_1.utlis.getLastParentAndChildLayers(movedLayers);
+                        parentId = lastLayerObj.parent && lastLayerObj.parent.id;
+                        if (!parentId) return [3 /*break*/, 8];
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 6, 7, 8]);
+                        _a = __values(lastLayerObj.child), _b = _a.next();
+                        _d.label = 2;
+                    case 2:
+                        if (!!_b.done) return [3 /*break*/, 5];
+                        childItem = _b.value;
+                        return [4 /*yield*/, this.modifyParentAndChild(parentId, childItem.id)];
+                    case 3:
+                        _d.sent();
+                        _d.label = 4;
+                    case 4:
+                        _b = _a.next();
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 8];
+                    case 6:
+                        e_1_1 = _d.sent();
+                        e_1 = { error: e_1_1 };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        try {
+                            if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                        }
+                        finally { if (e_1) throw e_1.error; }
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SelfAddedStructures.prototype.modifyParentAndChild = function (parentId, childId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, layerRef, type;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this;
+                        return [4 /*yield*/, this.documentManager.getDocument(this.activeDocument.id)];
+                    case 1:
+                        _a.activeDocument = _b.sent();
+                        if (!utils_1.utlis.isIDExists(childId, this.modelFactory.getPhotoshopModel().allDrawnQuestItems)) {
+                            utils_1.utlis.handleModelData([{ id: childId }], [], this.modelFactory.getPhotoshopModel().viewElementalMap, []);
+                            layerRef = this.activeDocument.layers.findLayer(childId);
+                            if (layerRef.layer && layerRef.layer.generatorSettings && layerRef.layer.generatorSettings[this.pluginId]) {
+                                type = layerRef.layer.generatorSettings[this.pluginId].json;
+                                type !== "view" && this.setParams({ id: childId, name: layerRef.layer.name }, type);
+                            }
+                            else if (layerRef.layer && layerRef.layer.type === "layerSection") {
+                                this.setContainerParams({ id: childId, name: layerRef.layer.name });
+                            }
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     SelfAddedStructures.prototype.onLayersAdded = function (addedLayers) {
         if (!this.modelFactory.getPhotoshopModel().setAutomation) {

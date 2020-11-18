@@ -9,11 +9,13 @@ export class PhotoshopParser implements IFactory {
     private pAssetsPath;
     private pObj;
     private _pluginId;
+    private psCache;
 
     public execute(params: IParams) {
         this.activeDocument = params.activeDocument;
         this.generator = params.generator;
         this._pluginId = packageJson.name;
+        this.psCache = [];
         this.getAssetsAndJson();
     }
 
@@ -26,8 +28,29 @@ export class PhotoshopParser implements IFactory {
         this.pObj = stats.qObj;
     }
 
+    private compareWithPhotoShopViews(questViews, platform){
+        let platformLayer = this.getCurrentLayerType(this.pObj, platform);
+        let commonLayer = this.getCurrentLayerType(platformLayer, 'common');
+        let photoshopViews = [];
+        if(commonLayer.hasOwnProperty('layers')){
+            for(const viewLayer in commonLayer['layers'] ){
+                photoshopViews.push({
+                    name:commonLayer['layers'][viewLayer].name, id:commonLayer['layers'][viewLayer].id, type:"view"
+                });
+             }
+        }
+
+        return photoshopViews;
+
+    }
+
+
     private getPView(view, platform){
         return this.checkViews(this.pObj, view, platform);
+    }
+
+    private checkIfView(viewLayersObj){
+        return viewLayersObj.hasOwnProperty('generatorSettings')?(viewLayersObj.generatorSettings.hasOwnProperty('PanelScripts')?JSON.parse(viewLayersObj.generatorSettings.PanelScripts.json):false):false;
     }
 
     private checkViews(pObj, view, platform){
@@ -36,47 +59,34 @@ export class PhotoshopParser implements IFactory {
             let viewLayersObj = pObj['layers'];
             for(let i in viewLayersObj){
                 if(viewLayersObj[i].name == view){
-                    let isView = viewLayersObj[i].hasOwnProperty('generatorSettings')?(viewLayersObj[i].generatorSettings.hasOwnProperty('PanelScripts')?JSON.parse(viewLayersObj[i].generatorSettings.PanelScripts.json):false):false;
+                    let isView = this.checkIfView(viewLayersObj[i]);
                     if(isView == "view")
                         return true;
                 }else{
                     res = this.checkViews(viewLayersObj[i], view, platform)
+                    if(res)
+            return res;
                 }
             }
-            return res;
+
         }
         return false;
-
     }
 
-    /**
-     * function will handle all the recursion calls and return the response mainly a object
-     * of moved, edited, renamed or deleted object from quest json file
-     * @param qLayerID
-     * @param qId
-     * @param qParentOrPath parent of qId element or path of image for imageEdit check
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     * @param qImg
-     * @param operation
-     */
     private recursionCallInitiator(qLayerID?:number, qId?:string, qParentOrPath?:string, childDimension?:any, qImg?:string, operation?:string):any{
         let psObj =  this.pObj;
-        switch (operation){
-            case 'move': return this.findChildUnderParent(psObj, '', qParentOrPath, qLayerID, qId);
-                break;
-            case 'editElement': return this.checkForEditedElement(psObj, qLayerID, qId, qParentOrPath, childDimension.x, childDimension.y, childDimension.width, childDimension.height);
-                break;
-            case 'editImage': return this.checkIfImageChanged(psObj, qLayerID, qId, qParentOrPath, qImg);
-                break;
-            case 'rename': return this.checkIfRenamed(psObj, qLayerID, qId);
-                break;
-            default: return false;
-                break;
+        if(operation === "move") {
+            return this.findChildUnderParent(psObj, '', qParentOrPath, qLayerID, qId);
         }
-
+        if(operation === "editElement") {
+            return this.checkForEditedElement(psObj, qLayerID, qId, qParentOrPath, childDimension);
+        }
+        if(operation === "editImage") {
+            return this.checkIfImageChanged(psObj, qLayerID, qId, qParentOrPath, qImg);
+        }
+        if(operation === "rename") {
+            return this.checkIfRenamed(psObj, qLayerID, qId);
+        }
     }
 
     /**
@@ -85,48 +95,43 @@ export class PhotoshopParser implements IFactory {
      * @param qLayerID quest componenet layerId
      * @param qId name of the quest component
      */
-    private checkIfRenamed(psObj, qLayerID, qId){
+    private checkIfRenamed(psObj, qLayerID, qId) {
+        const layerRef = utlis.isIDExistsRec(qLayerID, psObj.layers);
+        return layerRef && layerRef.name !== qId ? layerRef.name : false;
+    }
+
+    private getCurrentLayerType(psObj, layerType){
         let res;
-        /**Check if curent object has any layer property */
-        if(psObj.hasOwnProperty('layers')){
-
-            /**Iterate over every component of current layer */
-            for(let i in psObj['layers']){
-
-                /**If current layer child's id is equal to quest child id */
-                if(psObj['layers'][i].id == qLayerID){
-                    /**If parent is also equal the component is not moved return false else return the parent to which it is moved */
-                    if(psObj['layers'][i].name !== qId){
-                       
-                        return psObj['layers'][i].name;
-                    }else{
-                        return false;
-                      
-                    }
-                }else{
-                    res = this.checkIfRenamed(psObj['layers'][i], qLayerID, qId);
+        if(psObj.hasOwnProperty('layers')) {
+            for (let i in psObj['layers']) {
+                if (psObj['layers'][i].name === layerType) {
+                    return psObj['layers'][i];
+                } else {
+                    res = this.getCurrentLayerType(psObj['layers'][i], layerType);
+                    if (res)
+                        return res;
                 }
+
             }
-            return res;
         }
-        return false;
     }
 
     /**driver function to get deleted object array */
-    private getPSObjects(platform){
+    private getPSObjects(view, platform){
         let psObj = this.pObj;
         let psObjArray = [];
-        return this.getDeletedArray(psObj, psObjArray, platform);
+        let currentPlatform = this.getCurrentLayerType(psObj, platform);
+        let curentView = this.getCurrentLayerType(currentPlatform, view);
+        return this.getDeletedArray(curentView, psObjArray, platform);
     }
 
     /**get the quest deleted objects */
     private getDeletedArray(psObj, psObjArray, platform){
        
-        if(psObj.hasOwnProperty('layers')){
+        if(psObj && psObj.hasOwnProperty('layers')){
 
             /**Iterate over every component of current layer */
-            for(let i in psObj['layers']){ 
-                if((psObj['layers'][i].name !== platform) && (psObj['layers'][i].name !== "languages") && (psObj['layers'][i].name !== "common") && (psObj['layers'][i].name !== "download")){
+            for(let i in psObj['layers']){
                     let delImg = {};
                     delImg['id'] = psObj['layers'][i].id;
                     delImg['name'] = psObj['layers'][i].name;
@@ -136,7 +141,6 @@ export class PhotoshopParser implements IFactory {
                         delImg["isView"] = true;
                     }
                     psObjArray.push(delImg);
-                }
                 this.getDeletedArray(psObj['layers'][i], psObjArray, platform)
             }
         }
@@ -151,69 +155,18 @@ export class PhotoshopParser implements IFactory {
      * @param qLayerID
      * @param qId
      */
-    private findChildUnderParent(obj:object, psParent:string, qParent:string, qLayerID:number, qId:string){
-        let res;
-        /**Check if curent object has any layer property */
-        if(obj.hasOwnProperty('layers')){
-
-            /**Iterate over every component of current layer */
-            for(let i in obj['layers']){
-
-                /**If current layer child's id is equal to quest child id */
-                if(obj['layers'][i].id == qLayerID){
-                    /**If parent is also equal the component is not moved return false else return the parent to which it is moved */
-                    if(psParent == qParent){
-                        return false;
-                    }else{
-
-                        return psParent;
-                    }
-                }else{
-                    psParent = obj['layers'][i].name;
-                    res = this.findChildUnderParent(obj['layers'][i], psParent, qParent, qLayerID, qId);
-                    if(res){
-                        return res;
-                    }
-                }
-
-            }
-           
-
-        }
-        return false;
+    private findChildUnderParent(obj, psParent:string, qParent:string, qLayerID:number, qId:string) {
+        const layerRef = utlis.isIDExistsRec(qLayerID, obj.layers);
+        return layerRef && layerRef.group.name !== qParent ? layerRef.group.name : false;
     }
 
-    /**
-     * function will check if elements are edited
-     * @param obj
-     * @param qLayerID
-     * @param qId
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     */
-    private checkForEditedElement(obj:object, qLayerID:number, qId:string, parCordinates, x:number, y:number, width:number, height:number){
-        let res;
-        if(obj.hasOwnProperty('layers')){
-            for(let i in obj['layers']){
-                let currentEle = obj['layers'][i];
-
-                if(currentEle.name == qId){
-                    /**if width or height of the element get changed */
-                    if((width !== (currentEle.bounds.right - currentEle.bounds.left)) ||
-                        (height !== (currentEle.bounds.bottom - currentEle.bounds.top)) ||
-                        (x !== (parCordinates.x-currentEle.bounds.left)) || y !== (parCordinates.y - currentEle.bounds.top)){
-                        return currentEle.bounds;
-                    }else{
-                        return false;
-                    }
-                }else{
-                    res = this.checkForEditedElement(currentEle, qLayerID, qId, parCordinates, x, y, width, height);
-                    if(res){
-                        return res;
-                    }
-                }
+    private checkForEditedElement(obj, qLayerID:number, qId:string, parCordinates, childDimensions){
+        const layerRef = utlis.isIDExistsRec(qLayerID, obj.layers);
+        if(layerRef) {
+            if((childDimensions.width !== (layerRef.bounds.right - layerRef.bounds.left)) ||
+                (childDimensions.height !== (layerRef.bounds.bottom - layerRef.bounds.top)) ||
+                (childDimensions.x !== (parCordinates.x-layerRef.bounds.left)) || childDimensions.y !== (parCordinates.y - layerRef.bounds.top)){
+                return layerRef.bounds;
             }
         }
         return false;
@@ -228,27 +181,13 @@ export class PhotoshopParser implements IFactory {
      * @param qImg
      */
     private checkIfImageChanged(obj, qLayerID, qId, path, qImg){
-        let res;
-        if(obj.hasOwnProperty('layers')){
-            for(let i in obj['layers']){
-                let currentEle = obj['layers'][i];
-
-                if(currentEle.name == qId && (currentEle.hasOwnProperty('type') && currentEle.type == 'layer')){
-
-                    let resp = this.checkImages(qImg, JSON.parse(currentEle.generatorSettings.PanelScriptsImage.json).image, path);
-                    console.log(typeof(resp), resp);
-                    return resp;
-                }else{
-                    res = this.checkIfImageChanged(currentEle, qLayerID, qId, path, qImg);
-                    if(res){
-                        return res;
-                    }
-                }
-            }
-          
+        const layerRef = utlis.isIDExistsRec(qLayerID, obj.layers);
+        if(layerRef && layerRef.type === "layer") {
+            let resp = this.checkImages(qImg, JSON.parse(layerRef.generatorSettings.PanelScriptsImage.json).image, path);
+            console.log(typeof(resp), resp);
+            return resp;
         }
         return false;
-
     }
 
     /**
@@ -260,7 +199,6 @@ export class PhotoshopParser implements IFactory {
      */
 
     private checkImages(qImg, psImg, path){
-
         try{
             let array = path.split("/");
             let len = array.length;
@@ -268,18 +206,14 @@ export class PhotoshopParser implements IFactory {
 
             let img2Path = utlis.recurFiles(`${psImg}`, this.pAssetsPath);
             const img2 = this.readImages(img2Path);
-            return (img1 == img2)?false:true;
-      
-
+            return img1 === img2;
         }catch(error){
-         
             return false;
         }
     }
 
-    public readImages(path){
+    public readImages(path) {
         return fs.readFileSync(path, "base64");
-       
     }
   
 }

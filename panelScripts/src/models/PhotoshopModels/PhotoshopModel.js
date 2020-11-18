@@ -128,10 +128,13 @@ var PhotoshopModel = /** @class */ (function () {
                 _this.questViews.push(key);
                 _this.storeItems(item[key]);
             }
-            _this.pushToItems(key);
+            _this.pushToItems(key, item);
         });
     };
-    PhotoshopModel.prototype.pushToItems = function (key) {
+    PhotoshopModel.prototype.pushToItems = function (key, item) {
+        if (item[key].id) {
+            key = item[key].id;
+        }
         if (!utils_1.utlis.isKeyExists(this.questItems, key)) {
             this.questItems.push(key);
         }
@@ -317,7 +320,7 @@ var PhotoshopModel = /** @class */ (function () {
         return this.menuStates;
     };
     PhotoshopModel.prototype.getElementalObject = function () {
-        this.subPhotoshopModel;
+        return this.subPhotoshopModel;
     };
     return PhotoshopModel;
 }());

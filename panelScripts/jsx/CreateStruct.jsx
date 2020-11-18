@@ -1,4 +1,9 @@
-﻿function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConfig) {
+﻿var path = (new File($.fileName)).parent;
+var upperPath = path + "/Plug-ins/DeployVersion";
+var innerPath = path + "/Plug-ins/Generator/DeployVersion";
+var fol = new Folder(upperPath);
+var selPath = fol.exists ? upperPath : innerPath;
+function insertLayer(parentRef, childName, layerType, layerConfig, layerKindConfig) {
     var childLayer;
     if (layerType === "layerSection") {
         childLayer = parentRef.layerSets.add();
@@ -95,7 +100,7 @@ function setNameToAnimations(layerRef, pathName) {
  */
 function getParentRef() {
     var parentRef;
-    var selectedLayers = $.evalFile("D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\SelectedLayers.jsx");
+    var selectedLayers = $.evalFile(selPath + "/jsx/SelectedLayersIds.jsx");
     var selectedLayersString = selectedLayers.toString();
 
     if (selectedLayersString.length && !app.activeDocument.activeLayer.kind) {
@@ -229,4 +234,48 @@ function getElementRef(params, key) {
         name: elementName,
         ref: elementRef
     };
+}
+
+function insertImage(params) {
+    var fileRef = new File(params.file);
+    app.open(fileRef);
+    app.activeDocument.flatten();
+    app.activeDocument.selection.selectAll();
+    app.activeDocument.selection.copy();
+    var imageBounds = app.activeDocument.selection.bounds;
+    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+    var docH = imageBounds[2]-imageBounds[0];
+    var docV = imageBounds[3]- imageBounds[1];
+    var selRegion = [[new UnitValue(0, "px"), new UnitValue(0, "px")], [new UnitValue(docH, "px"), new UnitValue(0, "px")], [new UnitValue(docH, "px"), new UnitValue(docV, "px")], [new UnitValue(0, "px"), new UnitValue(docV, "px")]];
+    app.activeDocument.selection.select(selRegion);
+    app.activeDocument.paste();
+    var activeLayer = app.activeDocument.activeLayer;
+    if(params["dimensions"]){
+        translateLayerToDeltas(params, activeLayer);
+    }
+    activeLayer.name = params.childName;
+    return activeLayer;
+}
+
+function insertText(params, activeLayer) {
+    activeLayer.textItem.contents = params["text"]["contents"];
+    translateLayerToDeltas(params, childLayerRef);
+}
+
+function translateLayerToDeltas(params, activeLayer) {
+    var dimensions = params["dimensions"];
+    var relativeX = dimensions.parentX + dimensions.x - activeLayer.bounds[0].value;
+    var relativeY = dimensions.parentY + dimensions.y - activeLayer.bounds[1].value;
+    activeLayer.translate(relativeX, relativeY);
+}
+
+function findStructRef(layerRef, layerName) {
+    const mappedLayerSets = layerRef ? layerRef.layerSets : [];
+    const layerSetCount = mappedLayerSets.length;
+    for(var i=0;i<layerSetCount;i++) {
+        if(mappedLayerSets[i].name === layerName) {
+            return mappedLayerSets[i];
+        }
+    }
+    return null;
 }

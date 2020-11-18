@@ -1,6 +1,12 @@
-#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+var path = (new File($.fileName)).parent;
+var upperPath = path + "/Plug-ins/DeployVersion";
+var innerPath = path + "/Plug-ins/Generator/DeployVersion";
+var fol = new Folder(upperPath);
+var selPath = fol.exists ? upperPath : innerPath;
+var pathNew = selPath + "/jsx/CreateStruct.jsx";
+$.evalFile(pathNew);
 var childLayerRef;
-var activeLayer;
+var activeLayer = {};
 var parentRef = params.parentId ? getInsertionReferenceById(params.parentId) :
     app.activeDocument;
 var layerConfig;
@@ -23,32 +29,14 @@ if(params["mappedItem"]) {
     }
 }
 
-if(params["image"]){
-    var mask = app.activeDocument.activeLayer;
-    var fileRef = new File(params.file);
-    app.open(fileRef);
-    app.activeDocument.flatten();
-    app.activeDocument.selection.selectAll();
-    app.activeDocument.selection.copy();
-    var imageBounds = app.activeDocument.selection.bounds;
-    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
-    var topLeftH = 0;
-    var topLeftV = 0;
-    var docH = imageBounds[2]-imageBounds[0];
-    var docV = imageBounds[3]- imageBounds[1];
-    var selRegion = [[new UnitValue(0, "px"), new UnitValue(0, "px")], [new UnitValue(docH, "px"), new UnitValue(0, "px")], [new UnitValue(docH, "px"), new UnitValue(docV, "px")], [new UnitValue(0, "px"), new UnitValue(docV, "px")]];
-    app.activeDocument.selection.select(selRegion);
-    app.activeDocument.paste();
-    activeLayer = app.activeDocument.activeLayer;
-    if(params["dimensions"]){
-        var dimensions = params["dimensions"];
-        var relativeX = dimensions.parentX + dimensions.x;
-        var relativeY = dimensions.parentY + dimensions.y;
-
-        activeLayer.translate(relativeX, relativeY);
-    }
-    activeLayer.name = params.childName;
+if(params["image"]) {
+    activeLayer = insertImage(params);
 }
+
+if(params["text"]) {
+    insertText(params, childLayerRef);
+}
+
 if(params["image"]) {
     activeLayer.id;
 } else {

@@ -36,6 +36,10 @@ export class DataPhotoshopModel implements IDataSubModel{
         return this.openDocumentData.docLocalisationStruct;
     }
 
+    accessModifiedIds() {
+        return this.openDocumentData.modifiedIds;
+    }
+
     execute(params: IParams) {
         this.openDocumentData = params.storage.openDocumentData;
     }

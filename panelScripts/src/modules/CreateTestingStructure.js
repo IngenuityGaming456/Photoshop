@@ -41,7 +41,7 @@ var path = require("path");
 var CreateTestingStructure = /** @class */ (function () {
     function CreateTestingStructure(modelFactory) {
         this.modifiedIds = [];
-        this.modifiedIds = modelFactory.getPhotoshopModel().allModifiedIds;
+        this.modifiedIds = modelFactory.getPhotoshopModel().allModifiedIds || [];
         this.modelFactory = modelFactory;
     }
     CreateTestingStructure.prototype.execute = function (params) {

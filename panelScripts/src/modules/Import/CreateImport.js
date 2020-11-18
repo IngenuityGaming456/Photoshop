@@ -27,11 +27,14 @@ var utils_1 = require("../../utils/utils");
 var result_1 = require("./result");
 var FactoryClass_1 = require("../FactoryClass");
 var Creation_1 = require("./Creation");
+var ModelFactory_1 = require("../../models/ModelFactory");
+var QuestHelpers_1 = require("./QuestHelpers");
 /**
  * class reads the quest json file and check for rename, edit, delete and newly added elements
  */
 var CreateImport = /** @class */ (function () {
     function CreateImport(psParser, pFactory, modelFactory) {
+        this.deletedViews = [];
         this.pFactory = pFactory;
         this.pParser = psParser;
         this.modelFactory = modelFactory;
@@ -40,6 +43,7 @@ var CreateImport = /** @class */ (function () {
     CreateImport.prototype.execute = function (params) {
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
+        this.docEmitter = params.docEmitter;
         FactoryClass_1.execute(this.pParser, {
             generator: this.generator,
             activeDocument: this.activeDocument
@@ -67,8 +71,23 @@ var CreateImport = /** @class */ (function () {
             }
             var abject = this.qObj[platform];
             var enObj = this.qObj[platform]["en"];
+            this.checkIfViewsDeleted(enObj, platform);
             this.compareViews(enObj, platform);
         }
+    };
+    CreateImport.prototype.checkIfViewsDeleted = function (enObj, platform) {
+        var questViewsArr = [];
+        for (var view in enObj) {
+            questViewsArr.push(view);
+        }
+        /**function will return deleted views */
+        var photoShopViewsObj = this.pParser.compareWithPhotoShopViews(questViewsArr, platform);
+        var diff;
+        diff = photoShopViewsObj.filter(function (x) { return !questViewsArr.includes(x.name); });
+        for (var i in diff) {
+            this.deletedViews.push(diff[i].name);
+        }
+        this.findAndHandleDeletedElements(enObj, photoShopViewsObj, diff, platform);
     };
     /**
      * function compare views
@@ -76,21 +95,24 @@ var CreateImport = /** @class */ (function () {
      * @param platform - plateform (desktop, landscape, portrait etc)
      */
     CreateImport.prototype.compareViews = function (enObj, platform) {
+        var _a;
         for (var view in enObj) {
             if (!enObj.hasOwnProperty(view)) {
                 continue;
             }
             var pView = this.pParser.getPView(view, platform);
             if (!pView) {
-                this.result.create.views.push({
-                    view: enObj[view],
-                    platform: platform
-                });
+                enObj[view].base = true;
+                this.result.create.views.push((_a = {},
+                    _a[view] = enObj[view],
+                    _a.platform = platform,
+                    _a));
             }
-            else {
-                this.compareComponents(enObj[view], view, platform);
+            this.compareComponents(enObj[view], view, platform);
+            /**if view is newly added then dont check for edit, delete or rename */
+            if (!this.deletedViews.includes(view)) {
+                this.isDelete(enObj, enObj[view], view, platform);
             }
-            this.isDelete(enObj, enObj[view], platform);
         }
     };
     /**function compare view components one by one with psParser
@@ -109,12 +131,12 @@ var CreateImport = /** @class */ (function () {
                 var parentId = this.getParentId(view, platform);
                 compObj["parentX"] = compObj.parent && viewObj[compObj.parent].x || 0;
                 compObj["parentY"] = compObj.parent && viewObj[compObj.parent].y || 0;
-                this.result.create[type].push({
+                this.pushToResult({
                     key: compObj,
                     viewId: parentId,
                     view: view,
                     platform: platform
-                });
+                }, "create", type);
             }
             else {
                 console.log(viewObj);
@@ -155,52 +177,15 @@ var CreateImport = /** @class */ (function () {
             }
         }
     };
-    /**
-     * function to check if a view component is edited or not
-     * @param compObj - current view component
-     * @param viewObj - current view object
-     * @param view - current view
-     * @param platform - current platform
-     */
     CreateImport.prototype.isEdit = function (compObj, view, viewObj, platform) {
-        var tempParent = {};
-        var tempChild = {};
-        tempParent["x"] = 0;
-        tempParent["y"] = 0;
-        /**check if obj is an instance of an object */
         if (compObj instanceof Object) {
-            /**chck only for the elements which were created by PS as they have integer layerid */
-            if (typeof compObj.layerID[0] == 'number' && compObj.type == "image") {
-                var height = compObj.h || compObj.height;
-                var width = compObj.w || compObj.width;
-                var parent_1 = compObj.parent ? compObj.parent : "";
-                if (viewObj.hasOwnProperty(parent_1)) {
-                    var eleParent = viewObj[parent_1];
-                    tempParent["x"] = eleParent.x;
-                    tempParent["y"] = eleParent.y;
+            if (typeof compObj.layerID[0] == 'number' && compObj.type !== "container") {
+                var editFunc = QuestHelpers_1.editObj[compObj.type];
+                if (editFunc) {
+                    editFunc(compObj, this.pParser, viewObj, view, platform, this.result);
                 }
-                tempChild["x"] = compObj.x;
-                tempChild["y"] = compObj.y;
-                tempChild["width"] = width;
-                tempChild["height"] = height;
-                var resL = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, tempParent, tempChild, null, "editElement");
-                if (resL) {
-                    compObj["parentX"] = tempParent["x"];
-                    compObj["parentY"] = tempParent["y"];
-                    compObj["width"] = width;
-                    compObj["height"] = height;
-                    compObj.h && delete compObj.h;
-                    compObj.w && delete compObj.w;
-                    compObj["isAssetChange"] = false;
-                }
-                var path = utils_1.utlis.recurFiles("" + compObj.image, this.qAssetsPath);
-                var resA = this.pParser.recursionCallInitiator(compObj.layerID[0], compObj.id, path, null, compObj.image, "editImage");
-                if (resA) {
-                    compObj["isAssetChange"] = true;
-                }
-                if (resA || resL) {
-                    var parentId = this.getParentId(view, platform);
-                    this.handleEditElement(compObj, parentId, view, platform);
+                else {
+                    QuestHelpers_1.edit(compObj, this.pParser, viewObj, view, platform, this.result);
                 }
             }
         }
@@ -232,12 +217,15 @@ var CreateImport = /** @class */ (function () {
      * @param view - current view
      * @param platform - current platform
      */
-    CreateImport.prototype.isDelete = function (enObj, viewObj, platform) {
-        var e_1, _a, e_2, _b;
-        var psObjArray = this.pParser.getPSObjects(platform);
+    CreateImport.prototype.isDelete = function (enObj, viewObj, view, platform) {
+        var psObjArray = this.pParser.getPSObjects(view, platform);
         var qObjArray = this.getQuestObjects(viewObj);
         var diff;
         diff = psObjArray.filter(function (x) { return !qObjArray.includes(x.id); });
+        this.findAndHandleDeletedElements(enObj, psObjArray, diff, platform);
+    };
+    CreateImport.prototype.findAndHandleDeletedElements = function (enObj, psObjArray, diff, platform) {
+        var e_1, _a, e_2, _b;
         if (diff.length > 0) {
             var delItems = [];
             try {
@@ -278,12 +266,8 @@ var CreateImport = /** @class */ (function () {
         var views = Object.keys(enObj);
         return views.includes(viewName);
     };
-    /**
-     * function checks if a component is newly added, as newly added components has string ids
-     * @param compObj - current view component object
-     */
     CreateImport.prototype.isNew = function (layerID) {
-        return (typeof (layerID) == "string" ? true : false);
+        return (typeof (layerID) == "string");
     };
     /**
      * function to get type of a view component
@@ -292,13 +276,6 @@ var CreateImport = /** @class */ (function () {
     CreateImport.prototype.getType = function (compObj) {
         return compObj.type;
     };
-    /**
-     * function adds the deleted elements in the result object
-     * @param diff - deleted components
-     * @param viewObj - current view object
-     * @param view - current view
-     * @param platform - current platform
-     */
     CreateImport.prototype.handleDeletdElements = function (diff) {
         for (var i in diff) {
             this.result.delete['components'].push({
@@ -322,19 +299,11 @@ var CreateImport = /** @class */ (function () {
         renamed['oldName'] = oldName;
         renamed['elementId'] = elementId;
         renamed = JSON.stringify(renamed);
-        this.result.rename[type].push({
+        this.pushToResult({
             renamed: renamed,
             view: view,
             platform: platform
-        });
-    };
-    CreateImport.prototype.handleEditElement = function (compObj, parentId, view, platform) {
-        this.result.edit[compObj.type].push({
-            key: compObj,
-            viewId: parentId,
-            view: view,
-            platform: platform
-        });
+        }, "rename", type);
     };
     /**
      * function adds the moved elements in the result object
@@ -353,25 +322,29 @@ var CreateImport = /** @class */ (function () {
         moveObj["newparent"] = newParent;
         moveObj["newparentId"] = newParentId;
         moveObj = JSON.stringify(moveObj);
-        this.result.move[type].push({
+        this.pushToResult({
             moveObj: moveObj,
             view: view,
             platform: platform
-        });
+        }, "move", type);
+    };
+    CreateImport.prototype.pushToResult = function (item, action, type) {
+        utils_1.utlis.addArrayKeyToObject(this.result[action], type);
+        this.result[action][type].push(item);
     };
     CreateImport.prototype.getParentId = function (view, platform) {
+        var _a;
         var elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
         var currentView = elementalMap[platform][view];
-        return currentView.base.id;
+        return (_a = currentView === null || currentView === void 0 ? void 0 : currentView.base) === null || _a === void 0 ? void 0 : _a.id;
     };
     CreateImport.prototype.startCreation = function () {
-        var creationObj = FactoryClass_1.inject({ ref: Creation_1.Creation, dep: [] });
-        // execute(creationObj, {storage: {result : this.result}, generator: this.generator});
+        var creationObj = FactoryClass_1.inject({ ref: Creation_1.Creation, dep: [ModelFactory_1.ModelFactory] });
         FactoryClass_1.execute(creationObj, { storage: {
                 result: this.result,
                 pFactory: this.pFactory,
                 qAssets: this.qAssetsPath
-            }, generator: this.generator, activeDocument: this.activeDocument });
+            }, generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter });
     };
     return CreateImport;
 }());

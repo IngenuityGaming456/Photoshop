@@ -9,6 +9,8 @@ export class MenuProxyManager implements IFactory {
     private generator;
     private menuStates = [];
     private docEmitter;
+    private promiseCallQueue = [];
+    private queueResolveStatus = null;
     public constructor(modelFactory: ModelFactory) {
         this.modelFactory = modelFactory;
     }
@@ -22,8 +24,8 @@ export class MenuProxyManager implements IFactory {
     }
 
     private subscribeListeners() {
-        this.docEmitter.on(pc.logger.currentDocument, () => this.enableAllMenuItems());
-        this.docEmitter.on(pc.logger.newDocument, () => this.disableAllMenuItems());
+        this.docEmitter.on(pc.logger.currentDocument, () => this.modifyAllMenuItems("en", true));
+        this.docEmitter.on(pc.logger.newDocument, () => this.modifyAllMenuItems("dis", false));
     }
 
     private async addMenuItems() {
@@ -43,21 +45,52 @@ export class MenuProxyManager implements IFactory {
         }
     }
 
-    private async enableAllMenuItems() {
-        for(let menu in menuLabels) {
-            if(menuLabels.hasOwnProperty(menu) && menuLabels[menu].enabled !== false) {
-                await this.generator.toggleMenu(menuLabels[menu].label, true, false,
-                    menuLabels[menu].displayName);
+    private modifyAllMenuItems(key, enable) {
+        if(this.canPushToQueue(key, enable)) {
+            key && this.promiseCallQueue.push(key);
+            console.log(JSON.stringify({queue : this.promiseCallQueue}));
+        } else {
+            return;
+        }
+        if (this.isQueueBusy() && key) {
+            return;
+        }
+        const p = [];
+        for (let menu in menuLabels) {
+            if (menuLabels.hasOwnProperty(menu)) {
+                p.push(this.generator.toggleMenu(menuLabels[menu].label, enable, false,
+                    menuLabels[menu].displayName));
             }
         }
+        Promise.all(p).then(() => {
+            console.log(`All Elements Settled with ${enable}`);
+            this.promiseCallQueue.splice(0, 1);
+            this.logEndStatus(enable);
+            console.log(JSON.stringify({queue : this.promiseCallQueue}));
+            if (this.canQueueProcess()) {
+                enable = this.promiseCallQueue[0] === "en";
+                this.modifyAllMenuItems(undefined, enable);
+            }
+        });
     }
 
-    private async disableAllMenuItems() {
-        for(let menu in menuLabels) {
-            if(menuLabels.hasOwnProperty(menu)) {
-                    await this.generator.toggleMenu(menuLabels[menu].label,false, false,
-                        menuLabels[menu].displayName);
-                }
-            }
+    private isQueueBusy() {
+        return this.promiseCallQueue.length > 1;
+    }
+
+    private canQueueProcess() {
+        return this.promiseCallQueue.length > 0;
+    }
+
+    private canPushToQueue(key, enable) {
+        const queueLength = this.promiseCallQueue.length;
+        return (queueLength === 0 && this.queueResolveStatus !== enable) || (queueLength > 0 && this.promiseCallQueue[queueLength - 1] !== key);
+    }
+
+    private logEndStatus(enable) {
+        this.queueResolveStatus = enable;
+        if(enable) {
+            this.docEmitter.emit("logStatus", "Menu Stabilized");
         }
+    }
 }

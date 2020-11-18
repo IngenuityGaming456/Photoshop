@@ -1,4 +1,40 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
@@ -86,6 +122,9 @@ var utlis = /** @class */ (function () {
             if (item.name === name) {
                 return true;
             }
+            if (item === name) {
+                return true;
+            }
         });
     };
     utlis.getConsecutiveIndexes = function (itemArray, index) {
@@ -148,11 +187,11 @@ var utlis = /** @class */ (function () {
         var noOfLayers = arrayLayers.length;
         for (var i = 0; i < noOfLayers; i++) {
             if (arrayLayers[i].type === "layer") {
-                callback(arrayLayers[i]);
+                callback && callback(arrayLayers[i]);
             }
             if (arrayLayers[i].type === "layerSection") {
+                callbackLayers && callbackLayers(arrayLayers[i]);
                 if (arrayLayers[i].layers) {
-                    callbackLayers && callbackLayers(arrayLayers[i]);
                     utlis.traverseObject(arrayLayers[i].layers, callback, callbackLayers);
                 }
             }
@@ -368,6 +407,46 @@ var utlis = /** @class */ (function () {
         });
         return utlis.getLayersAtLevel(allLayers, --level);
     };
+    utlis.getLastParentAndChildLayers = function (layers) {
+        var resultObj = { "parent": undefined, child: [] };
+        utlis.getLastParentAndChildLayersObj(layers, resultObj);
+        return resultObj;
+    };
+    utlis.getLastParentAndChildLayersObj = function (layers, resultObj) {
+        var e_5, _a, e_6, _b;
+        try {
+            for (var layers_1 = __values(layers), layers_1_1 = layers_1.next(); !layers_1_1.done; layers_1_1 = layers_1.next()) {
+                var item = layers_1_1.value;
+                if (item.layers) {
+                    try {
+                        for (var _c = (e_6 = void 0, __values(item.layers)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                            var subLayers = _d.value;
+                            if (!subLayers.layers) {
+                                resultObj["parent"] = item;
+                                resultObj["child"] = item.layers;
+                                return;
+                            }
+                        }
+                    }
+                    catch (e_6_1) { e_6 = { error: e_6_1 }; }
+                    finally {
+                        try {
+                            if (_d && !_d.done && (_b = _c.return)) _b.call(_c);
+                        }
+                        finally { if (e_6) throw e_6.error; }
+                    }
+                    return utlis.getLastParentAndChildLayersObj(item.layers, resultObj);
+                }
+            }
+        }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        finally {
+            try {
+                if (layers_1_1 && !layers_1_1.done && (_a = layers_1.return)) _a.call(layers_1);
+            }
+            finally { if (e_5) throw e_5.error; }
+        }
+    };
     utlis.getNextAvailableIndex = function (queryObject, index) {
         if (!queryObject.hasOwnProperty(index)) {
             return index;
@@ -377,6 +456,11 @@ var utlis = /** @class */ (function () {
     utlis.addKeyToObject = function (queryObj, key) {
         if (!queryObj.hasOwnProperty(key)) {
             queryObj[key] = {};
+        }
+    };
+    utlis.addArrayKeyToObject = function (queryObj, key) {
+        if (!queryObj.hasOwnProperty(key)) {
+            queryObj[key] = [];
         }
     };
     utlis.containAll = function (array1, array2) {
@@ -409,7 +493,7 @@ var utlis = /** @class */ (function () {
         };
     };
     utlis.isLayerExists = function (layerRef, idKey) {
-        var e_5, _a;
+        var e_7, _a;
         var layerRefLayers = layerRef.layer.layers;
         try {
             for (var layerRefLayers_1 = __values(layerRefLayers), layerRefLayers_1_1 = layerRefLayers_1.next(); !layerRefLayers_1_1.done; layerRefLayers_1_1 = layerRefLayers_1.next()) {
@@ -419,12 +503,12 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
         finally {
             try {
                 if (layerRefLayers_1_1 && !layerRefLayers_1_1.done && (_a = layerRefLayers_1.return)) _a.call(layerRefLayers_1);
             }
-            finally { if (e_5) throw e_5.error; }
+            finally { if (e_7) throw e_7.error; }
         }
         return false;
     };
@@ -436,24 +520,38 @@ var utlis = /** @class */ (function () {
         utlis.addKeyToObject(item["generatorSettings"], pluginId);
         item["generatorSettings"][pluginId]["json"] = component;
     };
-    utlis.getParsedEvent = function (pathArray, layers) {
-        var eventLayers = [];
-        pathArray.forEach(function (item, index) {
-            if (index === 0) {
-                eventLayers.push(layers[item[0]]);
+    utlis.getParsedEvent = function (pathArray, layers, indexObj, subLevel, eventLayers) {
+        eventLayers = eventLayers !== null && eventLayers !== void 0 ? eventLayers : [];
+        if (indexObj.index >= pathArray.length) {
+            return;
+        }
+        var subArr = pathArray[indexObj.index];
+        var subArrLength = subArr.length;
+        if ((indexObj.index === 0 && !(~subArr.indexOf(-1)) || (subArrLength > 1 && subArr[1] !== -1))) {
+            var j = 0;
+            for (var i = subArrLength - 1; i >= 0; i--) {
+                eventLayers.push(layers[i]);
+                indexObj.index += 1;
+                utlis.getParsedEvent(pathArray, layers, indexObj, j, eventLayers);
+                j++;
             }
-            else {
-                var layerStructure = utlis.getLayersStructureAtLevel(index, 0, eventLayers);
-                utlis.spliceAllButItem(layerStructure, item);
+        }
+        else {
+            if (subLevel === null) {
+                return layers;
             }
-        });
+            var layerStructure = utlis.getLayersStructureAtLevel(subLevel, eventLayers);
+            utlis.spliceAllButItem(layerStructure, subArr);
+            if (subArr.length === 1) {
+                indexObj.index += 1;
+                subLevel = subArr[0];
+                utlis.getParsedEvent(pathArray, layers, indexObj, subLevel, layerStructure);
+            }
+        }
         return eventLayers;
     };
-    utlis.getLayersStructureAtLevel = function (index, level, eventLayers) {
-        if (index === level) {
-            return eventLayers;
-        }
-        return utlis.getLayersStructureAtLevel(index, ++level, eventLayers[0].layers);
+    utlis.getLayersStructureAtLevel = function (subLevel, eventLayers) {
+        return eventLayers[subLevel].layers;
     };
     utlis.spliceAllButItem = function (spliceArray, itemArray) {
         for (var i = 0; i < spliceArray.length; i++) {
@@ -469,7 +567,7 @@ var utlis = /** @class */ (function () {
         }
     };
     utlis.getView = function (commonRef, viewName) {
-        var e_6, _a;
+        var e_8, _a;
         var viewLayers = commonRef.layer.layers;
         try {
             for (var viewLayers_1 = __values(viewLayers), viewLayers_1_1 = viewLayers_1.next(); !viewLayers_1_1.done; viewLayers_1_1 = viewLayers_1.next()) {
@@ -479,17 +577,17 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_6_1) { e_6 = { error: e_6_1 }; }
+        catch (e_8_1) { e_8 = { error: e_8_1 }; }
         finally {
             try {
                 if (viewLayers_1_1 && !viewLayers_1_1.done && (_a = viewLayers_1.return)) _a.call(viewLayers_1);
             }
-            finally { if (e_6) throw e_6.error; }
+            finally { if (e_8) throw e_8.error; }
         }
         return null;
     };
     utlis.getPlatformRef = function (platform, activeDocument) {
-        var e_7, _a;
+        var e_9, _a;
         var activeLayers = activeDocument.layers.layers;
         try {
             for (var activeLayers_1 = __values(activeLayers), activeLayers_1_1 = activeLayers_1.next(); !activeLayers_1_1.done; activeLayers_1_1 = activeLayers_1.next()) {
@@ -499,16 +597,16 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        catch (e_9_1) { e_9 = { error: e_9_1 }; }
         finally {
             try {
                 if (activeLayers_1_1 && !activeLayers_1_1.done && (_a = activeLayers_1.return)) _a.call(activeLayers_1);
             }
-            finally { if (e_7) throw e_7.error; }
+            finally { if (e_9) throw e_9.error; }
         }
     };
     utlis.hasKey = function (keyArray, key) {
-        var e_8, _a;
+        var e_10, _a;
         try {
             for (var keyArray_1 = __values(keyArray), keyArray_1_1 = keyArray_1.next(); !keyArray_1_1.done; keyArray_1_1 = keyArray_1.next()) {
                 var item = keyArray_1_1.value;
@@ -517,12 +615,12 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_8_1) { e_8 = { error: e_8_1 }; }
+        catch (e_10_1) { e_10 = { error: e_10_1 }; }
         finally {
             try {
                 if (keyArray_1_1 && !keyArray_1_1.done && (_a = keyArray_1.return)) _a.call(keyArray_1);
             }
-            finally { if (e_8) throw e_8.error; }
+            finally { if (e_10) throw e_10.error; }
         }
         return null;
     };
@@ -559,7 +657,7 @@ var utlis = /** @class */ (function () {
         return utlis.isNotContainer(itemRef.layer.group, activeDocument, resultLayers, pluginId);
     };
     utlis.findLayerInResult = function (id, resultLayers) {
-        var e_9, _a;
+        var e_11, _a;
         try {
             for (var resultLayers_1 = __values(resultLayers), resultLayers_1_1 = resultLayers_1.next(); !resultLayers_1_1.done; resultLayers_1_1 = resultLayers_1.next()) {
                 var item = resultLayers_1_1.value;
@@ -574,12 +672,12 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_9_1) { e_9 = { error: e_9_1 }; }
+        catch (e_11_1) { e_11 = { error: e_11_1 }; }
         finally {
             try {
                 if (resultLayers_1_1 && !resultLayers_1_1.done && (_a = resultLayers_1.return)) _a.call(resultLayers_1);
             }
-            finally { if (e_9) throw e_9.error; }
+            finally { if (e_11) throw e_11.error; }
         }
         return null;
     };
@@ -666,7 +764,7 @@ var utlis = /** @class */ (function () {
     };
     utlis.renameElementalObj = function (elementalObj, name, id) {
         for (var element in elementalObj) {
-            if (!elementalObj.hasOwnProperty(element)) {
+            if (!elementalObj.hasOwnProperty(element) || element === "base") {
                 continue;
             }
             var component = elementalObj[element];
@@ -676,18 +774,6 @@ var utlis = /** @class */ (function () {
             }
         }
     };
-    // public static getAssetsAndJson(key, activeDocument) {
-    //     const savedPath = activeDocument.directory;
-    //     const extIndex = activeDocument.name.search(".psd");
-    //     const fileName = activeDocument.name.slice(0, extIndex);
-    //     const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
-    //     const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
-    //     const qObj = JSON.parse(fs.readFileSync(qJsonPath, 'utf8'));
-    //     return {
-    //         qAssetsPath,
-    //         qObj
-    //     }
-    // }
     utlis.getAssetsAndJson = function (key, activeDocument) {
         var savedPath = activeDocument.directory;
         // const extIndex = activeDocument.name.indexOf(".");
@@ -703,7 +789,7 @@ var utlis = /** @class */ (function () {
         };
     };
     utlis.recurFiles = function (fileName, folderPath) {
-        var e_10, _a;
+        var e_12, _a;
         var files = fs.readdirSync(folderPath);
         try {
             for (var files_1 = __values(files), files_1_1 = files_1.next(); !files_1_1.done; files_1_1 = files_1.next()) {
@@ -724,22 +810,74 @@ var utlis = /** @class */ (function () {
                 }
             }
         }
-        catch (e_10_1) { e_10 = { error: e_10_1 }; }
+        catch (e_12_1) { e_12 = { error: e_12_1 }; }
         finally {
             try {
                 if (files_1_1 && !files_1_1.done && (_a = files_1.return)) _a.call(files_1);
             }
-            finally { if (e_10) throw e_10.error; }
+            finally { if (e_12) throw e_12.error; }
         }
     };
     utlis.copyFolder = function (directory, source, destination) {
-        // let dir = fs.mkdirSync(path.join(destinationDir, directory.toString()), { recursive: true });
-        fsx.copy(path.join(directory, source.toString()), path.join(directory, destination.toString()), function (err) {
-            console.log(err);
-            return false;
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, fsx.copy(path.join(directory, source.toString()), path.join(directory, destination.toString()))];
+                    case 1:
+                        _b.sent();
+                        console.log("copied completed");
+                        return [3 /*break*/, 3];
+                    case 2:
+                        _a = _b.sent();
+                        console.log("Error in file copy");
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
         });
-        console.log("copied completed");
-        return true;
+    };
+    utlis.sendResponseToPanel = function (elementView, elementPlatform, elementName, startEvent, stopEvent, socket) {
+        return new Promise(function (resolve) {
+            var eventNames = socket.eventNames();
+            if (~eventNames.indexOf(stopEvent)) {
+                socket.removeAllListeners(stopEvent);
+            }
+            socket.on(stopEvent, function () { return resolve(); });
+            socket.emit(startEvent, elementPlatform, elementView, elementName);
+        });
+    };
+    utlis.spliceFromIdArray = function (arr, idArr) {
+        var e_13, _a;
+        try {
+            for (var idArr_1 = __values(idArr), idArr_1_1 = idArr_1.next(); !idArr_1_1.done; idArr_1_1 = idArr_1.next()) {
+                var id = idArr_1_1.value;
+                var indexOf = arr.indexOf(id);
+                if (indexOf > -1) {
+                    arr.splice(indexOf, 1);
+                }
+            }
+        }
+        catch (e_13_1) { e_13 = { error: e_13_1 }; }
+        finally {
+            try {
+                if (idArr_1_1 && !idArr_1_1.done && (_a = idArr_1.return)) _a.call(idArr_1);
+            }
+            finally { if (e_13) throw e_13.error; }
+        }
+    };
+    utlis.getGenSettings = function (layer, pluginId) {
+        var _a;
+        var type = layer.generatorSettings ? (_a = layer.generatorSettings[pluginId]) === null || _a === void 0 ? void 0 : _a.json : undefined;
+        return type === null || type === void 0 ? void 0 : type.substring(1, type.length - 1);
+    };
+    utlis.sendToSocket = function (socket, params, event) {
+        socket.emit.apply(socket, __spread([event], params));
+    };
+    utlis.removeExtensionFromFileName = function (file) {
+        return file.split('.').slice(0, -1).join('.');
     };
     return utlis;
 }());

@@ -44,6 +44,9 @@ export class utlis {
             if (item.name === name) {
                 return true;
             }
+            if(item === name) {
+                return true;
+            }
         });
     }
 
@@ -98,11 +101,11 @@ export class utlis {
         
         for (let i = 0; i < noOfLayers; i++) {
             if (arrayLayers[i].type === "layer") {
-                callback(arrayLayers[i]);
+                callback && callback(arrayLayers[i]);
             }
             if (arrayLayers[i].type === "layerSection") {
+                callbackLayers && callbackLayers(arrayLayers[i]);
                 if (arrayLayers[i].layers) {
-                    callbackLayers && callbackLayers(arrayLayers[i]);
                     utlis.traverseObject(arrayLayers[i].layers, callback, callbackLayers);
                 }
             }
@@ -306,6 +309,27 @@ export class utlis {
         return utlis.getLayersAtLevel(allLayers, --level);
     }
 
+    public static getLastParentAndChildLayers(layers) {
+        const resultObj = {"parent": undefined, child: []};
+        utlis.getLastParentAndChildLayersObj(layers, resultObj);
+        return resultObj;
+    }
+
+    private static getLastParentAndChildLayersObj(layers, resultObj) {
+        for(const item of layers) {
+            if(item.layers) {
+                for(const subLayers of item.layers) {
+                    if(!subLayers.layers) {
+                        resultObj["parent"] = item;
+                        resultObj["child"] = item.layers;
+                        return;
+                    }
+                }
+                return utlis.getLastParentAndChildLayersObj(item.layers, resultObj);
+            }
+        }
+    }
+
     public static getNextAvailableIndex(queryObject, index) {
         if(!queryObject.hasOwnProperty(index)) {
             return index;
@@ -316,6 +340,12 @@ export class utlis {
     public static addKeyToObject(queryObj, key) {
         if(!queryObj.hasOwnProperty(key)) {
             queryObj[key] = {};
+        }
+    }
+
+    public static addArrayKeyToObject(queryObj, key) {
+        if(!queryObj.hasOwnProperty(key)) {
+            queryObj[key] = [];
         }
     }
 
@@ -367,24 +397,38 @@ export class utlis {
         item["generatorSettings"][pluginId]["json"] = component;
     }
 
-    public static getParsedEvent(pathArray, layers) {
-        let eventLayers = [];
-        pathArray.forEach((item, index) => {
-            if(index === 0) {
-                eventLayers.push(layers[item[0]]);
-            } else {
-                const layerStructure = utlis.getLayersStructureAtLevel(index, 0, eventLayers);
-                utlis.spliceAllButItem(layerStructure, item);
+    public static getParsedEvent(pathArray, layers, indexObj, subLevel, eventLayers?) {
+        eventLayers = eventLayers ?? [];
+        if(indexObj.index >= pathArray.length) {
+            return;
+        }
+        const subArr = pathArray[indexObj.index]
+        const subArrLength = subArr.length;
+        if((indexObj.index === 0 && !(~subArr.indexOf(-1)) || (subArrLength > 1 && subArr[1] !== -1))) {
+            let j=0;
+            for(let i=subArrLength-1;i>=0;i--) {
+                eventLayers.push(layers[i]);
+                indexObj.index += 1;
+                utlis.getParsedEvent(pathArray, layers, indexObj,j, eventLayers);
+                j++;
             }
-        });
+        } else {
+            if(subLevel === null) {
+                return layers;
+            }
+            const layerStructure = utlis.getLayersStructureAtLevel(subLevel, eventLayers);
+            utlis.spliceAllButItem(layerStructure, subArr);
+            if(subArr.length === 1) {
+                indexObj.index += 1;
+                subLevel = subArr[0];
+                utlis.getParsedEvent(pathArray, layers, indexObj, subLevel, layerStructure);
+            }
+        }
         return eventLayers;
     }
 
-    public static getLayersStructureAtLevel(index, level, eventLayers) {
-        if(index === level) {
-            return eventLayers;
-        }
-        return utlis.getLayersStructureAtLevel(index, ++level, eventLayers[0].layers);
+    public static getLayersStructureAtLevel(subLevel, eventLayers) {
+        return eventLayers[subLevel].layers;
     }
 
     public static spliceAllButItem(spliceArray, itemArray) {
@@ -563,7 +607,7 @@ export class utlis {
 
     private static renameElementalObj(elementalObj, name, id) {
         for(let element in elementalObj) {
-            if(!elementalObj.hasOwnProperty(element)) {
+            if(!elementalObj.hasOwnProperty(element) || element === "base") {
                 continue;
             }
             const component = elementalObj[element];
@@ -582,7 +626,6 @@ export class utlis {
         const qAssetsPath = savedPath + `\\${fileName}\\` + `${key}\\${fileName}-assets`;
         const qJsonPath =savedPath + `\\${fileName}\\` + `${key}\\${fileName}.json`;
         let sObj = fs.readFileSync(qJsonPath, "utf-8");
-
         let qObj = JSON.parse(sObj);
         return {
             qAssetsPath,
@@ -617,5 +660,38 @@ export class utlis {
         } catch {
             console.log("Error in file copy");
         }
+    }
+
+    public static sendResponseToPanel(elementView, elementPlatform, elementName, startEvent, stopEvent, socket) {
+        return new Promise(resolve => {
+            const eventNames = socket.eventNames();
+            if(~eventNames.indexOf(stopEvent)) {
+                socket.removeAllListeners(stopEvent);
+            }
+            socket.on(stopEvent, () => resolve());
+            socket.emit(startEvent, elementPlatform, elementView, elementName)
+        });
+    }
+
+    public static spliceFromIdArray(arr, idArr) {
+        for(let id of idArr) {
+            const indexOf = arr.indexOf(id);
+            if (indexOf > -1) {
+                arr.splice(indexOf, 1);
+            }
+        }
+    }
+
+    public static getGenSettings(layer, pluginId) {
+        const type =  layer.generatorSettings ? layer.generatorSettings[pluginId]?.json : undefined;
+        return type?.substring(1, type.length - 1);
+    }
+
+    public static sendToSocket(socket, params, event) {
+        socket.emit(event, ...params);
+    }
+
+    public static removeExtensionFromFileName(file){
+        return file.split('.').slice(0, -1).join('.')
     }
 }

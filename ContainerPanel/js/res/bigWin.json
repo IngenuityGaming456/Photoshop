@@ -1,8 +1,10 @@
 {
     "bigWin": {
+        "noElement": true,
         "bigwinContainer": {
             "type": "container",
-            "id": "bigwinContainer"
+            "id": "bigwinContainer",
+            "leaf": true
         }
     }
 }

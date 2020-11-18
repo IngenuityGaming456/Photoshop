@@ -6,6 +6,7 @@ import {ModelFactory} from "../models/ModelFactory";
 import {photoshopConstants as pc} from "../constants";
 import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 import {utlis} from "../utils/utils";
+import {addDimensionsToParams, addFramesToParams, addImageToParams, addTextToParams} from "./PhotoshopFactoryHelpers";
 
 let packageJson = require("../../package.json");
 
@@ -39,14 +40,14 @@ export class PhotoshopFactory implements IFactory {
         this.platform = platform;
         for(let keys in parserObject) {
             let jsxParams: IJsxParam = {parentId: "", childName: "", type: ""};
-            if(!parserObject.hasOwnProperty(keys) || keys === "base") {
+            if(!parserObject.hasOwnProperty(keys) || !(parserObject[keys] instanceof Object)) {
                 continue;
             }
             layerType = parserObject[keys].type;
-            await this.setParams(jsxParams, parserObject, keys, insertionPoint);
+            await this.setParams(jsxParams, parserObject, keys, insertionPoint, assetsPath);
             if(!layerType && !jsxParams.childName) {
                 this.baseView = keys;
-                await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type);
+                await this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type, assetsPath);
             } else {
                 this.baseView = parentKey;
                 const mappedKey = this.getMappedKey();
@@ -54,7 +55,7 @@ export class PhotoshopFactory implements IFactory {
                     (this.photoshopModel as PhotoshopModelApp).automationOn = true;
                 }
                 this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                await this.createElementTree(jsxParams, layerType, parentKey, type, assetsPath);
+                await this.createElementTree(jsxParams, layerType, parentKey, type);
                 (this.photoshopModel as PhotoshopModelApp).automationOn = false;
             }
         }
@@ -62,37 +63,29 @@ export class PhotoshopFactory implements IFactory {
 
     private getMappedKey() {
         const mappedPlatform = this.photoshopModel.mappedPlatformObj;
-        if(this.platform && this.platform in mappedPlatform) {
-            return mappedPlatform[this.platform][this.baseView]["mapping"];
+        if(this.platform && (this.platform in mappedPlatform || "noConnection" in mappedPlatform)) {
+            return mappedPlatform[this.platform]?.[this.baseView]["mapping"] ?? mappedPlatform["noConnection"][this.baseView]["mapping"];
         }
         return null;
     }
 
-    private async setParams(jsxParams, parserObject, keys, insertionPoint) {
-        if("x" in parserObject[keys] && "y" in parserObject[keys]) {
-            const jsxDim = jsxParams["dimensions"] = {};
-            jsxDim["x"] = parserObject[keys].x;
-            jsxDim["y"] = parserObject[keys].y;
-            jsxDim["h"] = parserObject[keys].h || parserObject[keys].height;
-            jsxDim["w"] = parserObject[keys].w || parserObject[keys].width;
-            jsxDim["parentX"] = parserObject[keys].parentX;
-            jsxDim["parentY"] = parserObject[keys].parentY;
-        }
-        if(parserObject[keys].image) {
-            jsxParams.image = parserObject[keys].image;
-        }
+    private async setParams(jsxParams, parserObject, keys, insertionPoint, assetsPath?) {
+        addDimensionsToParams(jsxParams, parserObject, keys);
+        addImageToParams(jsxParams, parserObject, keys, assetsPath);
+        addFramesToParams(jsxParams, parserObject, keys, assetsPath);
+        addTextToParams(jsxParams, parserObject, keys, assetsPath);
         jsxParams.leaf = parserObject[keys].leaf;
         jsxParams.childName = parserObject[keys].id;
         jsxParams.parentId = parserObject[keys].parent ? await this.findParentId(parserObject[keys].parent, insertionPoint) : insertionPoint;
     }
 
-    private async createBaseChild(jsxParams, keys, insertionPoint, parserObject, type?) {
+    private async createBaseChild(jsxParams, keys, insertionPoint, parserObject, type?, assetsPath?) {
         jsxParams.childName = keys;
         jsxParams.type = "layerSection";
         insertionPoint = await this.createBaseStruct(jsxParams);
         this.setBaseIds(keys, insertionPoint, type);
         await this.insertBaseMetaData(insertionPoint);
-        await this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type);
+        await this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type, assetsPath);
     }
 
     private setBaseIds(keys, insertionPoint, type?) {
@@ -120,16 +113,13 @@ export class PhotoshopFactory implements IFactory {
             jsxParams);
     }
 
-    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?, assetsPath?, dimensions?) {
+    private async createElementTree(jsxParams: IJsxParam, layerType: string, parentKey: string, type?) {
         let jsonMap = JsonComponentsFactory.makeJsonComponentsMap();
         let element = jsonMap.get(layerType);
         let childId;
         if (element instanceof PhotoshopJsonComponent) {
             jsxParams.type = element.getType();
             jsxParams.subType = element.getSubType();
-            if(layerType === "image") {
-                jsxParams.file = utlis.recurFiles(jsxParams.image, assetsPath);
-            }
             childId = await element.setJsx(this._generator, jsxParams);
         }
         if (element instanceof QuestJsonComponent) {
@@ -165,7 +155,7 @@ export class PhotoshopFactory implements IFactory {
             if(!mappedView.hasOwnProperty(key)) {
                 continue;
             }
-            const typeArray = elementalMap[key][mappedView[key]][layerType];
+            const typeArray = key === "noConnection" ? elementalMap[this.platform][mappedView[key]][layerType] : elementalMap[key][mappedView[key]][layerType];
             const mappedLayer = typeArray.find(item => {
                 if(item.name === jsxParams.childName) {
                     return true;

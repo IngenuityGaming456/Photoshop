@@ -52,7 +52,8 @@
     "menuContainer": {
       "type": "container",
       "id": "menuContainer",
-      "parent": "buttonsContainerBG"
+      "parent": "buttonsContainerBG",
+      "noContainer": true
     },
     "settingsBtn": {
       "type": "button",
@@ -62,7 +63,8 @@
     "AutoPlayOnBtnContainer": {
       "type": "container",
       "id": "AutoPlayOnBtnContainer",
-      "parent": "buttonsContainerBG"
+      "parent": "buttonsContainerBG",
+      "noContainer": true
     },
     "autoPlayOnButton": {
       "id": "autoPlayOn",
@@ -72,7 +74,8 @@
     "AutoPlayOffBtnContainer": {
       "type": "container",
       "id": "AutoPlayOffBtnContainer",
-      "parent": "buttonsContainerBG"
+      "parent": "buttonsContainerBG",
+      "noContainer": true
     },
     "autoPlayOffButton": {
       "id": "autoPlayOff",
@@ -86,11 +89,13 @@
     },
     "promoMessageContainer": {
       "type": "container",
-      "id": "promoMessageContainer"
+      "id": "promoMessageContainer",
+      "leaf": true
     },
     "fiveOfAKindContainer": {
       "type": "container",
-      "id": "fiveOfAKindContainer"
+      "id": "fiveOfAKindContainer",
+      "leaf": true
     },
     "anticipationAnim": {
       "type": "animation",
@@ -99,28 +104,34 @@
     },
     "reelsContainer": {
       "type": "container",
-      "id": "reelsContainer"
+      "id": "reelsContainer",
+      "noElement": true
     },
     "reelsBGContainer": {
       "type": "container",
       "id": "reelsBGContainer",
-      "parent": "reelsContainer"
+      "parent": "reelsContainer",
+      "leaf": true
     },
     "gameLogoContainer": {
       "type": "container",
-      "id": "gameLogoContainer"
+      "id": "gameLogoContainer",
+      "leaf": true
     },
     "Symbols": {
       "type": "container",
-      "id": "Symbols"
+      "id": "Symbols",
+      "leaf": true
     },
     "Paylines": {
       "type": "container",
-      "id": "Paylines"
+      "id": "Paylines",
+      "leaf": true
     },
     "WinFrames": {
       "type": "container",
-      "id": "WinFrames"
+      "id": "WinFrames",
+      "leaf": true
     }
   }
 }

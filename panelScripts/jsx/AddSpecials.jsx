@@ -1,4 +1,11 @@
-#include "D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\CreateStruct.jsx";
+var path = (new File($.fileName)).parent;
+var upperPath = path + "/Plug-ins/DeployVersion";
+var innerPath = path + "/Plug-ins/Generator/DeployVersion";
+var fol = new Folder(upperPath);
+var selPath = fol.exists ? upperPath : innerPath;
+var pathNew = selPath + "/jsx/CreateStruct.jsx";
+var pathSymbol = selPath + "/jsx/SelectedLayersIds.jsx";
+$.evalFile(pathNew);
 var specialIds = "";
 var specialStruct = ["Animation", "Static"];
 var specialStructLength = specialStruct.length;
@@ -12,7 +19,7 @@ function makeSpecials(specialName, singular, callBack) {
             specialIds : ""
         };
         var isValid = false;
-        var selectedLayersIds = $.evalFile("D:\\UIBuilderDevelopment\\photoshopscript\\panelScripts\\jsx\\SelectedLayersIds.jsx");
+        var selectedLayersIds = $.evalFile(pathSymbol);
         var selectedLayersIdsArray = selectedLayersIds.toString().split(",");
         var idsCount = selectedLayersIdsArray.length;
         for(var i=0;i<idsCount;i++) {

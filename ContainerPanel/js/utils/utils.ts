@@ -1,6 +1,6 @@
 export class utils {
 
-    public static spliceFromFront(key: string, char: string) {
+    public static spliceFromFront(key, char) {
         const indexOfLine = key.indexOf(char);
         if (indexOfLine > -1) {
             return key.slice(0, indexOfLine);
@@ -8,7 +8,7 @@ export class utils {
         return key;
     }
 
-    public static spliceTillLast(key: string, char: string) {
+    public static spliceTillLast(key, char) {
         const indexOfLine = key.indexOf(char);
         if (indexOfLine > -1) {
             return key.slice(indexOfLine + 1);
@@ -16,7 +16,7 @@ export class utils {
         return key;
     }
 
-    public static spliceLastTillLast(key: string, char: string) {
+    public static spliceLastTillLast(key, char) {
         const indexOfLine = key.lastIndexOf(char);
         if (indexOfLine > -1) {
             return key.slice(indexOfLine + 1);
@@ -24,7 +24,7 @@ export class utils {
         return key;
     }
 
-    public static spliceLastFromFront(key: string, char: string) {
+    public static spliceLastFromFront(key, char) {
         const indexOfLine = key.lastIndexOf(char);
         if (indexOfLine > -1) {
             return key.slice(0, indexOfLine);
@@ -277,4 +277,36 @@ export class utils {
         return radioButton;
 
     }
-}
+
+    public static getCheckBox(platform, baseView, layerName, checkBoxArray) {
+        return checkBoxArray.find(item => {
+            const nodeName = utils.spliceFromFront(utils.getItem(item).childNodes[0].nodeValue, " ");
+            if(!platform && nodeName === layerName) {
+                return true;
+            }
+            if(!baseView && utils.isInPlatform(platform, item) && nodeName === layerName) {
+                return true;
+            }
+            if (nodeName === layerName && utils.isInBaseView(baseView, item) &&
+                utils.isInPlatform(platform, item)) {
+                return true;
+            }
+        });
+    }
+
+    public static findInCheckBox(item, platformName, viewName, keyName) {
+        return item.platform === platformName && item.view === viewName && item.key === keyName;
+    }
+
+    public static spliceKeyType(key) {
+        if(!key) {
+            return key;
+        }
+        const index = key.indexOf('[');
+        if(index > -1) {
+            return key.slice(0, index-1);
+        }
+        return key;
+    }
+
+}5

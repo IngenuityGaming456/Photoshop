@@ -1,5 +1,4 @@
 import EventEmitter = NodeJS.EventEmitter;
-import {PanelView} from "../view/PanelView";
 import {PanelModel} from "../model/PanelModel";
 import {utils} from "../utils/utils";
 import * as io from "socket.io-client";
@@ -126,6 +125,9 @@ export class PanelController {
         this.socket.on("UncheckFromContainerPanel", (platform, baseView, layerName) => {
             this.onUncheckFromPanel(platform, baseView, layerName)
         } );
+        this.socket.on("CheckIntoContainerPanel", (platform, baseView, layerName) => {
+            this.onCheckIntoPanel(platform, baseView, layerName);
+        });
         this.socket.once("docOpen", (directory, docId) => {this.onDocOpen(directory, docId)});
     }
 
@@ -134,24 +136,22 @@ export class PanelController {
     }
 
     private onUncheckFromPanel(platform, baseView, layerName) {
-        const output = this.view.checkBoxArray.find(item => {
-            const nodeName = utils.spliceFromFront(utils.getItem(item).childNodes[0].nodeValue, " ");
-            if(!platform && nodeName === layerName) {
-                return true;
-            }
-            if(!baseView && utils.isInPlatform(platform, item) && nodeName === layerName) {
-                return true;
-            }
-            if (nodeName === layerName && utils.isInBaseView(baseView, item) &&
-                utils.isInPlatform(platform, item)) {
-                return true;
-            }
-        });
+        const output = utils.getCheckBox(platform, baseView, layerName, this.view.checkBoxArray);
         if (output) {
             this.handleOutputElement(output);
         }
         this.processSubmission();
         this.socket.emit("uncheckFinished");
+    }
+
+    private onCheckIntoPanel(platform, baseView, layerName) {
+        const output = utils.getCheckBox(platform, baseView, layerName, this.view.checkBoxArray);
+        if(output) {
+            (output as HTMLInputElement).checked = true;
+            (output as HTMLInputElement).disabled = true;
+            this.pushToLockedItems(output);
+        }
+        this.socket.emit("checkFinished");
     }
 
     protected handleOutputElement(output) {

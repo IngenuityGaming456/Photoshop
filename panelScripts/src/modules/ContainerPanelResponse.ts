@@ -63,7 +63,7 @@ export class ContainerPanelResponse implements IFactory {
                 if(element) {
                     const elementView = utlis.getElementView(element, activeDocumentCopy._layers);
                     const elementPlatform = utlis.getElementPlatform(element, activeDocumentCopy._layers);
-                    await this.sendResponseToPanel(elementView, elementPlatform, element.name);
+                    await utlis.sendResponseToPanel(elementView, elementPlatform, element.name, pc.socket.uncheckFromContainerPanel, "uncheckFinished", this.socket);
                 }
             }
         }
@@ -71,18 +71,8 @@ export class ContainerPanelResponse implements IFactory {
                               this.deletionHandler);
     }
 
-    private sendResponseToPanel(elementView, elementPlatform, elementName) {
-        return new Promise(resolve => {
-            const eventNames = this.socket.eventNames();
-            if(~eventNames.indexOf("uncheckFinished")) {
-                this.socket.removeAllListeners("uncheckFinished");
-            }
-            this.socket.on("uncheckFinished", () => resolve());
-            this.socket.emit(pc.socket.uncheckFromContainerPanel, elementPlatform, elementView, elementName)
-        });
-    }
-
     private async getDataForChanges(type) {
+        this.activeDocument = await this.documentManager.getDocument(this.activeDocument.id);
         this.setAutomationToYes();
         const previousResponse = this.modelFactory.getPhotoshopModel().previousContainerResponse(type);
         const currentResponse = this.modelFactory.getPhotoshopModel().currentContainerResponse(type);
@@ -91,7 +81,6 @@ export class ContainerPanelResponse implements IFactory {
         } else {
             await this.construct(currentResponse, type);
         }
-        setTimeout(() => this.resetMappedIds(), 0);
         this.setAutomationToNo();
     }
 
@@ -202,11 +191,6 @@ export class ContainerPanelResponse implements IFactory {
 
     private onCurrentDocument() {
         this.socket.emit(pc.socket.enablePage);
-    }
-
-    private resetMappedIds() {
-        const mappedIds = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).getMappedIds()
-        mappedIds.length = 0;
     }
 
     private setAutomationToYes() {

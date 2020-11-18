@@ -1,6 +1,8 @@
 import {IFactory, IParams} from "../../interfaces/IJsxParam";
 import {utlis} from "../../utils/utils";
 import * as path from "path";
+import {ModelFactory} from "../../models/ModelFactory";
+import {photoshopConstants as pc} from "../../constants";
  
 export class Creation implements IFactory{
     private generator;
@@ -8,14 +10,37 @@ export class Creation implements IFactory{
     private activeDocument;
     private pFactory;
     private qAssets;
+    private modelFactory;
+    private socket;
+    private docEmitter;
 
-    execute(params: IParams){
+    public constructor(modelFactory: ModelFactory) {
+        this.modelFactory = modelFactory;
+    }
+
+    async execute(params: IParams){
         this.diffObj = params.storage.result;
         this.pFactory = params.storage.pFactory;
         this.generator = params.generator;
         this.activeDocument = params.activeDocument;
         this.qAssets = params.storage.qAssets;
-        this.handleChangesInPS();
+        this.docEmitter = params.docEmitter;
+        this.subscribeListeners();
+        this.isReady();
+        await this.handleChangesInPS();
+        this.controlQuestPanel();
+    }
+
+    private subscribeListeners() {
+        this.docEmitter.on(pc.logger.getUpdatedHTMLSocket, socket => this.onSocketUpdate(socket));
+    }
+
+    private isReady() {
+        this.docEmitter.emit("creationReady");
+    }
+
+    private onSocketUpdate(socket) {
+        this.socket = socket;
     }
 
     private async handleChangesInPS(){
@@ -92,22 +117,32 @@ export class Creation implements IFactory{
 
     private async handleCreation(createObj) {
             await this.handleViewCreation(createObj["views"]);
-            await this.handleComponentsCreation(createObj["container"]);
-            await this.handleComponentsCreation(createObj["image"]);
+            for(let key in createObj) {
+                if(!createObj.hasOwnProperty(key)) {
+                    continue;
+                }
+                key !== "views" && await this.handleComponentsCreation(createObj[key]);
+            }
     }
 
     private async handleViewCreation(views) {
         for(let view of views) {
             const platformRef = utlis.getPlatformRef(view.platform, this.activeDocument);
             const commonId = utlis.getCommonId(platformRef);
-          
-            await this.pFactory.makeStruct(view.view, commonId, null, view.platform, "quest");
+            /**quest assets paths are provided to handle the case of view has image layer */
+            const viewName = Object.keys(view)[0];
+            await this.pFactory.makeStruct({[viewName]: {}}, commonId, null, view.platform, "quest", this.qAssets);
         }
     }
     private async handleComponentsCreation(comps) {
      
         for(let comp of comps) {
             const compId = comp.key.id;
+            if(!comp.viewId) {
+                const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+                const currentView = elementalMap[comp.platform][comp.view];
+                comp.viewId = currentView?.base?.id;
+            }
             await this.pFactory.makeStruct({[compId]: comp.key}, comp.viewId, comp.view, comp.platform, "quest", this.qAssets);
         }
     }
@@ -127,6 +162,20 @@ export class Creation implements IFactory{
             }else{
                 await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/editElement.jsx"), {obj: cObj.key});
             }
+        }
+    }
+
+    private controlQuestPanel() {
+        const layers = this.activeDocument.layers.layers;
+        utlis.traverseObject(layers, undefined, this.onLayerContainers.bind(this));
+    }
+
+    private async onLayerContainers(layerSection) {
+        const nameObj = utlis.isNameExists(layerSection.name, this.modelFactory.getPhotoshopModel().allQuestItems);
+        if(nameObj) {
+            const elementView = utlis.getElementView(layerSection, this.activeDocument.layers);
+            const elementPlatform = utlis.getElementPlatform(layerSection, this.activeDocument.layers);
+            await utlis.sendResponseToPanel(elementView, elementPlatform, layerSection.name, "CheckIntoContainerPanel", "checkFinished", this.socket);
         }
     }
     

@@ -7,6 +7,8 @@ import {SelfPanelModel} from "./model/SelfPanelModel";
 import {SelfPanelView} from "./view/SelfPanelView";
 import {SelfPanelController} from "./controller/SelfPanelController";
 import {MappingView} from "./view/MappingView";
+import {SelfStateContext} from "./states/SelfStates/SelfContext";
+import {modelConst} from "./constants/constants";
 
 function main() {
     const eventsObj = new EventEmitter();
@@ -16,8 +18,10 @@ function main() {
     const mappingViewObj = new MappingView(eventsObj);
     new PanelControllerApp(eventsObj, viewObj, mappingViewObj, modelObj, stateContext);
     const selfEventsObj = new EventEmitter();
-    const selfModelObj = new SelfPanelModel(selfEventsObj);
+    const selfStateContext = new SelfStateContext();
+    const selfModelObj = new SelfPanelModel(selfEventsObj, eventsObj);
     const selfViewObj = new SelfPanelView(selfEventsObj);
-    new SelfPanelController(selfEventsObj, selfViewObj, mappingViewObj, selfModelObj, stateContext)
+    new SelfPanelController(selfEventsObj, selfViewObj, mappingViewObj, selfModelObj, selfStateContext);
 }
+
 main();

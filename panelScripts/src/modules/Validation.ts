@@ -418,14 +418,14 @@ export class Validation implements IFactory {
 
     private isErrorFree(eventLayers, callback) {
         const errorData = callback(eventLayers);
-        if(errorData) {
-            utlis.spliceFrom(errorData.id, this.layersErrorData);
-            this.docEmitter.emit(pc.logger.removeError, eventLayers[0].id);
+        for(let errorElm of errorData) {
+            utlis.spliceFrom(errorElm.id, this.layersErrorData);
+            this.docEmitter.emit(pc.logger.removeError, errorElm.id);
         }
     }
 
     private errorFreeFromRename(eventLayers) {
-        return this.layersErrorData.find(item => {
+        return this.layersErrorData.filter(item => {
             if (item.id === eventLayers[0].id && !~eventLayers[0].name.search(/(Error)/)) {
                 return true;
             }
@@ -433,7 +433,7 @@ export class Validation implements IFactory {
     }
 
     private errorFreeFromDeletion(eventLayers) {
-        return this.layersErrorData.find(item => {
+        return this.layersErrorData.filter(item => {
             const isInDeletedLayers = utlis.isIDExists(item.id, eventLayers);
             if(isInDeletedLayers) {
                 return true;

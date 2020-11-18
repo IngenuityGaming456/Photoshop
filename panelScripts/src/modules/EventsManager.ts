@@ -27,7 +27,7 @@ export class EventsManager implements IFactory{
                 .isRenameEvent(eventCopy)
                 .isMovedEvent(eventCopy)
         } catch(err) {
-            console.log("Event Dispatched");
+            console.log(err);
         }
     }
 
@@ -154,7 +154,7 @@ export class EventsManager implements IFactory{
             if(!addedPath.length) {
                 this.generator.emit(pc.generator.layersAdded, event.layers, this.isNewDocument);
             } else {
-                const parsedEvent = utlis.getParsedEvent(addedPath.reverse(), event.layers);
+                const parsedEvent = utlis.getParsedEvent(addedPath.reverse(), event.layers, {index: 0}, null);
                 this.generator.emit(pc.generator.layersAdded, parsedEvent, this.isNewDocument);
             }
             throw new Error("Added Event Dispatched");
@@ -191,6 +191,9 @@ export class EventsManager implements IFactory{
                 const subLayer = layers[i];
                 if(subLayer.hasOwnProperty("added")) {
                     subPathArray.push(i);
+                    if(layersCount === 1) {
+                        subPathArray.push(-1);
+                    }
                     continue;
                 }
                 const addedResult = subLayer.layers && this.isAtLevel(subLayer.layers, "added");

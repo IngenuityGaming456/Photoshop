@@ -28,6 +28,9 @@ var DataPhotoshopModel = /** @class */ (function () {
     DataPhotoshopModel.prototype.accessDocLocalisationStruct = function () {
         return this.openDocumentData.docLocalisationStruct;
     };
+    DataPhotoshopModel.prototype.accessModifiedIds = function () {
+        return this.openDocumentData.modifiedIds;
+    };
     DataPhotoshopModel.prototype.execute = function (params) {
         this.openDocumentData = params.storage.openDocumentData;
     };
