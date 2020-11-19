@@ -103,6 +103,7 @@ export const photoshopConstants = {
     selfHtmlPanel: "SelfHtmlPanel",
     mappedItem: "mappedItem",
     generic: "generic",
+    platformArray: ["desktop", "portrait", "landscape"],
     jsxReturn: {
         falseType:"false",
         bitmapType: "bitmap",

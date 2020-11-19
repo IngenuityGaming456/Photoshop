@@ -22,7 +22,7 @@ import * as fs from "fs";
 import {SelfAddedStructures} from "./SelfAddedStructures";
 import {CreateImport} from "./Import/CreateImport";
 import {PhotoshopParser} from "./Import/PhotoshopParser";
-import { AssetsSync } from "./AssetsSync";
+import { AssetsSync } from "./AssetsSync/AssetsSync";
 import { utlis } from "../utils/utils";
 
 let packageJson = require("../../package.json");

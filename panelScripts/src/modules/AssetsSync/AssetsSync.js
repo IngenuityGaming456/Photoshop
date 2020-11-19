@@ -48,11 +48,11 @@ var __values = (this && this.__values) || function(o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssetsSync = void 0;
-var utils_1 = require("../utils/utils");
-var assetsUtils_1 = require("../utils/assetsUtils");
+var utils_1 = require("../../utils/utils");
+var assetsUtils_1 = require("./assetsUtils");
 var path = require("path");
 var fs = require("fs");
-var packageJson = require("../../package.json");
+var packageJson = require("../../../package.json");
 var AssetsSync = /** @class */ (function () {
     function AssetsSync(modelFactory, pFactory) {
         this.artLayers = {};

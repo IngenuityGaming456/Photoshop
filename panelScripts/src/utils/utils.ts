@@ -555,9 +555,9 @@ export class utlis {
         }
     }
 
-    public static findView(layer, activeDocument) {
+    public static findView(layer, activeDocument, key) {
         const layerRef = activeDocument.layers.findLayer(layer.id);
-        return utlis.recurView(layerRef);
+        return utlis.recurView(layerRef, key);
     }
 
     public static findPlatform(layer, activeDocument) {
@@ -565,15 +565,15 @@ export class utlis {
         return utlis.recurPlatform(layerRef);
     }
 
-    private static recurView(layerRef) {
-        if(layerRef.layer && layerRef.layer.group.name === "common") {
+    private static recurView(layerRef, key) {
+        if(layerRef.layer && layerRef.layer.group.name === key) {
             return layerRef.layer.name;
-        } else if(layerRef.group && layerRef.group.name === "common") {
+        } else if(layerRef.group && layerRef.group.name === key) {
             return layerRef.name;
         } else if(layerRef.layer) {
-            return utlis.recurView(layerRef.layer.group)
+            return utlis.recurView(layerRef.layer.group, key)
         } else {
-            return utlis.recurView(layerRef.group);
+            return utlis.recurView(layerRef.group, key);
         }
     }
 
