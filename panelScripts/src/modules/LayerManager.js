@@ -8,320 +8,163 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LayerManager = void 0;
-var path = require("path");
-var constants_1 = require("../constants");
-var utils_1 = require("../utils/utils");
-var LayerClass = require("../../lib/dom/layer.js");
-var packageJson = require("../../package.json");
-var LayerManager = /** @class */ (function () {
-    function LayerManager(modelFactory) {
+const path = require("path");
+const constants_1 = require("../constants");
+const utils_1 = require("../utils/utils");
+let LayerClass = require("../../lib/dom/layer.js");
+let packageJson = require("../../package.json");
+class LayerManager {
+    constructor(modelFactory) {
         this.selectedLayers = [];
         this.localisedLayers = [];
         this.isPasteEvent = false;
         this.queuedImageLayers = [];
         this.modelFactory = modelFactory;
     }
-    LayerManager.prototype.execute = function (params) {
+    execute(params) {
         this._generator = params.generator;
         this.docEmitter = params.docEmitter;
         this._activeDocument = params.activeDocument;
         this.pluginId = packageJson.name;
         this.subscribeListeners();
-    };
-    LayerManager.prototype.subscribeListeners = function () {
-        var _this = this;
-        this._generator.on(constants_1.photoshopConstants.generator.layersAdded, function (eventLayers, isNewDocument) {
-            _this.onLayersAdded(eventLayers, isNewDocument);
+    }
+    subscribeListeners() {
+        this._generator.on(constants_1.photoshopConstants.generator.layersAdded, (eventLayers, isNewDocument) => {
+            this.onLayersAdded(eventLayers, isNewDocument);
         });
-        this._generator.on(constants_1.photoshopConstants.generator.select, function () { return _this.onLayersSelected(); });
-        this._generator.on(constants_1.photoshopConstants.generator.copy, function () {
-            _this.eventName = Events.COPY;
+        this._generator.on(constants_1.photoshopConstants.generator.select, () => this.onLayersSelected());
+        this._generator.on(constants_1.photoshopConstants.generator.copy, () => {
+            this.eventName = Events.COPY;
         });
-        this._generator.on(constants_1.photoshopConstants.generator.paste, function () {
-            if (_this.eventName === Events.COPY) {
-                _this.eventName = Events.PASTE;
-                _this.isPasteEvent = true;
+        this._generator.on(constants_1.photoshopConstants.generator.paste, () => {
+            if (this.eventName === Events.COPY) {
+                this.eventName = Events.PASTE;
+                this.isPasteEvent = true;
             }
             else {
-                _this.eventName = Events.OTHER;
+                this.eventName = Events.OTHER;
             }
         });
-        this._generator.on(constants_1.photoshopConstants.generator.copyToLayer, function () {
-            _this.eventName = Events.COPYTOLAYER;
+        this._generator.on(constants_1.photoshopConstants.generator.copyToLayer, () => {
+            this.eventName = Events.COPYTOLAYER;
         });
-        this._generator.on(constants_1.photoshopConstants.generator.duplicate, function () {
-            if (_this.eventName !== Events.OTHER) {
-                _this.eventName = Events.DUPLICATE;
-                console.log(_this.eventName);
+        this._generator.on(constants_1.photoshopConstants.generator.duplicate, () => {
+            if (this.eventName !== Events.OTHER) {
+                this.eventName = Events.DUPLICATE;
+                console.log(this.eventName);
             }
         });
-        this.docEmitter.on(constants_1.photoshopConstants.localisation, function (localisedLayers) {
-            _this.localisedLayers = localisedLayers;
+        this.docEmitter.on(constants_1.photoshopConstants.localisation, localisedLayers => {
+            this.localisedLayers = localisedLayers;
         });
-    };
-    LayerManager.prototype.onLayersSelected = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var selectedLayersString;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.eventName = Events.SELECT;
-                        if (this.modelFactory.getPhotoshopModel().automationOn) {
-                            return [2 /*return*/];
+    }
+    onLayersSelected() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.eventName = Events.SELECT;
+            if (this.modelFactory.getPhotoshopModel().automationOn) {
+                return;
+            }
+            let selectedLayersString = yield this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+            this.selectedLayers = selectedLayersString.toString().split(",");
+        });
+    }
+    onLayersAdded(eventLayers, isNewDocument) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (isNewDocument) {
+                this.constructQueuedArray(eventLayers);
+                this.docEmitter.once(constants_1.photoshopConstants.logger.currentDocument, () => __awaiter(this, void 0, void 0, function* () {
+                    yield this.handleImportEvent(this.queuedImageLayers);
+                    this.queuedImageLayers = [];
+                }));
+                return;
+            }
+            yield this.addBufferData(eventLayers);
+        });
+    }
+    constructQueuedArray(eventLayers) {
+        eventLayers.forEach(item => {
+            this.queuedImageLayers.push(item);
+        });
+    }
+    handleLayersAddition(eventLayers, questItems, deletedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (let item of eventLayers) {
+                if (item.added) {
+                    const inQuest = questItems.some(key => {
+                        if (key === item.name) {
+                            return true;
                         }
-                        return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"))];
-                    case 1:
-                        selectedLayersString = _a.sent();
-                        this.selectedLayers = selectedLayersString.toString().split(",");
-                        return [2 /*return*/];
+                    });
+                    if (inQuest) {
+                        deletedLayers.push(item.id);
+                        this.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, `Not Allowed to duplicate a quest element, ${item.name} with id = ${item.id}`);
+                        yield this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item.id });
+                        return;
+                    }
                 }
-            });
-        });
-    };
-    LayerManager.prototype.onLayersAdded = function (eventLayers, isNewDocument) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (isNewDocument) {
-                            this.constructQueuedArray(eventLayers);
-                            this.docEmitter.once(constants_1.photoshopConstants.logger.currentDocument, function () { return __awaiter(_this, void 0, void 0, function () {
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4 /*yield*/, this.handleImportEvent(this.queuedImageLayers)];
-                                        case 1:
-                                            _a.sent();
-                                            this.queuedImageLayers = [];
-                                            return [2 /*return*/];
-                                    }
-                                });
-                            }); });
-                            return [2 /*return*/];
-                        }
-                        return [4 /*yield*/, this.addBufferData(eventLayers)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
+                else if (item.layers) {
+                    this.handleLayersAddition(item.layers, questItems, deletedLayers);
                 }
-            });
+            }
         });
-    };
-    LayerManager.prototype.constructQueuedArray = function (eventLayers) {
-        var _this = this;
-        eventLayers.forEach(function (item) {
-            _this.queuedImageLayers.push(item);
+    }
+    addBufferData(changedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            switch (this.eventName) {
+                case Events.COPYTOLAYER:
+                    yield this.handleDuplicate(changedLayers, this.selectedLayers, []);
+                    break;
+                case Events.DUPLICATE:
+                    yield this.handleDuplicateEvent(changedLayers);
+                    break;
+                default:
+                    const mappedIds = this.modelFactory.getPhotoshopModel().getMappedIds();
+                    if (mappedIds.length) {
+                        yield this.handleMappedDuplicate(changedLayers, mappedIds, []);
+                    }
+                    else {
+                        yield this.handleImportEvent(changedLayers);
+                    }
+            }
         });
-    };
-    LayerManager.prototype.handleLayersAddition = function (eventLayers, questItems, deletedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, this_1, eventLayers_1, eventLayers_1_1, item, state_1, e_1_1;
-            var e_1, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _loop_1 = function (item) {
-                            var inQuest;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        if (!item.added) return [3 /*break*/, 3];
-                                        inQuest = questItems.some(function (key) {
-                                            if (key === item.name) {
-                                                return true;
-                                            }
-                                        });
-                                        if (!inQuest) return [3 /*break*/, 2];
-                                        deletedLayers.push(item.id);
-                                        this_1.docEmitter.emit(constants_1.photoshopConstants.logger.logWarning, "Not Allowed to duplicate a quest element, " + item.name + " with id = " + item.id);
-                                        return [4 /*yield*/, this_1._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), { id: item.id })];
-                                    case 1:
-                                        _a.sent();
-                                        return [2 /*return*/, { value: void 0 }];
-                                    case 2: return [3 /*break*/, 4];
-                                    case 3:
-                                        if (item.layers) {
-                                            this_1.handleLayersAddition(item.layers, questItems, deletedLayers);
-                                        }
-                                        _a.label = 4;
-                                    case 4: return [2 /*return*/];
-                                }
-                            });
-                        };
-                        this_1 = this;
-                        _b.label = 1;
-                    case 1:
-                        _b.trys.push([1, 6, 7, 8]);
-                        eventLayers_1 = __values(eventLayers), eventLayers_1_1 = eventLayers_1.next();
-                        _b.label = 2;
-                    case 2:
-                        if (!!eventLayers_1_1.done) return [3 /*break*/, 5];
-                        item = eventLayers_1_1.value;
-                        return [5 /*yield**/, _loop_1(item)];
-                    case 3:
-                        state_1 = _b.sent();
-                        if (typeof state_1 === "object")
-                            return [2 /*return*/, state_1.value];
-                        _b.label = 4;
-                    case 4:
-                        eventLayers_1_1 = eventLayers_1.next();
-                        return [3 /*break*/, 2];
-                    case 5: return [3 /*break*/, 8];
-                    case 6:
-                        e_1_1 = _b.sent();
-                        e_1 = { error: e_1_1 };
-                        return [3 /*break*/, 8];
-                    case 7:
-                        try {
-                            if (eventLayers_1_1 && !eventLayers_1_1.done && (_a = eventLayers_1.return)) _a.call(eventLayers_1);
-                        }
-                        finally { if (e_1) throw e_1.error; }
-                        return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/];
-                }
-            });
+    }
+    handleMappedDuplicate(changedLayers, parentLayers, deletedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const referredIds = yield this.handleDuplicate(changedLayers, parentLayers, deletedLayers);
+            utils_1.utlis.spliceFromIdArray(parentLayers, referredIds);
         });
-    };
-    LayerManager.prototype.addBufferData = function (changedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, mappedIds;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = this.eventName;
-                        switch (_a) {
-                            case Events.COPYTOLAYER: return [3 /*break*/, 1];
-                            case Events.DUPLICATE: return [3 /*break*/, 3];
-                        }
-                        return [3 /*break*/, 5];
-                    case 1: return [4 /*yield*/, this.handleDuplicate(changedLayers, this.selectedLayers, [])];
-                    case 2:
-                        _b.sent();
-                        return [3 /*break*/, 9];
-                    case 3: return [4 /*yield*/, this.handleDuplicateEvent(changedLayers)];
-                    case 4:
-                        _b.sent();
-                        return [3 /*break*/, 9];
-                    case 5:
-                        mappedIds = this.modelFactory.getPhotoshopModel().getMappedIds();
-                        if (!mappedIds.length) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this.handleMappedDuplicate(changedLayers, mappedIds, [])];
-                    case 6:
-                        _b.sent();
-                        return [3 /*break*/, 9];
-                    case 7: return [4 /*yield*/, this.handleImportEvent(changedLayers)];
-                    case 8:
-                        _b.sent();
-                        _b.label = 9;
-                    case 9: return [2 /*return*/];
-                }
-            });
+    }
+    handleDuplicateEvent(changedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.isPasteEvent) {
+                const questItems = this.modelFactory.getPhotoshopModel().allQuestItems;
+                const deletedLayers = [];
+                yield this.handleLayersAddition(changedLayers, questItems, deletedLayers);
+                yield this.handleDuplicate(changedLayers, this.selectedLayers, deletedLayers);
+                this.isPasteEvent = false;
+                return;
+            }
+            if (this.localisedLayers.length) {
+                yield this.handleDuplicate(changedLayers, this.localisedLayers, []);
+                this.localisedLayers.splice(0, 1);
+                return;
+            }
+            yield this.handleDuplicate(changedLayers, this.selectedLayers, []);
         });
-    };
-    LayerManager.prototype.handleMappedDuplicate = function (changedLayers, parentLayers, deletedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var referredIds;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.handleDuplicate(changedLayers, parentLayers, deletedLayers)];
-                    case 1:
-                        referredIds = _a.sent();
-                        utils_1.utlis.spliceFromIdArray(parentLayers, referredIds);
-                        return [2 /*return*/];
-                }
-            });
+    }
+    handleDuplicate(changedLayers, parentLayers, deletedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const addedLayers = this.handleEvent(changedLayers, undefined);
+            return yield this.getImageDataOfEvent(addedLayers, parentLayers, deletedLayers);
         });
-    };
-    LayerManager.prototype.handleDuplicateEvent = function (changedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var questItems, deletedLayers;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.isPasteEvent) return [3 /*break*/, 3];
-                        questItems = this.modelFactory.getPhotoshopModel().allQuestItems;
-                        deletedLayers = [];
-                        return [4 /*yield*/, this.handleLayersAddition(changedLayers, questItems, deletedLayers)];
-                    case 1:
-                        _a.sent();
-                        return [4 /*yield*/, this.handleDuplicate(changedLayers, this.selectedLayers, deletedLayers)];
-                    case 2:
-                        _a.sent();
-                        this.isPasteEvent = false;
-                        return [2 /*return*/];
-                    case 3:
-                        if (!this.localisedLayers.length) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this.handleDuplicate(changedLayers, this.localisedLayers, [])];
-                    case 4:
-                        _a.sent();
-                        this.localisedLayers.splice(0, 1);
-                        return [2 /*return*/];
-                    case 5: return [4 /*yield*/, this.handleDuplicate(changedLayers, this.selectedLayers, [])];
-                    case 6:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    LayerManager.prototype.handleDuplicate = function (changedLayers, parentLayers, deletedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var addedLayers;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        addedLayers = this.handleEvent(changedLayers, undefined);
-                        return [4 /*yield*/, this.getImageDataOfEvent(addedLayers, parentLayers, deletedLayers)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
-        });
-    };
-    LayerManager.prototype.handleEvent = function (changedLayers, addedLayers) {
+    }
+    handleEvent(changedLayers, addedLayers) {
         addedLayers = addedLayers || [];
-        var layersCount = changedLayers.length;
-        for (var i = 0; i < layersCount; i++) {
-            var change = changedLayers[i];
+        const layersCount = changedLayers.length;
+        for (let i = 0; i < layersCount; i++) {
+            const change = changedLayers[i];
             if (change.hasOwnProperty("added")) {
                 addedLayers.push(change);
             }
@@ -332,188 +175,103 @@ var LayerManager = /** @class */ (function () {
             }
         }
         return addedLayers;
-    };
-    LayerManager.prototype.handleImportEvent = function (changedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var layersCount, i, change, err_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        layersCount = changedLayers.length;
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < layersCount)) return [3 /*break*/, 8];
-                        change = changedLayers[i];
-                        if (!(change.hasOwnProperty("added") && change.type === "layer")) return [3 /*break*/, 5];
-                        _a.label = 2;
-                    case 2:
-                        _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.getImageData(change.id)];
-                    case 3:
-                        _a.sent();
+    }
+    handleImportEvent(changedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const layersCount = changedLayers.length;
+            for (let i = 0; i < layersCount; i++) {
+                const change = changedLayers[i];
+                if (change.hasOwnProperty("added") && change.type === "layer") {
+                    try {
+                        yield this.getImageData(change.id);
                         console.log("Pixels Added");
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_1 = _a.sent();
+                    }
+                    catch (err) {
                         console.log("error occured while pixel update");
-                        return [3 /*break*/, 5];
-                    case 5:
-                        if (!change.hasOwnProperty("layers")) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this.handleImportEvent(change.layers)];
-                    case 6:
-                        _a.sent();
-                        _a.label = 7;
-                    case 7:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 8: return [2 /*return*/];
+                    }
                 }
-            });
-        });
-    };
-    LayerManager.prototype.getImageData = function (layerId) {
-        return __awaiter(this, void 0, void 0, function () {
-            var pixmap, pixmapBuffer, cBuffer, base64Pixmap, bufferPayload;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.getPixmap(this._activeDocument.id, layerId, { scaleX: 0.5, scaleY: 0.5 })];
-                    case 1:
-                        pixmap = _a.sent();
-                        pixmapBuffer = Buffer.from(pixmap.pixels);
-                        cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
-                        base64Pixmap = cBuffer.toString('base64');
-                        bufferPayload = {
-                            "pixels": base64Pixmap
-                        };
-                        console.log("Pixels started to add");
-                        return [2 /*return*/, this.setLayerSettings(bufferPayload, layerId)];
-                }
-            });
-        });
-    };
-    LayerManager.prototype.getImageDataOfEvent = function (layersArray, parentLayers, deletedLayers) {
-        return __awaiter(this, void 0, void 0, function () {
-            var referredIds, layersCount, i, refObject, copiedLayerRef, pastedLayerRef, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        referredIds = [];
-                        layersCount = layersArray.length;
-                        i = 0;
-                        _b.label = 1;
-                    case 1:
-                        if (!(i < layersCount)) return [3 /*break*/, 8];
-                        refObject = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
-                        copiedLayerRef = refObject === null || refObject === void 0 ? void 0 : refObject.ref;
-                        refObject && referredIds.push(refObject.id);
-                        if (!(copiedLayerRef instanceof LayerClass.LayerGroup)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id)];
-                    case 2:
-                        _b.sent();
-                        pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
-                        if (~deletedLayers.indexOf(pastedLayerRef.id)) {
-                            return [3 /*break*/, 7];
-                        }
-                        return [4 /*yield*/, this.handleGroupEvent(copiedLayerRef, pastedLayerRef)];
-                    case 3:
-                        _b.sent();
-                        return [3 /*break*/, 7];
-                    case 4:
-                        _a = copiedLayerRef;
-                        if (!_a) return [3 /*break*/, 6];
-                        return [4 /*yield*/, this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id)];
-                    case 5:
-                        _a = (_b.sent());
-                        _b.label = 6;
-                    case 6:
-                        _a;
-                        _b.label = 7;
-                    case 7:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 8: return [2 /*return*/, referredIds];
-                }
-            });
-        });
-    };
-    LayerManager.prototype.getCorrectCopiedLayerRef = function (layerName, parentLayers) {
-        var e_2, _a;
-        try {
-            for (var parentLayers_1 = __values(parentLayers), parentLayers_1_1 = parentLayers_1.next(); !parentLayers_1_1.done; parentLayers_1_1 = parentLayers_1.next()) {
-                var id = parentLayers_1_1.value;
-                var ref = this.findLayerRef(this._activeDocument.layers.layers, id);
-                if (ref && ref.layer && ref.layer.name === layerName || ref && ref.name && ref.name === layerName) {
-                    return { ref: ref, id: id };
+                if (change.hasOwnProperty("layers")) {
+                    yield this.handleImportEvent(change.layers);
                 }
             }
-        }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
-        finally {
-            try {
-                if (parentLayers_1_1 && !parentLayers_1_1.done && (_a = parentLayers_1.return)) _a.call(parentLayers_1);
+        });
+    }
+    getImageData(layerId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let pixmap = yield this._generator.getPixmap(this._activeDocument.id, layerId, { scaleX: 0.5, scaleY: 0.5 });
+            let pixmapBuffer = Buffer.from(pixmap.pixels);
+            let cBuffer = LayerManager.compressBuffer(pixmapBuffer, pixmap.channelCount);
+            let base64Pixmap = cBuffer.toString('base64');
+            const bufferPayload = {
+                "pixels": base64Pixmap
+            };
+            console.log("Pixels started to add");
+            return this.setLayerSettings(bufferPayload, layerId);
+        });
+    }
+    getImageDataOfEvent(layersArray, parentLayers, deletedLayers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const referredIds = [];
+            const layersCount = layersArray.length;
+            for (let i = 0; i < layersCount; i++) {
+                const refObject = this.getCorrectCopiedLayerRef(layersArray[i].name, parentLayers);
+                const copiedLayerRef = refObject === null || refObject === void 0 ? void 0 : refObject.ref;
+                refObject && referredIds.push(refObject.id);
+                if (copiedLayerRef instanceof LayerClass.LayerGroup) {
+                    yield this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id);
+                    const pastedLayerRef = this.findLayerRef(this._activeDocument.layers.layers, layersArray[i].id);
+                    if (~deletedLayers.indexOf(pastedLayerRef.id)) {
+                        continue;
+                    }
+                    yield this.handleGroupEvent(copiedLayerRef, pastedLayerRef);
+                }
+                else {
+                    copiedLayerRef && (yield this.setBufferOnEvent(this._activeDocument.id, copiedLayerRef.id, layersArray[i].id));
+                }
             }
-            finally { if (e_2) throw e_2.error; }
+            return referredIds;
+        });
+    }
+    getCorrectCopiedLayerRef(layerName, parentLayers) {
+        for (let id of parentLayers) {
+            const ref = this.findLayerRef(this._activeDocument.layers.layers, id);
+            if (ref && ref.layer && ref.layer.name === layerName || ref && ref.name && ref.name === layerName) {
+                return { ref, id };
+            }
         }
         return null;
-    };
-    LayerManager.prototype.handleGroupEvent = function (copiedLayerGroup, pastedLayerGroup) {
-        return __awaiter(this, void 0, void 0, function () {
-            var copiedLayers, pastedLayers, layersCount, i;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        copiedLayers = copiedLayerGroup.layers;
-                        pastedLayers = pastedLayerGroup.layers;
-                        layersCount = copiedLayers.length;
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < layersCount)) return [3 /*break*/, 6];
-                        if (!(copiedLayers[i] instanceof LayerClass.LayerGroup)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.handleGroupEvent(copiedLayers[i], pastedLayers[i])];
-                    case 2:
-                        _a.sent();
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, this.setBufferOnEvent(this._activeDocument.id, copiedLayers[i].id, pastedLayers[i].id)];
-                    case 4:
-                        _a.sent();
-                        console.log("Duplicate Image Pixel Data Added ", pastedLayers[i].id);
-                        _a.label = 5;
-                    case 5:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 6: return [2 /*return*/];
+    }
+    handleGroupEvent(copiedLayerGroup, pastedLayerGroup) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const copiedLayers = copiedLayerGroup.layers;
+            const pastedLayers = pastedLayerGroup.layers;
+            const layersCount = copiedLayers.length;
+            for (let i = 0; i < layersCount; i++) {
+                if (copiedLayers[i] instanceof LayerClass.LayerGroup) {
+                    yield this.handleGroupEvent(copiedLayers[i], pastedLayers[i]);
                 }
-            });
-        });
-    };
-    LayerManager.prototype.setBufferOnEvent = function (documentId, copyId, pasteId) {
-        return __awaiter(this, void 0, void 0, function () {
-            var bufferPayload;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.getLayerSettingsForPlugin(documentId, copyId, this.pluginId)];
-                    case 1:
-                        bufferPayload = _a.sent();
-                        return [4 /*yield*/, this.setLayerSettings(bufferPayload, pasteId)];
-                    case 2:
-                        _a.sent();
-                        return [2 /*return*/];
+                else {
+                    yield this.setBufferOnEvent(this._activeDocument.id, copiedLayers[i].id, pastedLayers[i].id);
+                    console.log("Duplicate Image Pixel Data Added ", pastedLayers[i].id);
                 }
-            });
+            }
         });
-    };
-    LayerManager.prototype.findLayerRef = function (documentLayers, layerId) {
-        var _this = this;
-        var layerRef;
-        documentLayers.some(function (item) {
+    }
+    setBufferOnEvent(documentId, copyId, pasteId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let bufferPayload = yield this._generator.getLayerSettingsForPlugin(documentId, copyId, this.pluginId);
+            yield this.setLayerSettings(bufferPayload, pasteId);
+        });
+    }
+    findLayerRef(documentLayers, layerId) {
+        let layerRef;
+        documentLayers.some(item => {
             if (item.id == layerId) {
                 layerRef = item;
                 return true;
             }
             if (item.layers) {
-                layerRef = _this.findLayerRef(item.layers, layerId);
+                layerRef = this.findLayerRef(item.layers, layerId);
                 if (layerRef) {
                     return true;
                 }
@@ -522,42 +280,30 @@ var LayerManager = /** @class */ (function () {
         if (layerRef) {
             return layerRef;
         }
-    };
-    LayerManager.compressBuffer = function (buffer, channelCount) {
-        var cBL = buffer.length / 2 + 1;
-        var cBuffer = Buffer.alloc(cBL);
-        for (var i = 0; i < buffer.length; i += channelCount) {
+    }
+    static compressBuffer(buffer, channelCount) {
+        const cBL = buffer.length / 2 + 1;
+        let cBuffer = Buffer.alloc(cBL);
+        for (let i = 0; i < buffer.length; i += channelCount) {
             cBuffer[i] = buffer[i];
             cBuffer[i + 1] = (buffer[i + 1] + buffer[i + 2] + buffer[i + 3]) / 3;
         }
         return cBuffer;
-    };
-    LayerManager.prototype.setLayerSettings = function (bufferPayload, layerId) {
-        return __awaiter(this, void 0, void 0, function () {
-            var err_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!Object.keys(bufferPayload).length) return [3 /*break*/, 4];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId)];
-                    case 2:
-                        _a.sent();
-                        console.log("pixels added for id " + layerId);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_2 = _a.sent();
-                        console.log("error in pixel Mapping");
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+    }
+    setLayerSettings(bufferPayload, layerId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (Object.keys(bufferPayload).length) {
+                try {
+                    yield this._generator.setLayerSettingsForPlugin(bufferPayload, layerId, this.pluginId);
+                    console.log(`pixels added for id ${layerId}`);
                 }
-            });
+                catch (err) {
+                    console.log("error in pixel Mapping");
+                }
+            }
         });
-    };
-    return LayerManager;
-}());
+    }
+}
 exports.LayerManager = LayerManager;
 var Events;
 (function (Events) {

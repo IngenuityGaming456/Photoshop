@@ -14,7 +14,6 @@ export class AssetsSync implements IFactory{
     private activeDocument
     private artLayers = {};
     private modelFactory;
-    private document;
     
     constructor(modelFactory: ModelFactory, pFactory:PhotoshopFactory){
         this.modelFactory = modelFactory;
@@ -24,9 +23,9 @@ export class AssetsSync implements IFactory{
     async execute(params:IParams){
         this.activeDocument = params.activeDocument;
         this.generator = params.generator;
-        this.document = await this.generator.getDocumentInfo(undefined);
+        this.activeDocument = await params.storage.documentManager.getDocument(this.activeDocument.id);
         this.artLayers = {};
-        utlis.traverseObject(this.document.layers, this.getAllArtLayers.bind(this));
+        utlis.traverseObject(this.activeDocument.layers.layers, this.getAllArtLayers.bind(this));
         await this.startAssetsChange();
     }
 
@@ -37,7 +36,9 @@ export class AssetsSync implements IFactory{
             await this.checkAllCommon(qAssetsPath);
             await this.checkAllViews(qAssetsPath);
             await this.checkAllLocals(qAssetsPath);
-        } catch(err) {console.log(err)}
+        } catch(err) {
+            console.log(err)
+        }
     }
 
     private async checkUpper(qAssetsPath) {
@@ -46,8 +47,8 @@ export class AssetsSync implements IFactory{
             const allFiles = getAllFiles(changePath);
             for(let changeFile of allFiles) {
                 const allArtLayers = [];
-                upperDispatch(this.artLayers, changeFile, allArtLayers);
-                await this.handleFileSyncProcedure(changeFile, path.join(changePath, changeFile), allArtLayers);
+                upperDispatch(this.artLayers, utlis.removeExtensionFromFileName(changeFile), allArtLayers);
+                await this.handleFileSyncProcedure(utlis.removeExtensionFromFileName(changeFile), path.join(changePath, changeFile), allArtLayers);
             }
             throw new Error("Dispatch Done");
         }
@@ -63,8 +64,8 @@ export class AssetsSync implements IFactory{
                 const allFiles = getAllFiles(changePath);
                 for(let changeFile of allFiles) {
                     const allArtLayers = [];
-                    allCommonDispatch(this.artLayers, plat, changeFile, allArtLayers);
-                    await this.handleFileSyncProcedure(changeFile, path.join(changePath, changeFile), allArtLayers);
+                    allCommonDispatch(this.artLayers, plat, utlis.removeExtensionFromFileName(changeFile), allArtLayers);
+                    await this.handleFileSyncProcedure(utlis.removeExtensionFromFileName(changeFile), path.join(changePath, changeFile), allArtLayers);
                 }
             }
         }
@@ -93,8 +94,8 @@ export class AssetsSync implements IFactory{
                     const allFiles = getAllFiles(changePath);
                     for (let changeFile of allFiles) {
                         const allArtLayers = [];
-                        allViewDispatch(this.artLayers, path.dirname(platPath), viewDir, changeFile, allArtLayers);
-                        await this.handleFileSyncProcedure(changeFile, path.join(changePath, changeFile), allArtLayers);
+                        allViewDispatch(this.artLayers, path.basename(path.dirname(platPath)), key, viewDir, utlis.removeExtensionFromFileName(changeFile), allArtLayers);
+                        await this.handleFileSyncProcedure(utlis.removeExtensionFromFileName(changeFile), path.join(changePath, changeFile), allArtLayers);
                     }
                 }
             }
@@ -107,10 +108,10 @@ export class AssetsSync implements IFactory{
     private async handleFileSyncProcedure(file, assetsPath, artLayers){
         for(let artLayer of artLayers) {
             const name = artLayer.name;
-            let parentId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/getParentId.jsx"), {"childName":artLayer.id});
+            let parentId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/getParentId.jsx"), {"childName":artLayer.id});
             let parentX = 0;
             let parentY = 0;
-            let filePath = path.join(assetsPath, file+".png")
+            let filePath = assetsPath;
             let dimension = {
                 parentX,
                 parentY,
@@ -129,8 +130,8 @@ export class AssetsSync implements IFactory{
                 file:filePath
             };
             const bufferPayload = await this.generator.getLayerSettingsForPlugin(this.activeDocument.id, artLayer.id, packageJson.name);
-            await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: artLayer.id});
-            const newLayerId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), creationObj);
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/DeleteErrorLayer.jsx"), {id: artLayer.id});
+            const newLayerId = await this.generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/InsertLayer.jsx"), creationObj);
             await this.generator.setLayerSettingsForPlugin(bufferPayload, newLayerId, packageJson.name);
         }
     }
@@ -139,16 +140,14 @@ export class AssetsSync implements IFactory{
         if(!artLayerRef.generatorSettings) {
             return;
         }
-        const platform = utlis.findPlatform(artLayerRef, this.document);
-        let view = utlis.findView(artLayerRef, this.document, "common");
+        const platform = utlis.findPlatform(artLayerRef, this.activeDocument);
+        let view = utlis.findView(artLayerRef, this.activeDocument, "common");
         let insertionKey;
         if(view) {
-            utlis.addKeyToObject(this.artLayers[platform], "common");
             insertionKey = "common";
         } else {
-            view = utlis.findView(artLayerRef, this.document, "languages");
+            view = utlis.findView(artLayerRef, this.activeDocument, "languages");
             if(view) {
-                utlis.addKeyToObject(this.artLayers[platform], "common");
                 insertionKey = "languages";
             }
         }

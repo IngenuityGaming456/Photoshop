@@ -29,6 +29,10 @@ export class SelfAddedStructures {
         this.generator.on(pc.generator.layersAdded, addedLayers => {
             this.onLayersAdded(addedLayers);
         });
+        this.generator.on(pc.generator.layerRenamed, renamedLayer => {
+            this.onLayerRenamed(renamedLayer[0]);
+        })
+        //Layer Deletion call will eventually come from ContainerPanelResponse
         this.generator.on(pc.generator.layersMoved, movedLayers => {
             this.onLayersMoved(movedLayers);
         });
@@ -47,7 +51,9 @@ export class SelfAddedStructures {
     private async modifyParentAndChild(parentId, childId) {
         this.activeDocument = await this.documentManager.getDocument(this.activeDocument.id);
         if(!utlis.isIDExists(childId, this.modelFactory.getPhotoshopModel().allDrawnQuestItems)) {
-            utlis.handleModelData([{id: childId}], [], this.modelFactory.getPhotoshopModel().viewElementalMap, []);
+            utlis.handleModelData([{id: childId}], [],
+                this.modelFactory.getPhotoshopModel().viewElementalMap,
+                this.modelFactory.getPhotoshopModel().getQuestViews, [], this.generator);
             const layerRef = this.activeDocument.layers.findLayer(childId);
             if(layerRef.layer && layerRef.layer.generatorSettings && layerRef.layer.generatorSettings[this.pluginId]) {
                 const type = layerRef.layer.generatorSettings[this.pluginId].json;
@@ -62,6 +68,15 @@ export class SelfAddedStructures {
         if(!this.modelFactory.getPhotoshopModel().setAutomation) {
             utlis.getFirstAddedItem(addedLayers, this.onFirstAddedLayer.bind(this));
         }
+    }
+
+    private onLayerRenamed(renamedLayer) {
+        this.renameSelfStructures(renamedLayer.name, renamedLayer.id);
+    }
+
+    private renameSelfStructures(name, id) {
+        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
+        utlis.renameElementalMap(elementalMap, name, id, this.generator);
     }
 
     private async onFirstAddedLayer(addedLayer) {
@@ -101,7 +116,7 @@ export class SelfAddedStructures {
     }
 
     private findView(addedLayer) {
-        return utlis.findView(addedLayer, this.activeDocument);
+        return utlis.findView(addedLayer, this.activeDocument, "common");
     }
 
     private findPlatform(addedLayer) {

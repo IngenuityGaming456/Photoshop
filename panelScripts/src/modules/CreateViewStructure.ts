@@ -1,10 +1,11 @@
 import {IFactory, IParams, IViewStructure} from "../interfaces/IJsxParam";
 import {ModelFactory} from "../models/ModelFactory";
-import {PhotoshopModel} from "../models/PhotoshopModels/PhotoshopModel";
 import * as layerClass from "../../lib/dom/layer";
 import {PhotoshopFactory} from "./PhotoshopFactory";
 import {photoshopConstants as pc} from "../constants";
 import * as path from "path";
+import {utlis} from "../utils/utils";
+import {PhotoshopModelApp} from "../../srcExtension/models/PhotoshopModels/PhotoshopModelApp";
 
 let packageJson = require("../../package.json");
 
@@ -14,7 +15,6 @@ export class CreateViewStructure implements IFactory {
     private _pluginId;
     private readonly _viewClass : IViewStructure;
     private readonly modelFactory: ModelFactory;
-    private photoshopModel: PhotoshopModel;
     private activeDocument;
     private platform;
     private currentMenu;
@@ -38,7 +38,6 @@ export class CreateViewStructure implements IFactory {
         this.activeDocument = params.activeDocument;
         this.currentMenu = params.menuName;
         this.docEmitter = params.docEmitter;
-        this.photoshopModel = this.modelFactory.getPhotoshopModel();
         this.drawStruct(params.menuName);
     }
 
@@ -51,36 +50,18 @@ export class CreateViewStructure implements IFactory {
                                                                    this.viewDeletionObj, this.menuName);
         if(insertionObj !== "invalid") {
             this.platform = insertionObj.platform;
-            let params = this.getElementMap().get(menuName);
             this.emitValidCalls(menuName);
             const result = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/CreateView.jsx"));
-            params = {
+            utlis.pushUniqueToArray((this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).selfMadeViews, result);
+            let params = {
                 [result]: {
                     [result]: {}
                 }
             };
             for (let keys in params) {
                 if (params.hasOwnProperty(keys)) {
-                    this.modifyMappedPlatform(keys);
                     this.modifyElementalMap(keys);
                     await this.photoshopFactory.makeStruct(params[keys], insertionObj.insertId, null, this.platform);
-                }
-            }
-        }
-    }
-
-    private modifyMappedPlatform(view) {
-        const mappedPlatform = this.modelFactory.getPhotoshopModel().mappedPlatformObj;
-        for(let key in mappedPlatform) {
-            if(!mappedPlatform.hasOwnProperty(key)) {
-                continue;
-            }
-            mappedPlatform[key][view] = {};
-            const firstKey = Object.keys(mappedPlatform[key])[0];
-            const rear = Object.keys(mappedPlatform[key][firstKey]["mapping"])[0];
-            mappedPlatform[key][view] = {
-                "mapping": {
-                    [rear]: view
                 }
             }
         }

@@ -20,6 +20,7 @@ export class EventsManager implements IFactory{
         if(this.activeDocId && this.activeDocId != eventCopy.id) {
             return;
         }
+        this.isSelected(eventCopy);
         this.removeUnwantedEvents(eventCopy);
         try {
             this.isAddedEvent(eventCopy)
@@ -31,10 +32,20 @@ export class EventsManager implements IFactory{
         }
     }
 
+    private isSelected(event) {
+        if("selection" in event) {
+            this.generator.emit("select");
+        }
+    }
+
     private subscribeListeners() {
         this.generator.on(pc.generator.activeDocumentId, activeDocId => this.activeDocId = activeDocId);
-        this.generator.on(pc.logger.newDocument, () => this.isNewDocument = true);
-        this.generator.on(pc.logger.currentDocument, () => this.isNewDocument = false);
+        this.generator.on(pc.logger.newDocument, () => {
+            this.isNewDocument = true;
+        });
+        this.generator.on(pc.logger.currentDocument, () => {
+            this.isNewDocument = false;
+        });
         this.generator.on(pc.generator.eventProcessed, (event) => {
             if(!this.isNewDocument) this.onHandleEvents(event);
         });
@@ -55,9 +66,6 @@ export class EventsManager implements IFactory{
 
     private onHandleEvents(event) {
         switch(event) {
-            case Events.SELECT :
-                this.generator.emit("select");
-                break;
             case Events.COPY :
                 this.generator.emit("copy");
                 break;

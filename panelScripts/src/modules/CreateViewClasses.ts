@@ -27,7 +27,6 @@ export class CreateView implements IViewStructure {
         return !(viewDeletionObj[platform][menuName] === null || viewDeletionObj[platform][menuName]);
     }
 
-
 }
 
 export class CreatePlatform implements IViewStructure {

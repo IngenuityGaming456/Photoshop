@@ -1,3 +1,4 @@
+app.activeDocument = app.documents[0];
 var selectedLayersName = [];
 var ref = new ActionReference();
 ref.putEnumerated( charIDToTypeID('Dcmn'), charIDToTypeID('Ordn'), charIDToTypeID('Trgt') );

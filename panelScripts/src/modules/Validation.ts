@@ -40,9 +40,10 @@ export class Validation implements IFactory {
     }
 
     private isNumericInAdded(item) {
-        if(~item.name.search(/^[\W\d_]+/)) {
-            this.docEmitter.emit(pc.logger.logWarning, "Not allowed to add Items with special characters");
-            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: item.id});
+        try{
+            this.isNumeric(item.name, item.id);
+        } catch(err) {
+            console.log(err);
         }
     }
 
@@ -360,7 +361,6 @@ export class Validation implements IFactory {
             (await this.drawnQuestItemsRenamed(eventLayers[0].name, eventLayers[0].id, drawnQuestItems))
                 .isInHTML(eventLayers[0].name, eventLayers[0].id, questArray, drawnQuestItems)
                 .isNumeric(eventLayers[0].name, eventLayers[0].id)
-                .renameSelfStructures(eventLayers[0].name, eventLayers[0].id)
         } catch(err) {
             console.log("Validation Stopped");
         }
@@ -405,12 +405,10 @@ export class Validation implements IFactory {
             return this;
     }
 
-    private isNumeric(name, id) {
+    private async isNumeric(name, id) {
         if(~name.search(/^[\W\d_]+/)) {
-            const selectedIdPrevName = (this.modelFactory.getPhotoshopModel() as PhotoshopModelApp).selectedName;
-            this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
-                {id: id, name: selectedIdPrevName});
-            this.docEmitter.emit(pc.logger.logWarning, "Names Starting with Special characters are not allowed");
+            await this.generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"),
+                {id: id, name: "Special-" + name});
             throw new Error("Validation Stop");
         }
         return this;
@@ -439,10 +437,5 @@ export class Validation implements IFactory {
                 return true;
             }
         })
-    }
-
-    private renameSelfStructures(name, id) {
-        const elementalMap = this.modelFactory.getPhotoshopModel().viewElementalMap;
-        utlis.renameElementalMap(elementalMap, name, id);
     }
 }

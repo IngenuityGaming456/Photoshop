@@ -69,9 +69,6 @@ export class CreateLayoutStructure implements IFactory {
         });
         for (let item of items) {
             const structRef = this._activeDocument.layers.findLayer(item.id);
-            if(structRef.layer.group.name === pc.views.baseGame) {
-                return;
-            }
             if(structRef.layer.layers) {
                 const structRefNestedLayers = structRef.layer.layers.length;
                 for(let i=0;i<structRefNestedLayers;i++) {

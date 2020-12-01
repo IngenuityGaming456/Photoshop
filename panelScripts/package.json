@@ -7,7 +7,7 @@
     "fs-extra": "^5.0.0",
     "q": "~1.0",
     "socket.io": "^2.2.0",
-    "lodash": "^4.17.15",
+	"lodash": "^4.17.15",
     "svgobjectmodelgenerator": "github:adobe-photoshop/svgObjectModelGenerator#v0.6.5",
     "tmp": "0.0.33"
   },

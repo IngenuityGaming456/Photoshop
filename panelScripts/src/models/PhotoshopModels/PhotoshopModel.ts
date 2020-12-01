@@ -22,6 +22,7 @@ export class PhotoshopModel implements IModel {
     private prevContainerResponse;
     private containerResponse;
     private questViews = [];
+    private selfViews = [];
     private mappedPlatform = {};
     private questPlatforms = [pc.platforms.desktop, pc.platforms.portrait, pc.platforms.landscape];
     private layersErrorData = [];
@@ -169,7 +170,7 @@ export class PhotoshopModel implements IModel {
     public createPlatformMapping(mappingResponse) {
         const mappedPlatform = {};
         mappedPlatform[mappingResponse["front"]] = {};
-        this.questViews.forEach(itemV => {
+        [...this.questViews, ...this.selfViews].forEach(itemV => {
                 mappedPlatform[mappingResponse["front"]][itemV] = this.constructViewMapping(itemV, mappingResponse);
         });
         this.mappedPlatform = mappedPlatform;
@@ -286,6 +287,14 @@ export class PhotoshopModel implements IModel {
 
     get menuCurrentState() {
         return this.currentState;
+    }
+
+    get selfMadeViews() {
+        return this.selfViews;
+    }
+
+    get getQuestViews() {
+        return this.questViews;
     }
 
     public onPhotoshopStart() {

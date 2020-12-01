@@ -1,12 +1,11 @@
-import {Restructure} from "./Restructure";
+import {Restructure} from "../Restructure";
 import * as path from "path";
-import {IFactory, IParams} from "../interfaces/IJsxParam";
-import * as layerClass from "../../lib/dom/layer";
-import {ModelFactory} from "../models/ModelFactory";
-import {utlis} from "../utils/utils";
-import {photoshopConstants as pc} from "../constants";
-
-let packageJson = require("../../package.json");
+import {IFactory, IParams} from "../../interfaces/IJsxParam";
+import * as layerClass from "../../../lib/dom/layer";
+import {ModelFactory} from "../../models/ModelFactory";
+import {utlis} from "../../utils/utils";
+import {photoshopConstants as pc} from "../../constants";
+let packageJson = require("../../../package.json");
 
 export class CreateComponent implements IFactory {
     private _generator;
@@ -39,7 +38,7 @@ export class CreateComponent implements IFactory {
             return Promise.resolve();
         }
         this.subscribeListeners(this.executeCalls++);
-        this.searchDocument();
+        await this.searchDocument();
         this.elementValue = this.modelFactory.getMappingModel().getComponentsMap().get(params.menuName);
         let sequenceId = Restructure.sequenceStructure(this.elementValue);
         let id = await this.callComponentJsx(sequenceId, params.menuName);
@@ -48,7 +47,7 @@ export class CreateComponent implements IFactory {
     }
 
     private async isValid() {
-        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/SelectedLayersIds.jsx"));
+        let selectedLayersString = await this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/SelectedLayersIds.jsx"));
         const selectedLayersIdArray = selectedLayersString.toString().split(",");
         const layers: layerClass.LayerGroup = this.activeDocument.layers;
         const selectedRef = layers.findLayer(Number(selectedLayersIdArray[0]));
@@ -152,7 +151,7 @@ export class CreateComponent implements IFactory {
     }
 
     private async callComponentJsx(sequenceId: number, jsxName: string): Promise<number> {
-        let jsxPath = path.join(__dirname, "../../jsx/" + jsxName + ".jsx");
+        let jsxPath = path.join(__dirname, "../../../jsx/" + jsxName + ".jsx");
         await this._generator.evaluateJSXString(`alert({jsxPath})`);
         return await this._generator.evaluateJSXFile(jsxPath, {clicks: sequenceId});
     }
@@ -179,7 +178,7 @@ export class CreateComponent implements IFactory {
                     return;
                 }
                 const sequenceId = Restructure.sequenceStructure(this.elementValue);
-                this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/RenameErrorLayer.jsx"), {
+                this._generator.evaluateJSXFile(path.join(__dirname, "../../../jsx/RenameErrorLayer.jsx"), {
                     id: addedLayer.id,
                     level: 1,
                     index: component.index,

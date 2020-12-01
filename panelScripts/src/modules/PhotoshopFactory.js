@@ -8,49 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PhotoshopFactory = void 0;
-var path = require("path");
-var JsonComponentsFactory_1 = require("./JsonComponentsFactory");
-var JsonComponents_1 = require("./JsonComponents");
-var constants_1 = require("../constants");
-var PhotoshopFactoryHelpers_1 = require("./PhotoshopFactoryHelpers");
-var packageJson = require("../../package.json");
-var PhotoshopFactory = /** @class */ (function () {
-    function PhotoshopFactory(modelFactory) {
+const path = require("path");
+const JsonComponentsFactory_1 = require("./JsonComponentsFactory");
+const JsonComponents_1 = require("./JsonComponents");
+const constants_1 = require("../constants");
+const PhotoshopFactoryHelpers_1 = require("./PhotoshopFactoryHelpers");
+let packageJson = require("../../package.json");
+class PhotoshopFactory {
+    constructor(modelFactory) {
         this.photoshopModel = modelFactory.getPhotoshopModel();
     }
-    PhotoshopFactory.prototype.execute = function (params) {
+    execute(params) {
         this._generator = params.generator;
         this._pluginId = packageJson.name;
-    };
+    }
     /**
      * function is responsible for creating eveery element
      * @param parserObject it is the object which is needed for creation, it contains every required info for creation like parent, id, x,y etc.
@@ -60,114 +33,64 @@ var PhotoshopFactory = /** @class */ (function () {
      * @param type type of element
      * @param assetsPath path of the images if any
      */
-    PhotoshopFactory.prototype.makeStruct = function (parserObject, insertionPoint, parentKey, platform, type, assetsPath) {
-        return __awaiter(this, void 0, void 0, function () {
-            var layerType, _a, _b, _i, keys, jsxParams, mappedKey;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        this.platform = platform;
-                        _a = [];
-                        for (_b in parserObject)
-                            _a.push(_b);
-                        _i = 0;
-                        _c.label = 1;
-                    case 1:
-                        if (!(_i < _a.length)) return [3 /*break*/, 7];
-                        keys = _a[_i];
-                        jsxParams = { parentId: "", childName: "", type: "" };
-                        if (!parserObject.hasOwnProperty(keys) || !(parserObject[keys] instanceof Object)) {
-                            return [3 /*break*/, 6];
-                        }
-                        layerType = parserObject[keys].type;
-                        return [4 /*yield*/, this.setParams(jsxParams, parserObject, keys, insertionPoint, assetsPath)];
-                    case 2:
-                        _c.sent();
-                        if (!(!layerType && !jsxParams.childName)) return [3 /*break*/, 4];
-                        this.baseView = keys;
-                        return [4 /*yield*/, this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type, assetsPath)];
-                    case 3:
-                        _c.sent();
-                        return [3 /*break*/, 6];
-                    case 4:
-                        this.baseView = parentKey;
-                        mappedKey = this.getMappedKey();
-                        if (mappedKey) {
-                            this.photoshopModel.automationOn = true;
-                        }
-                        this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
-                        return [4 /*yield*/, this.createElementTree(jsxParams, layerType, parentKey, type)];
-                    case 5:
-                        _c.sent();
-                        this.photoshopModel.automationOn = false;
-                        _c.label = 6;
-                    case 6:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 7: return [2 /*return*/];
+    makeStruct(parserObject, insertionPoint, parentKey, platform, type, assetsPath) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let layerType;
+            this.platform = platform;
+            for (let keys in parserObject) {
+                let jsxParams = { parentId: "", childName: "", type: "" };
+                if (!parserObject.hasOwnProperty(keys) || !(parserObject[keys] instanceof Object)) {
+                    continue;
                 }
-            });
+                layerType = parserObject[keys].type;
+                yield this.setParams(jsxParams, parserObject, keys, insertionPoint, assetsPath);
+                if (!layerType && !jsxParams.childName) {
+                    this.baseView = keys;
+                    yield this.createBaseChild(jsxParams, keys, insertionPoint, parserObject, type, assetsPath);
+                }
+                else {
+                    this.baseView = parentKey;
+                    const mappedKey = this.getMappedKey();
+                    if (mappedKey) {
+                        this.photoshopModel.automationOn = true;
+                    }
+                    this.platform && this.modifyJSXParams(jsxParams, mappedKey, layerType);
+                    yield this.createElementTree(jsxParams, layerType, parentKey, type);
+                    this.photoshopModel.automationOn = false;
+                }
+            }
         });
-    };
-    PhotoshopFactory.prototype.getMappedKey = function () {
+    }
+    getMappedKey() {
         var _a, _b;
-        var mappedPlatform = this.photoshopModel.mappedPlatformObj;
+        const mappedPlatform = this.photoshopModel.mappedPlatformObj;
         if (this.platform && (this.platform in mappedPlatform || "noConnection" in mappedPlatform)) {
             return (_b = (_a = mappedPlatform[this.platform]) === null || _a === void 0 ? void 0 : _a[this.baseView]["mapping"]) !== null && _b !== void 0 ? _b : mappedPlatform["noConnection"][this.baseView]["mapping"];
         }
         return null;
-    };
-    PhotoshopFactory.prototype.setParams = function (jsxParams, parserObject, keys, insertionPoint, assetsPath) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        PhotoshopFactoryHelpers_1.addDimensionsToParams(jsxParams, parserObject, keys);
-                        PhotoshopFactoryHelpers_1.addImageToParams(jsxParams, parserObject, keys, assetsPath);
-                        PhotoshopFactoryHelpers_1.addFramesToParams(jsxParams, parserObject, keys, assetsPath);
-                        PhotoshopFactoryHelpers_1.addTextToParams(jsxParams, parserObject, keys, assetsPath);
-                        jsxParams.leaf = parserObject[keys].leaf;
-                        jsxParams.childName = parserObject[keys].id;
-                        _a = jsxParams;
-                        if (!parserObject[keys].parent) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.findParentId(parserObject[keys].parent, insertionPoint)];
-                    case 1:
-                        _b = _c.sent();
-                        return [3 /*break*/, 3];
-                    case 2:
-                        _b = insertionPoint;
-                        _c.label = 3;
-                    case 3:
-                        _a.parentId = _b;
-                        return [2 /*return*/];
-                }
-            });
+    }
+    setParams(jsxParams, parserObject, keys, insertionPoint, assetsPath) {
+        return __awaiter(this, void 0, void 0, function* () {
+            PhotoshopFactoryHelpers_1.addDimensionsToParams(jsxParams, parserObject, keys);
+            PhotoshopFactoryHelpers_1.addImageToParams(jsxParams, parserObject, keys, assetsPath);
+            PhotoshopFactoryHelpers_1.addFramesToParams(jsxParams, parserObject, keys, assetsPath);
+            PhotoshopFactoryHelpers_1.addTextToParams(jsxParams, parserObject, keys, assetsPath);
+            jsxParams.leaf = parserObject[keys].leaf;
+            jsxParams.childName = parserObject[keys].id;
+            jsxParams.parentId = parserObject[keys].parent ? yield this.findParentId(parserObject[keys].parent, insertionPoint) : insertionPoint;
         });
-    };
-    PhotoshopFactory.prototype.createBaseChild = function (jsxParams, keys, insertionPoint, parserObject, type, assetsPath) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        jsxParams.childName = keys;
-                        jsxParams.type = "layerSection";
-                        return [4 /*yield*/, this.createBaseStruct(jsxParams)];
-                    case 1:
-                        insertionPoint = _a.sent();
-                        this.setBaseIds(keys, insertionPoint, type);
-                        return [4 /*yield*/, this.insertBaseMetaData(insertionPoint)];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type, assetsPath)];
-                    case 3:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
+    }
+    createBaseChild(jsxParams, keys, insertionPoint, parserObject, type, assetsPath) {
+        return __awaiter(this, void 0, void 0, function* () {
+            jsxParams.childName = keys;
+            jsxParams.type = "layerSection";
+            insertionPoint = yield this.createBaseStruct(jsxParams);
+            this.setBaseIds(keys, insertionPoint, type);
+            yield this.insertBaseMetaData(insertionPoint);
+            yield this.makeStruct(parserObject[keys], insertionPoint, keys, this.platform, type, assetsPath);
         });
-    };
-    PhotoshopFactory.prototype.setBaseIds = function (keys, insertionPoint, type) {
+    }
+    setBaseIds(keys, insertionPoint, type) {
         if (!this.platform) {
             this.photoshopModel.setPlatformMenuIds(Number(insertionPoint), keys);
         }
@@ -177,68 +100,39 @@ var PhotoshopFactory = /** @class */ (function () {
         if (type === "quest") {
             this.photoshopModel.setDrawnQuestItems(Number(insertionPoint), keys);
         }
-    };
-    PhotoshopFactory.prototype.insertBaseMetaData = function (insertionPoint) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.view, insertionPoint, this._pluginId)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
-            });
+    }
+    insertBaseMetaData(insertionPoint) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this._generator.setLayerSettingsForPlugin(constants_1.photoshopConstants.generatorIds.view, insertionPoint, this._pluginId);
         });
-    };
-    PhotoshopFactory.prototype.findParentId = function (childName, parentId) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/parentId.jsx"), { childName: childName, parentId: parentId })];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
+    }
+    findParentId(childName, parentId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/parentId.jsx"), { childName: childName, parentId: parentId });
         });
-    };
-    PhotoshopFactory.prototype.createBaseStruct = function (jsxParams) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), jsxParams)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
-            });
+    }
+    createBaseStruct(jsxParams) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this._generator.evaluateJSXFile(path.join(__dirname, "../../jsx/InsertLayer.jsx"), jsxParams);
         });
-    };
-    PhotoshopFactory.prototype.createElementTree = function (jsxParams, layerType, parentKey, type) {
-        return __awaiter(this, void 0, void 0, function () {
-            var jsonMap, element, childId;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        jsonMap = JsonComponentsFactory_1.JsonComponentsFactory.makeJsonComponentsMap();
-                        element = jsonMap.get(layerType);
-                        if (!(element instanceof JsonComponents_1.PhotoshopJsonComponent)) return [3 /*break*/, 2];
-                        jsxParams.type = element.getType();
-                        jsxParams.subType = element.getSubType();
-                        return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
-                    case 1:
-                        childId = _a.sent();
-                        _a.label = 2;
-                    case 2:
-                        if (!(element instanceof JsonComponents_1.QuestJsonComponent)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, element.setJsx(this._generator, jsxParams)];
-                    case 3:
-                        childId = _a.sent();
-                        _a.label = 4;
-                    case 4:
-                        this.setChildIds(childId, jsxParams, layerType, parentKey, type);
-                        return [2 /*return*/];
-                }
-            });
+    }
+    createElementTree(jsxParams, layerType, parentKey, type) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let jsonMap = JsonComponentsFactory_1.JsonComponentsFactory.makeJsonComponentsMap();
+            let element = jsonMap.get(layerType);
+            let childId;
+            if (element instanceof JsonComponents_1.PhotoshopJsonComponent) {
+                jsxParams.type = element.getType();
+                jsxParams.subType = element.getSubType();
+                childId = yield element.setJsx(this._generator, jsxParams);
+            }
+            if (element instanceof JsonComponents_1.QuestJsonComponent) {
+                childId = yield element.setJsx(this._generator, jsxParams);
+            }
+            this.setChildIds(childId, jsxParams, layerType, parentKey, type);
         });
-    };
-    PhotoshopFactory.prototype.setChildIds = function (childId, jsxParams, layerType, parentKey, type) {
+    }
+    setChildIds(childId, jsxParams, layerType, parentKey, type) {
         if (!this.platform) {
             this.photoshopModel.setPlatformMenuIds(childId, jsxParams.childName);
         }
@@ -248,8 +142,8 @@ var PhotoshopFactory = /** @class */ (function () {
         if (type === "quest") {
             this.photoshopModel.setDrawnQuestItems(childId, jsxParams.childName);
         }
-    };
-    PhotoshopFactory.prototype.modifyJSXParams = function (jsxParams, mappedView, layerType) {
+    }
+    modifyJSXParams(jsxParams, mappedView, layerType) {
         if (layerType === "container") {
             if (jsxParams.leaf) {
                 this.setParamsMapping(jsxParams, mappedView, layerType);
@@ -258,15 +152,15 @@ var PhotoshopFactory = /** @class */ (function () {
         else {
             this.setParamsMapping(jsxParams, mappedView, layerType);
         }
-    };
-    PhotoshopFactory.prototype.setParamsMapping = function (jsxParams, mappedView, layerType) {
-        var elementalMap = this.photoshopModel.viewElementalMap;
-        for (var key in mappedView) {
+    }
+    setParamsMapping(jsxParams, mappedView, layerType) {
+        const elementalMap = this.photoshopModel.viewElementalMap;
+        for (let key in mappedView) {
             if (!mappedView.hasOwnProperty(key)) {
                 continue;
             }
-            var typeArray = key === "noConnection" ? elementalMap[this.platform][mappedView[key]][layerType] : elementalMap[key][mappedView[key]][layerType];
-            var mappedLayer = typeArray.find(function (item) {
+            const typeArray = key === "noConnection" ? elementalMap[this.platform][mappedView[key]][layerType] : elementalMap[key][mappedView[key]][layerType];
+            const mappedLayer = typeArray.find(item => {
                 if (item.name === jsxParams.childName) {
                     return true;
                 }
@@ -277,8 +171,7 @@ var PhotoshopFactory = /** @class */ (function () {
                 return;
             }
         }
-    };
-    return PhotoshopFactory;
-}());
+    }
+}
 exports.PhotoshopFactory = PhotoshopFactory;
 //# sourceMappingURL=PhotoshopFactory.js.map

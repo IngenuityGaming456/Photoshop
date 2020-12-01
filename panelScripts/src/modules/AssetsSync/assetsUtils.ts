@@ -22,13 +22,12 @@ export function upperDispatch(artLayers, fileName, allArtLayers) {
             upperDispatch(artLayers[key], fileName, allArtLayers);
         }
     }
-    return allArtLayers;
 }
 
 export function allCommonDispatch(artLayers, platform, fileName, allArtLayers) {
     return upperDispatch(artLayers[platform], fileName, allArtLayers);
 }
 
-export function allViewDispatch(artLayers, platform, view, fileName, allArtLayers) {
-    return allArtLayers(...artLayers[platform][view][fileName]);
+export function allViewDispatch(artLayers, platform, key, view, fileName, allArtLayers) {
+    allArtLayers.push(...artLayers[platform][key][view][fileName]);
 }

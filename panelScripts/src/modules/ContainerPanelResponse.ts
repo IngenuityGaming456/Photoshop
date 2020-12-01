@@ -68,7 +68,7 @@ export class ContainerPanelResponse implements IFactory {
             }
         }
         utlis.handleModelData(eventLayers, questArray, this.modelFactory.getPhotoshopModel().viewElementalMap,
-                              this.deletionHandler);
+                              this.modelFactory.getPhotoshopModel().getQuestViews, this.deletionHandler, this.generator);
     }
 
     private async getDataForChanges(type) {

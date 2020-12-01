@@ -1,7 +1,7 @@
 import {IFactory, IParams} from "../interfaces/IJsxParam";
 import {CreateViewStructure} from "./CreateViewStructure";
 import {ModelFactory} from "../models/ModelFactory";
-import {CreateComponent} from "./CreateComponent";
+import {CreateComponent} from "./Components/CreateComponent";
 import {CreateLocalisationStructure} from "./CreateLocalisationStructure";
 import {execute, FactoryClass, inject} from "./FactoryClass";
 import {CreatePlatform, CreateView} from "./CreateViewClasses";
@@ -24,6 +24,7 @@ import {CreateImport} from "./Import/CreateImport";
 import {PhotoshopParser} from "./Import/PhotoshopParser";
 import { AssetsSync } from "./AssetsSync/AssetsSync";
 import { utlis } from "../utils/utils";
+import {ManageComponents} from "./Components/ManageComponents";
 
 let packageJson = require("../../package.json");
 
@@ -353,6 +354,8 @@ export class DocumentStarter implements IFactory {
         execute(selfAddedStructures, {
             generator: this.generator, activeDocument: this.activeDocument, docEmitter: this.docEmitter, storage: {documentManager: this.documentManager}
         });
+        const manageComponents = inject({ref: ManageComponents, dep: []});
+        execute(manageComponents, {generator: this.generator, activeDocument: this.activeDocument});
         inject({ ref:PhotoshopParser, dep: [] });
     }
 

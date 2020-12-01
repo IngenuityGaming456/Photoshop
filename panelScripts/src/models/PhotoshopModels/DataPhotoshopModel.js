@@ -1,40 +1,37 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DataPhotoshopModel = void 0;
-var DataPhotoshopModel = /** @class */ (function () {
-    function DataPhotoshopModel() {
-    }
-    DataPhotoshopModel.prototype.createElementData = function () {
+class DataPhotoshopModel {
+    createElementData() {
         return this.openDocumentData.elementalMap;
-    };
-    DataPhotoshopModel.prototype.createPlatformDeletion = function () {
+    }
+    createPlatformDeletion() {
         return this.openDocumentData.platformDeletion;
-    };
-    DataPhotoshopModel.prototype.createViewDeletionObj = function () {
+    }
+    createViewDeletionObj() {
         return this.openDocumentData.viewDeletion;
-    };
-    DataPhotoshopModel.prototype.accessMenuState = function () {
+    }
+    accessMenuState() {
         return this.openDocumentData.menuStates;
-    };
-    DataPhotoshopModel.prototype.accessCurrentState = function () {
+    }
+    accessCurrentState() {
         return this.openDocumentData.menuCurrentState;
-    };
-    DataPhotoshopModel.prototype.accessContainerResponse = function () {
+    }
+    accessContainerResponse() {
         return this.openDocumentData.containerResponse;
-    };
-    DataPhotoshopModel.prototype.accessDrawnQuestItems = function () {
+    }
+    accessDrawnQuestItems() {
         return this.openDocumentData.drawnQuestItems;
-    };
-    DataPhotoshopModel.prototype.accessDocLocalisationStruct = function () {
+    }
+    accessDocLocalisationStruct() {
         return this.openDocumentData.docLocalisationStruct;
-    };
-    DataPhotoshopModel.prototype.accessModifiedIds = function () {
+    }
+    accessModifiedIds() {
         return this.openDocumentData.modifiedIds;
-    };
-    DataPhotoshopModel.prototype.execute = function (params) {
+    }
+    execute(params) {
         this.openDocumentData = params.storage.openDocumentData;
-    };
-    return DataPhotoshopModel;
-}());
+    }
+}
 exports.DataPhotoshopModel = DataPhotoshopModel;
 //# sourceMappingURL=DataPhotoshopModel.js.map

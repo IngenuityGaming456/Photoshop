@@ -1,75 +1,51 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute = exports.inject = exports.FactoryClass = void 0;
-var Loading_1 = require("../../srcExtension/loader/Loading");
-var FactoryClass = /** @class */ (function () {
-    function FactoryClass() {
+const Loading_1 = require("../../srcExtension/loader/Loading");
+class FactoryClass {
+    constructor() {
         this.dependencyMap = new Map();
         this.cache = new Map();
     }
-    FactoryClass.getInstance = function () {
+    static getInstance() {
         if (FactoryClass.instance) {
             return FactoryClass.instance;
         }
         FactoryClass.instance = new FactoryClass();
         return FactoryClass.instance;
-    };
-    FactoryClass.prototype.construct = function (factoryConstruct, dependencies, isNonSingleton) {
-        var _this = this;
+    }
+    construct(factoryConstruct, dependencies, isNonSingleton) {
         if (this.cache.get(factoryConstruct)) {
             return this.cache.get(factoryConstruct);
         }
-        var instance = new (factoryConstruct.bind.apply(factoryConstruct, __spread([void 0], dependencies.map(function (item) { return _this.construct(item, _this.getItemDependencies(item), isNonSingleton); }))))();
+        const instance = new factoryConstruct(...dependencies.map(item => this.construct(item, this.getItemDependencies(item), isNonSingleton)));
         if (!isNonSingleton) {
             this.cache.set(factoryConstruct, instance);
         }
         return instance;
-    };
-    FactoryClass.prototype.getItemDependencies = function (item) {
+    }
+    getItemDependencies(item) {
         if (!this.dependencyMap.get(item)) {
             return item.deps ? item.deps : [];
         }
         return this.dependencyMap.get(item);
-    };
-    Object.defineProperty(FactoryClass, "factoryInstance", {
-        set: function (ref) {
-            FactoryClass.instance = ref;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return FactoryClass;
-}());
+    }
+    static set factoryInstance(ref) {
+        FactoryClass.instance = ref;
+    }
+}
 exports.FactoryClass = FactoryClass;
-exports.inject = function (params) {
-    var factoryClass = FactoryClass.getInstance();
-    var subClassRef = Loading_1.loadingMap.get(params.ref);
+const inject = function (params) {
+    const factoryClass = FactoryClass.getInstance();
+    const subClassRef = Loading_1.loadingMap.get(params.ref);
     params.ref = subClassRef ? subClassRef : params.ref;
     factoryClass.dependencyMap.set(params.ref, params.dep);
     params.isNonSingleton = params.isNonSingleton ? params.isNonSingleton : false;
     return factoryClass.construct(params.ref, params.dep, params.isNonSingleton);
 };
-exports.execute = function (factory, params) {
+exports.inject = inject;
+const execute = function (factory, params) {
     factory.execute(params);
 };
+exports.execute = execute;
 //# sourceMappingURL=FactoryClass.js.map

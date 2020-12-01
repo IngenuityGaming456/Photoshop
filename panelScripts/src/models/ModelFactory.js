@@ -1,34 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ModelFactory = void 0;
-var FactoryClass_1 = require("../modules/FactoryClass");
-var MappingModel_1 = require("./MappingModel");
-var DataPhotoshopModel_1 = require("./PhotoshopModels/DataPhotoshopModel");
-var NoDataPhotoshopModel_1 = require("./PhotoshopModels/NoDataPhotoshopModel");
-var PhotoshopModel_1 = require("./PhotoshopModels/PhotoshopModel");
-var menuLabels = require("../res/menuLables.json");
-var platformStruct = require("../res/platform.json");
-var languagesStruct = require("../res/languages.json");
-var ModelFactory = /** @class */ (function () {
-    function ModelFactory() {
-    }
-    ModelFactory.prototype.execute = function (params) {
+const FactoryClass_1 = require("../modules/FactoryClass");
+const MappingModel_1 = require("./MappingModel");
+const DataPhotoshopModel_1 = require("./PhotoshopModels/DataPhotoshopModel");
+const NoDataPhotoshopModel_1 = require("./PhotoshopModels/NoDataPhotoshopModel");
+const PhotoshopModel_1 = require("./PhotoshopModels/PhotoshopModel");
+let menuLabels = require("../res/menuLables.json");
+let platformStruct = require("../res/platform.json");
+let languagesStruct = require("../res/languages.json");
+class ModelFactory {
+    execute(params) {
         this.generator = params.generator;
         this.docEmitter = params.docEmitter;
         this.activeDocument = params.activeDocument;
         this.openDocumentData = params.storage.openDocumentData;
         this.subPhotoshopModel = this.checkOpenData();
         this.instantiate();
-    };
-    ModelFactory.prototype.checkOpenData = function () {
+    }
+    checkOpenData() {
         if (this.openDocumentData) {
-            var dataModel = FactoryClass_1.inject({ ref: DataPhotoshopModel_1.DataPhotoshopModel, dep: [] });
+            const dataModel = FactoryClass_1.inject({ ref: DataPhotoshopModel_1.DataPhotoshopModel, dep: [] });
             FactoryClass_1.execute(dataModel, { storage: { openDocumentData: this.openDocumentData } });
             return dataModel;
         }
         return FactoryClass_1.inject({ ref: NoDataPhotoshopModel_1.NoDataPhotoshopModel, dep: [] });
-    };
-    ModelFactory.prototype.instantiate = function () {
+    }
+    instantiate() {
         this.mappingModel = FactoryClass_1.inject({ ref: MappingModel_1.MappingModel, dep: [] });
         FactoryClass_1.execute(this.mappingModel, {
             storage: this.getMappingStorage(),
@@ -42,8 +40,8 @@ var ModelFactory = /** @class */ (function () {
             generator: this.generator, docEmitter: this.docEmitter,
             activeDocument: this.activeDocument
         });
-    };
-    ModelFactory.prototype.getMappingStorage = function () {
+    }
+    getMappingStorage() {
         return {
             menuLabels: menuLabels,
             platformStruct: platformStruct,
@@ -51,25 +49,24 @@ var ModelFactory = /** @class */ (function () {
             openDocumentData: this.openDocumentData,
             subPhotoshopModel: this.subPhotoshopModel
         };
-    };
-    ModelFactory.prototype.getPhotoshopStorage = function () {
+    }
+    getPhotoshopStorage() {
         return {
             openDocumentData: this.openDocumentData,
             subPhotoshopModel: this.subPhotoshopModel
         };
-    };
-    ModelFactory.prototype.getMappingModel = function () {
+    }
+    getMappingModel() {
         return this.mappingModel;
-    };
-    ModelFactory.prototype.getPhotoshopModel = function () {
+    }
+    getPhotoshopModel() {
         return this.photoshopModel;
-    };
-    ModelFactory.prototype.handleSocketStorage = function (storage, type) {
+    }
+    handleSocketStorage(storage, type) {
         this.socketStorageResponse = storage;
         this.photoshopModel.handleSocketStorage(this.socketStorageResponse, type);
         this.mappingModel.handleSocketStorage(this.socketStorageResponse, type);
-    };
-    return ModelFactory;
-}());
+    }
+}
 exports.ModelFactory = ModelFactory;
 //# sourceMappingURL=ModelFactory.js.map

@@ -1,35 +1,25 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EventsManager = void 0;
-var constants_1 = require("../constants");
-var utils_1 = require("../utils/utils");
-var EventsManager = /** @class */ (function () {
-    function EventsManager() {
+const constants_1 = require("../constants");
+const utils_1 = require("../utils/utils");
+class EventsManager {
+    constructor() {
         this.isNewDocument = false;
         this.activeDocId = null;
     }
-    EventsManager.prototype.execute = function (params) {
+    execute(params) {
         this.generator = params.generator;
         this.documentManager = params.storage.documentManager;
         this.subscribeListeners();
-    };
-    EventsManager.prototype.onImageChanged = function (event) {
-        var eventCopy = __assign({}, event);
+    }
+    onImageChanged(event) {
+        const eventCopy = Object.assign({}, event);
         this.isDocumentChange(eventCopy);
         if (this.activeDocId && this.activeDocId != eventCopy.id) {
             return;
         }
+        this.isSelected(eventCopy);
         this.removeUnwantedEvents(eventCopy);
         try {
             this.isAddedEvent(eventCopy)
@@ -40,34 +30,39 @@ var EventsManager = /** @class */ (function () {
         catch (err) {
             console.log(err);
         }
-    };
-    EventsManager.prototype.subscribeListeners = function () {
-        var _this = this;
-        this.generator.on(constants_1.photoshopConstants.generator.activeDocumentId, function (activeDocId) { return _this.activeDocId = activeDocId; });
-        this.generator.on(constants_1.photoshopConstants.logger.newDocument, function () { return _this.isNewDocument = true; });
-        this.generator.on(constants_1.photoshopConstants.logger.currentDocument, function () { return _this.isNewDocument = false; });
-        this.generator.on(constants_1.photoshopConstants.generator.eventProcessed, function (event) {
-            if (!_this.isNewDocument)
-                _this.onHandleEvents(event);
+    }
+    isSelected(event) {
+        if ("selection" in event) {
+            this.generator.emit("select");
+        }
+    }
+    subscribeListeners() {
+        this.generator.on(constants_1.photoshopConstants.generator.activeDocumentId, activeDocId => this.activeDocId = activeDocId);
+        this.generator.on(constants_1.photoshopConstants.logger.newDocument, () => {
+            this.isNewDocument = true;
         });
-        this.documentManager.on(constants_1.photoshopConstants.documentEvents.openDocumentsChanged, function (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) {
-            _this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
+        this.generator.on(constants_1.photoshopConstants.logger.currentDocument, () => {
+            this.isNewDocument = false;
         });
-        this.generator.on(constants_1.photoshopConstants.generator.activeDocumentClosed, function () { return _this.isNewDocument = false; });
-    };
-    EventsManager.prototype.handleDocumentOpenClose = function (nowOpenDocuments, nowClosedDocuments) {
+        this.generator.on(constants_1.photoshopConstants.generator.eventProcessed, (event) => {
+            if (!this.isNewDocument)
+                this.onHandleEvents(event);
+        });
+        this.documentManager.on(constants_1.photoshopConstants.documentEvents.openDocumentsChanged, (allOpenDocuments, nowOpenDocuments, nowClosedDocuments) => {
+            this.handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments);
+        });
+        this.generator.on(constants_1.photoshopConstants.generator.activeDocumentClosed, () => this.isNewDocument = false);
+    }
+    handleDocumentOpenClose(nowOpenDocuments, nowClosedDocuments) {
         if (nowOpenDocuments.length) {
             this.handleOpenDocument(nowOpenDocuments);
         }
         if (nowClosedDocuments.length) {
             this.handleCloseDocument(nowClosedDocuments);
         }
-    };
-    EventsManager.prototype.onHandleEvents = function (event) {
+    }
+    onHandleEvents(event) {
         switch (event) {
-            case Events.SELECT:
-                this.generator.emit("select");
-                break;
             case Events.COPY:
                 this.generator.emit("copy");
                 break;
@@ -86,55 +81,53 @@ var EventsManager = /** @class */ (function () {
             case Events.UNDO:
                 this.generator.emit("undo");
         }
-    };
-    EventsManager.prototype.handleOpenDocument = function (nowOpenDocuments) {
+    }
+    handleOpenDocument(nowOpenDocuments) {
         this.generator.emit(constants_1.photoshopConstants.generator.openedDocument, nowOpenDocuments[0]);
-    };
-    EventsManager.prototype.handleCloseDocument = function (nowCloseDocuments) {
+    }
+    handleCloseDocument(nowCloseDocuments) {
         this.generator.emit(constants_1.photoshopConstants.generator.closedDocument, nowCloseDocuments[0]);
-    };
-    EventsManager.prototype.isDocumentChange = function (event) {
+    }
+    isDocumentChange(event) {
         if (event.active) {
             this.generator.emit(constants_1.photoshopConstants.generator.activeDocumentChanged, event.id);
         }
-    };
-    EventsManager.prototype.removeUnwantedEvents = function (event) {
+    }
+    removeUnwantedEvents(event) {
         if (event.layers) {
             this.removeUnwantedLayers(event.layers);
             this.removeUnwantedProperty(event.layers);
         }
-    };
-    EventsManager.prototype.removeUnwantedLayers = function (rawChange) {
+    }
+    removeUnwantedLayers(rawChange) {
         var unwantedLayers = [];
-        rawChange.forEach(function (item, index) {
+        rawChange.forEach((item, index) => {
             if ((item.added && item.removed)) {
                 unwantedLayers.push(index);
             }
         });
         this.sliceArray(rawChange, unwantedLayers);
-    };
-    EventsManager.prototype.removeUnwantedProperty = function (rawChange) {
+    }
+    removeUnwantedProperty(rawChange) {
         if (this.checkAddedItem(rawChange)) {
             this.removeProperty(rawChange);
         }
-    };
-    EventsManager.prototype.checkAddedItem = function (rawChange) {
-        var _this = this;
-        var addedTypeItem = rawChange.find(function (item) {
+    }
+    checkAddedItem(rawChange) {
+        var addedTypeItem = rawChange.find(item => {
             if (item.added) {
                 return true;
             }
             if (item.layers) {
-                return _this.checkAddedItem(item.layers);
+                return this.checkAddedItem(item.layers);
             }
             return false;
         });
         return !!addedTypeItem;
-    };
-    EventsManager.prototype.removeProperty = function (rawChange) {
-        var _this = this;
-        var unwantedLayers = [];
-        rawChange.forEach(function (item, index) {
+    }
+    removeProperty(rawChange) {
+        let unwantedLayers = [];
+        rawChange.forEach((item, index) => {
             if (item.removed) {
                 if (!item.layers) {
                     unwantedLayers.push(index);
@@ -144,14 +137,14 @@ var EventsManager = /** @class */ (function () {
                 }
             }
             else if (item.layers) {
-                _this.removeProperty(item.layers);
+                this.removeProperty(item.layers);
             }
         });
         this.sliceArray(rawChange, unwantedLayers);
-    };
-    EventsManager.prototype.isAddedEvent = function (event) {
+    }
+    isAddedEvent(event) {
         if (event.layers) {
-            var addedPath = this.isAdded(event.layers, []);
+            const addedPath = this.isAdded(event.layers, []);
             if (!addedPath) {
                 return this;
             }
@@ -159,37 +152,37 @@ var EventsManager = /** @class */ (function () {
                 this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, event.layers, this.isNewDocument);
             }
             else {
-                var parsedEvent = utils_1.utlis.getParsedEvent(addedPath.reverse(), event.layers, { index: 0 }, null);
+                const parsedEvent = utils_1.utlis.getParsedEvent(addedPath.reverse(), event.layers, { index: 0 }, null);
                 this.generator.emit(constants_1.photoshopConstants.generator.layersAdded, parsedEvent, this.isNewDocument);
             }
             throw new Error("Added Event Dispatched");
         }
         return this;
-    };
-    EventsManager.prototype.isDeletionEvent = function (event) {
+    }
+    isDeletionEvent(event) {
         if (event.layers && this.isDeletion(event.layers)) {
             this.generator.emit(constants_1.photoshopConstants.generator.layersDeleted, event.layers);
             throw new Error("Deletion Event Dispatched");
         }
         return this;
-    };
-    EventsManager.prototype.isRenameEvent = function (event) {
+    }
+    isRenameEvent(event) {
         if (event.layers && event.layers.length && !event.layers[0].added && event.layers[0].name) {
             this.generator.emit(constants_1.photoshopConstants.generator.layerRenamed, event.layers);
             throw new Error("Rename Event Dispatched");
         }
         return this;
-    };
-    EventsManager.prototype.isMovedEvent = function (event) {
+    }
+    isMovedEvent(event) {
         if (event.layers && this.isMoved(event.layers)) {
             this.generator.emit(constants_1.photoshopConstants.generator.layersMoved, event.layers);
         }
-    };
-    EventsManager.prototype.isAdded = function (layers, pathArray) {
-        var subPathArray = [];
-        var layersCount = layers.length;
-        for (var i = 0; i < layersCount; i++) {
-            var subLayer = layers[i];
+    }
+    isAdded(layers, pathArray) {
+        const subPathArray = [];
+        const layersCount = layers.length;
+        for (let i = 0; i < layersCount; i++) {
+            const subLayer = layers[i];
             if (subLayer.hasOwnProperty("added")) {
                 subPathArray.push(i);
                 if (layersCount === 1) {
@@ -197,7 +190,7 @@ var EventsManager = /** @class */ (function () {
                 }
                 continue;
             }
-            var addedResult = subLayer.layers && this.isAtLevel(subLayer.layers, "added");
+            const addedResult = subLayer.layers && this.isAtLevel(subLayer.layers, "added");
             if (addedResult) {
                 subPathArray.push(i);
                 if (subLayer.layers) {
@@ -210,27 +203,27 @@ var EventsManager = /** @class */ (function () {
         }
         pathArray.push(subPathArray);
         return pathArray;
-    };
-    EventsManager.prototype.isAtLevel = function (layers, key) {
-        var layerLength = layers.length;
-        for (var i = 0; i < layerLength; i++) {
-            var subLayer = layers[i];
+    }
+    isAtLevel(layers, key) {
+        const layerLength = layers.length;
+        for (let i = 0; i < layerLength; i++) {
+            const subLayer = layers[i];
             if (subLayer.hasOwnProperty(key)) {
                 return true;
             }
             if (subLayer.hasOwnProperty("layers")) {
-                var levelValue = this.isAtLevel(subLayer.layers, key);
+                const levelValue = this.isAtLevel(subLayer.layers, key);
                 if (levelValue) {
                     return true;
                 }
             }
         }
         return false;
-    };
-    EventsManager.prototype.isMoved = function (layers) {
-        var layersCount = layers.length;
-        for (var i = 0; i < layersCount; i++) {
-            var subLayer = layers[i];
+    }
+    isMoved(layers) {
+        const layersCount = layers.length;
+        for (let i = 0; i < layersCount; i++) {
+            const subLayer = layers[i];
             if (subLayer.hasOwnProperty("added") || subLayer.hasOwnProperty("removed")) {
                 return false;
             }
@@ -239,26 +232,25 @@ var EventsManager = /** @class */ (function () {
             }
         }
         return true;
-    };
-    EventsManager.prototype.isDeletion = function (layers) {
-        var layersCount = layers.length;
-        for (var i = 0; i < layersCount; i++) {
-            var subLayer = layers[i];
+    }
+    isDeletion(layers) {
+        const layersCount = layers.length;
+        for (let i = 0; i < layersCount; i++) {
+            const subLayer = layers[i];
             if (subLayer.hasOwnProperty("removed")) {
                 return true;
             }
         }
         return false;
-    };
-    EventsManager.prototype.sliceArray = function (rawChange, unwantedLayers) {
-        var unwantedCount = unwantedLayers.length;
-        for (var i = 0; i < unwantedCount; i++) {
+    }
+    sliceArray(rawChange, unwantedLayers) {
+        const unwantedCount = unwantedLayers.length;
+        for (let i = 0; i < unwantedCount; i++) {
             rawChange.splice(unwantedLayers[i], 1);
             unwantedLayers[i + 1] -= (i + 1);
         }
-    };
-    return EventsManager;
-}());
+    }
+}
 exports.EventsManager = EventsManager;
 var Events;
 (function (Events) {

@@ -23,11 +23,11 @@ export class utlis {
         for(let item of idArray) {
             if(item.layers) {
                 const itemRefRec = utlis.isIDExistsRec(id, item.layers);
-                    if(itemRefRec) {
-                        return itemRefRec;
-                    }
+                if(itemRefRec) {
+                    return itemRefRec;
                 }
             }
+        }
         return null;
     }
 
@@ -48,6 +48,12 @@ export class utlis {
                 return true;
             }
         });
+    }
+
+    public static pushUniqueToArray(arr, val) {
+        if(!~arr.indexOf(val)) {
+            arr.push(val);
+        }
     }
 
     public static getConsecutiveIndexes(itemArray, index) {
@@ -98,7 +104,7 @@ export class utlis {
 
     public static traverseObject(arrayLayers, callback, callbackLayers?) {
         let noOfLayers = arrayLayers.length;
-        
+
         for (let i = 0; i < noOfLayers; i++) {
             if (arrayLayers[i].type === "layer") {
                 callback && callback(arrayLayers[i]);
@@ -142,7 +148,7 @@ export class utlis {
         }
     }
 
-    public static handleModelData(eventLayers, drawnQuestItems, viewElementalMap, sessionHandler) {
+    public static handleModelData(eventLayers, drawnQuestItems, viewElementalMap, questViews, sessionHandler, generator) {
         for (let platform in viewElementalMap) {
             if (!viewElementalMap.hasOwnProperty(platform)) {
                 continue;
@@ -158,11 +164,30 @@ export class utlis {
                     if (!viewItems.hasOwnProperty(itemV)) {
                         continue;
                     }
+                    if("base" in viewItems[itemV]) {
+                        const itemRef = utlis.isIDExists(viewItems[itemV].base.id, eventLayers);
+                        if(itemRef && !questViews.indexOf(itemV)) {
+                            utlis.deleteAllLinkedViews(pc.platformArray, itemV, viewElementalMap, generator);
+                            continue;
+                        }
+                    }
                     utlis.setDeletionObj(platform, view, deletionObj);
                     utlis.handleView(viewItems, itemV, eventLayers, drawnQuestItems, deletionObj, sessionHandler);
                 }
             }
         }
+    }
+
+    public static deleteAllLinkedViews(platformArray, viewKey, elementalMap, generator) {
+        platformArray.forEach(plat => {
+            //Not using await as all this is the backend data
+            try {
+                generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: elementalMap[viewKey]["base"].id});
+            } catch(err) {
+                console.log("No such layer found , ", err);
+            }
+            delete elementalMap[plat][viewKey];
+        })
     }
 
     private static setDeletionObj(platform, baseView, deletionObj) {
@@ -589,7 +614,7 @@ export class utlis {
         }
     }
 
-    public static renameElementalMap(elementalMap, name, id) {
+    public static renameElementalMap(elementalMap, name, id, generator) {
         for(let platform in elementalMap) {
             if(!elementalMap.hasOwnProperty(platform)) {
                 continue;
@@ -597,6 +622,10 @@ export class utlis {
             const viewObj = elementalMap[platform];
             for(let view in viewObj) {
                 if(!viewObj.hasOwnProperty(view) || view === "base") {
+                    continue;
+                }
+                if("base" in viewObj[view] && viewObj[view]["base"].id === id) {
+                    utlis.renameAllLinkedViews(pc.platformArray, view, elementalMap, name, generator);
                     continue;
                 }
                 const elementalObj = viewObj[view];
@@ -616,6 +645,12 @@ export class utlis {
                 item.name = name;
             }
         }
+    }
+
+    private static renameAllLinkedViews(platformArray, viewKey, elementalMap, name, generator) {
+        platformArray.forEach(plat => {
+            generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), {id: elementalMap[plat][viewKey]["base"].id, name});
+        })
     }
 
     public static getAssetsAndJson(key, activeDocument) {
@@ -668,7 +703,7 @@ export class utlis {
             if(~eventNames.indexOf(stopEvent)) {
                 socket.removeAllListeners(stopEvent);
             }
-            socket.on(stopEvent, () => resolve());
+            socket.on(stopEvent, () => resolve("done"));
             socket.emit(startEvent, elementPlatform, elementView, elementName)
         });
     }
@@ -694,4 +729,5 @@ export class utlis {
     public static removeExtensionFromFileName(file){
         return file.split('.').slice(0, -1).join('.')
     }
+
 }
