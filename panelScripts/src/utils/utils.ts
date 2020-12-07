@@ -4,6 +4,7 @@ import * as layerClass from "../../lib/dom/layer";
 import {photoshopConstants as pc} from "../constants";
 import {JsonComponentsFactory} from "../modules/JsonComponentsFactory";
 import * as fsx from "fs-extra";
+import {verify} from "crypto";
 
 export class utlis {
 
@@ -150,26 +151,26 @@ export class utlis {
 
     public static handleModelData(eventLayers, drawnQuestItems, viewElementalMap, questViews, sessionHandler, generator) {
         for (let platform in viewElementalMap) {
-            if (!viewElementalMap.hasOwnProperty(platform)) {
+            if (!viewElementalMap.hasOwnProperty(platform) || !(viewElementalMap[platform] instanceof Object)) {
                 continue;
             }
             const platformMap = viewElementalMap[platform];
             for (let view in platformMap) {
-                if (!platformMap.hasOwnProperty(view)) {
+                if (!platformMap.hasOwnProperty(view) || !(platformMap[view] instanceof Object)) {
                     continue;
+                }
+                if("base" in platformMap[view]) {
+                    const itemRef = utlis.isIDExists(platformMap[view].base.id, eventLayers);
+                    if(itemRef && !~questViews.indexOf(view)) {
+                        utlis.deleteAllLinkedViews(pc.platformArray, view, viewElementalMap, generator);
+                        continue;
+                    }
                 }
                 const viewItems = platformMap[view];
                 for (let itemV in viewItems) {
                     const deletionObj = {};
-                    if (!viewItems.hasOwnProperty(itemV)) {
+                    if (!viewItems.hasOwnProperty(itemV) || !(viewItems[itemV] instanceof Object)) {
                         continue;
-                    }
-                    if("base" in viewItems[itemV]) {
-                        const itemRef = utlis.isIDExists(viewItems[itemV].base.id, eventLayers);
-                        if(itemRef && !questViews.indexOf(itemV)) {
-                            utlis.deleteAllLinkedViews(pc.platformArray, itemV, viewElementalMap, generator);
-                            continue;
-                        }
                     }
                     utlis.setDeletionObj(platform, view, deletionObj);
                     utlis.handleView(viewItems, itemV, eventLayers, drawnQuestItems, deletionObj, sessionHandler);
@@ -182,7 +183,7 @@ export class utlis {
         platformArray.forEach(plat => {
             //Not using await as all this is the backend data
             try {
-                generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: elementalMap[viewKey]["base"].id});
+                generator.evaluateJSXFile(path.join(__dirname, "../../jsx/DeleteErrorLayer.jsx"), {id: elementalMap[plat][viewKey]["base"]?.id});
             } catch(err) {
                 console.log("No such layer found , ", err);
             }
@@ -616,12 +617,12 @@ export class utlis {
 
     public static renameElementalMap(elementalMap, name, id, generator) {
         for(let platform in elementalMap) {
-            if(!elementalMap.hasOwnProperty(platform)) {
+            if(!elementalMap.hasOwnProperty(platform) || !(elementalMap[platform] instanceof Object)) {
                 continue;
             }
             const viewObj = elementalMap[platform];
             for(let view in viewObj) {
-                if(!viewObj.hasOwnProperty(view) || view === "base") {
+                if(!viewObj.hasOwnProperty(view) || !(viewObj[view] instanceof Object)) {
                     continue;
                 }
                 if("base" in viewObj[view] && viewObj[view]["base"].id === id) {
@@ -636,11 +637,11 @@ export class utlis {
 
     private static renameElementalObj(elementalObj, name, id) {
         for(let element in elementalObj) {
-            if(!elementalObj.hasOwnProperty(element) || element === "base") {
+            if(!elementalObj.hasOwnProperty(element) || !(elementalObj[element] instanceof Object)) {
                 continue;
             }
             const component = elementalObj[element];
-            const item = utlis.isIDExists(id, component);
+            const item = component instanceof Array && utlis.isIDExists(id, component);
             if(item) {
                 item.name = name;
             }
@@ -649,7 +650,18 @@ export class utlis {
 
     private static renameAllLinkedViews(platformArray, viewKey, elementalMap, name, generator) {
         platformArray.forEach(plat => {
-            generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), {id: elementalMap[plat][viewKey]["base"].id, name});
+            // Rename handler cycle.
+            if(name in elementalMap[plat]) {
+                return;
+            }
+            try {
+                generator.evaluateJSXFile(path.join(__dirname, "../../jsx/UndoRenamedLayer.jsx"), {id: elementalMap[plat][viewKey]["base"]?.id, name});
+            } catch(err){
+                console.log("no such view to rename , ", err);
+            }
+            //renaming the view key
+            Object.defineProperty(elementalMap[plat], name, Object.getOwnPropertyDescriptor(elementalMap[plat], viewKey));
+            delete elementalMap[plat][viewKey];
         })
     }
 

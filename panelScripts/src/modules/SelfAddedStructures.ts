@@ -29,10 +29,13 @@ export class SelfAddedStructures {
         this.generator.on(pc.generator.layersAdded, addedLayers => {
             this.onLayersAdded(addedLayers);
         });
+        // Remember, if view rename happens for an older view, eventually this handler will be called again.
+        // Either break the cycle or write a deep code.
         this.generator.on(pc.generator.layerRenamed, renamedLayer => {
             this.onLayerRenamed(renamedLayer[0]);
         })
         //Layer Deletion call will eventually come from ContainerPanelResponse
+        //Design needed for Delete cycle
         this.generator.on(pc.generator.layersMoved, movedLayers => {
             this.onLayersMoved(movedLayers);
         });
